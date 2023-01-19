@@ -75,8 +75,12 @@ declsForEnumeration schemaMap schema =
       -- {con_doc = schemaDocString s}
       elemConstructor s = prefixCon (schemaTypeName s) []
 
+      enumLiteral s = string ("https://schema.org/" <> schemaTypeNameString s)
+
       enumTypeName = schemaTypeName schema
-      enumOtherTypeName = fromString $ "Other" <> schemaTypeNameString schema
+
+      enumOtherTypeNameString = "Other" <> schemaTypeNameString schema
+      enumOtherTypeName = fromString enumOtherTypeNameString
    in if null enumerationElems
         then []
         else
@@ -104,12 +108,25 @@ declsForEnumeration schemaMap schema =
                               map
                                 ( \s ->
                                     match
-                                      [string ("https://schema.org/" <> schemaTypeNameString s)]
+                                      [enumLiteral s]
                                       (bvar (schemaTypeName s))
                                 )
                                 enumerationElems
                                 ++ [match [bvar "t"] (bvar enumOtherTypeName @@ bvar "t")]
                           )
+                  ]
+              ],
+            instance'
+              (var "ToJSON" @@ bvar enumTypeName)
+              [ funBinds
+                  "toJSON"
+                  [ match [] $
+                      op (var "toJSON") "." $
+                        lambdaCase $
+                          map
+                            (\s -> match [bvar (schemaTypeName s)] (enumLiteral s))
+                            enumerationElems
+                            ++ [match [conP (fromString enumOtherTypeNameString) [bvar "t"]] (bvar "t")]
                   ]
               ]
           ]
