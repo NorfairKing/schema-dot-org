@@ -1,4 +1,6 @@
 loops:
   generate: |
-    stack install schema-dot-org-generator --exec='schema-dot-org-generator schemas.json' --no-nix-pure
-    stack build schema-dot-org
+    set -ex
+    stack install schema-dot-org-generator --exec='schema-dot-org-generator schemas.json' --no-nix-pure --fast
+    stack build schema-dot-org --fast
+    cat schema-dot-org/src/SchemaDotOrg.hs

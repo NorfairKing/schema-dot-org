@@ -12,6 +12,7 @@ import qualified Data.Map as M
 import Data.String
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
 import GHC (runGhc)
 import GHC.Driver.Session (getDynFlags)
 import qualified GHC.Paths as GHC (libdir)
@@ -34,11 +35,6 @@ schemaDotOrgGenerator = do
         Right allSchemas -> do
           let schemaMap = M.fromList (map (\s -> (schemaId s, s)) (allSchemasGraph allSchemas))
 
-          mapM_ print $ M.keys $ M.filter (\s -> "schema:Event" `elem` schemaDomainIncludes s) schemaMap
-
-          putStrLn "Enumerations"
-          mapM_ print $ M.filter (\s -> "schema:Enumeration" `elem` schemaSubclassOf s) schemaMap
-
           -- Generate the source
           dynFlags <- runGhc (Just GHC.libdir) getDynFlags
           let code =
@@ -46,10 +42,10 @@ schemaDotOrgGenerator = do
                   module'
                     (Just "SchemaDotOrg")
                     Nothing
-                    [ import' "GHC.Generics" `exposing` [var "Generic"]
+                    [ import' "GHC.Generics" `exposing` [var "Generic"],
+                      import' "Data.Aeson"
                     ]
                     $ concatMap (declsFor schemaMap) (M.elems schemaMap)
-          putStrLn "code"
 
           let moduleHeader =
                 unlines
@@ -59,7 +55,7 @@ schemaDotOrgGenerator = do
           let moduleCodec = unlines [moduleHeader, code]
 
           let moduleFile = "schema-dot-org/src/SchemaDotOrg.hs"
-          writeFile moduleFile moduleCodec
+          SB.writeFile moduleFile $ TE.encodeUtf8 $ T.pack moduleCodec
           callProcess "ormolu" ["-i", moduleFile]
 
 declsFor :: Map Text Schema -> Schema -> [HsDecl']
@@ -75,12 +71,30 @@ declsForEnumeration schemaMap schema =
       -- Use this as soon as comments work:
       -- {con_doc = schemaDocString s}
       elemConstructor s = prefixCon (schemaTypeName s) []
-   in [ data'
-          (schemaTypeName schema)
-          []
-          (map elemConstructor enumerationElems)
-          [deriving' [var "Show", var "Eq", var "Generic"]]
-      ]
+
+      enumTypeName = schemaTypeName schema
+   in if null enumerationElems
+        then []
+        else
+          [ data'
+              enumTypeName
+              []
+              (map elemConstructor enumerationElems)
+              [ deriving'
+                  [ var "Show",
+                    var "Eq",
+                    var "Ord",
+                    var "Generic"
+                  ]
+              ],
+            instance'
+              (var "FromJSON" @@ bvar enumTypeName)
+              [ funBinds
+                  "parseJSON"
+                  [ match [] $ op (var "withText" @@ string (T.unpack $ commentText (schemaLabel schema))) "$" (string "TODO")
+                  ]
+              ]
+          ]
 
 schemaTypeName :: Schema -> OccNameStr
 schemaTypeName = fromString . T.unpack . commentText . schemaLabel
