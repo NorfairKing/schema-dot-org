@@ -33,7 +33,9 @@ schemaDotOrgGenerator = do
       case JSON.eitherDecode' (LB.fromStrict schemaFileContents) of
         Left err -> die err
         Right allSchemas -> do
-          let schemaMap = M.fromList (map (\s -> (schemaId s, s)) (allSchemasGraph allSchemas))
+          let schemaMap =
+                M.filter (not . (SchemaRef "https://pending.schema.org" `elem`) . schemaIsPartOf) $
+                  M.fromList (map (\s -> (schemaId s, s)) (allSchemasGraph allSchemas))
 
           -- Generate the source
           dynFlags <- runGhc (Just GHC.libdir) getDynFlags
@@ -64,8 +66,42 @@ schemaDotOrgGenerator = do
 declsFor :: Map Text Schema -> Schema -> [HsDecl']
 declsFor schemaMap s@Schema {..} =
   if "schema:Enumeration" `elem` schemaSubclassOf
-    then declsForEnumeration schemaMap s
-    else []
+    then [] -- declsForEnumeration schemaMap s
+    else
+      if "rdfs:Class" `elem` schemaType
+        then declsForClass schemaMap s
+        else []
+
+declsForClass :: Map Text Schema -> Schema -> [HsDecl']
+declsForClass schemaMap schema =
+  let classProperties = M.elems (M.filter ((SchemaRef (schemaId schema) `elem`) . schemaDomainIncludes) schemaMap)
+      propertyFieldType s = case schemaRangeIncludes s of
+        ["schema:Text"] -> var "Text"
+        ["schema:Boolean"] -> var "Bool"
+        ["schema:Number"] -> var "Double" -- TODO Double?
+        [sr] -> case T.stripPrefix "schema:" (unSchemaRef sr) of
+          Nothing -> error $ "Unknown type for schema: " <> show s
+          Just schemaId -> var "Text" -- TODO:  var $ fromString (T.unpack schemaId)
+        _ -> var "Text" -- TODO we have to make our own extra sum type schema.
+      propertyFieldName s = schemaTypeNameString s -- TODO prefix naming
+      propertyField s =
+        (fromString (propertyFieldName s), field (propertyFieldType s))
+      classTypeName = schemaTypeName schema
+   in if null classProperties
+        then []
+        else
+          [ data'
+              classTypeName
+              []
+              [recordCon (fromString (schemaTypeNameString schema)) (map propertyField classProperties)]
+              [ deriving'
+                  [ var "Show",
+                    var "Eq",
+                    var "Ord",
+                    var "Generic"
+                  ]
+              ]
+          ]
 
 declsForEnumeration :: Map Text Schema -> Schema -> [HsDecl']
 declsForEnumeration schemaMap schema =

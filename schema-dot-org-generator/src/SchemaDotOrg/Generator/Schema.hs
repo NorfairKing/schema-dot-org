@@ -33,7 +33,8 @@ data Schema = Schema
     schemaSubclassOf :: [SchemaRef],
     schemaSubPropertyOf :: [SchemaRef],
     schemaDomainIncludes :: [SchemaRef],
-    schemaRangeIncludes :: [SchemaRef]
+    schemaRangeIncludes :: [SchemaRef],
+    schemaIsPartOf :: [SchemaRef]
   }
   deriving stock (Show, Eq, Ord, Generic)
 
@@ -49,6 +50,7 @@ instance HasCodec Schema where
         <*> optionalFieldWithOmittedDefaultWith' "rdfs:subPropertyOf" (singleOrListCodec codec) [] .= schemaSubPropertyOf
         <*> optionalFieldWithOmittedDefaultWith' "schema:domainIncludes" (singleOrListCodec codec) [] .= schemaDomainIncludes
         <*> optionalFieldWithOmittedDefaultWith' "schema:rangeIncludes" (singleOrListCodec codec) [] .= schemaRangeIncludes
+        <*> optionalFieldWithOmittedDefaultWith' "schema:isPartOf" (singleOrListCodec codec) [] .= schemaIsPartOf
 
 data Comment
   = CommentText Text
