@@ -12,7 +12,7 @@ import qualified Data.Map as M
 import Data.String
 import Data.Text (Text)
 import qualified Data.Text as T
-import GHC (LHsDocString, con_doc, mkHsDocString, noLoc, runGhc)
+import GHC (runGhc)
 import GHC.Driver.Session (getDynFlags)
 import qualified GHC.Paths as GHC (libdir)
 import GHC.SourceGen
@@ -84,12 +84,6 @@ declsForEnumeration schemaMap schema =
 
 schemaTypeName :: Schema -> OccNameStr
 schemaTypeName = fromString . T.unpack . commentText . schemaLabel
-
-schemaDocString :: Schema -> Maybe LHsDocString
-schemaDocString = Just . commentDocString . schemaComment
-
-commentDocString :: Comment -> LHsDocString
-commentDocString = noLoc . mkHsDocString . T.unpack . commentText
 
 commentText :: Comment -> Text
 commentText = \case
