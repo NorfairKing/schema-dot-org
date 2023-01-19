@@ -43,14 +43,17 @@ schemaDotOrgGenerator = do
                     (Just "SchemaDotOrg")
                     Nothing
                     [ import' "GHC.Generics" `exposing` [var "Generic"],
-                      import' "Data.Aeson"
+                      import' "Data.Aeson",
+                      import' "Data.Text" `exposing` [var "Text"]
                     ]
                     $ concatMap (declsFor schemaMap) (M.elems schemaMap)
 
           let moduleHeader =
                 unlines
                   [ "{-# LANGUAGE DeriveGeneric #-}",
-                    "{-# LANGUAGE EmptyDataDeriving #-}"
+                    "{-# LANGUAGE EmptyDataDeriving #-}",
+                    "{-# LANGUAGE OverloadedStrings #-}",
+                    "{-# LANGUAGE LambdaCase #-}"
                   ]
           let moduleCodec = unlines [moduleHeader, code]
 
@@ -73,13 +76,14 @@ declsForEnumeration schemaMap schema =
       elemConstructor s = prefixCon (schemaTypeName s) []
 
       enumTypeName = schemaTypeName schema
+      enumOtherTypeName = fromString $ "Other" <> schemaTypeNameString schema
    in if null enumerationElems
         then []
         else
           [ data'
               enumTypeName
               []
-              (map elemConstructor enumerationElems)
+              (map elemConstructor enumerationElems ++ [prefixCon enumOtherTypeName [field $ var "Text"]])
               [ deriving'
                   [ var "Show",
                     var "Eq",
@@ -91,13 +95,30 @@ declsForEnumeration schemaMap schema =
               (var "FromJSON" @@ bvar enumTypeName)
               [ funBinds
                   "parseJSON"
-                  [ match [] $ op (var "withText" @@ string (T.unpack $ commentText (schemaLabel schema))) "$" (string "TODO")
+                  [ match [] $
+                      (var "withText" @@ string (schemaTypeNameString schema))
+                        @@ op
+                          (var "pure")
+                          "."
+                          ( lambdaCase $
+                              map
+                                ( \s ->
+                                    match
+                                      [string ("https://schema.org/" <> schemaTypeNameString s)]
+                                      (bvar (schemaTypeName s))
+                                )
+                                enumerationElems
+                                ++ [match [bvar "t"] (bvar enumOtherTypeName @@ bvar "t")]
+                          )
                   ]
               ]
           ]
 
 schemaTypeName :: Schema -> OccNameStr
-schemaTypeName = fromString . T.unpack . commentText . schemaLabel
+schemaTypeName = fromString . schemaTypeNameString
+
+schemaTypeNameString :: Schema -> String
+schemaTypeNameString = T.unpack . commentText . schemaLabel
 
 commentText :: Comment -> Text
 commentText = \case
