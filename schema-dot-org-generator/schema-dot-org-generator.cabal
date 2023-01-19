@@ -1,0 +1,44 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.35.0.
+--
+-- see: https://github.com/sol/hpack
+
+name:           schema-dot-org-generator
+version:        0.0.0.0
+homepage:       https://github.com/NorfairKing/schema-dot-org#readme
+bug-reports:    https://github.com/NorfairKing/schema-dot-org/issues
+author:         Tom Sydney Kerckhove
+maintainer:     Tom Sydney Kerckhove
+build-type:     Simple
+
+source-repository head
+  type: git
+  location: https://github.com/NorfairKing/schema-dot-org
+
+library
+  exposed-modules:
+      SchemaDotOrg.Generator
+  other-modules:
+      Paths_schema_dot_org_generator
+  hs-source-dirs:
+      src
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+  build-depends:
+      base >=4.7 && <5
+    , ghc
+    , ghc-paths
+    , ghc-source-gen
+  default-language: Haskell2010
+
+executable schema-dot-org-generator
+  main-is: Main.hs
+  other-modules:
+      Paths_schema_dot_org_generator
+  hs-source-dirs:
+      app
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , schema-dot-org-generator
+  default-language: Haskell2010
