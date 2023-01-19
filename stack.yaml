@@ -1,3 +1,8 @@
 resolver: lts-19.6
 packages:
 - schema-dot-org-generator
+
+extra-deps:
+
+- autodocodec-0.2.0.0@sha256:435fde13e95ba55dd3b2e4195b00a49d4ddb6e4ce64a15c5868c40317fc33e21,1652
+

@@ -19,9 +19,13 @@ ghc-options:
 library:
   source-dirs: src
   dependencies:
-    - ghc-paths
+    - aeson
+    - autodocodec
+    - bytestring
     - ghc
+    - ghc-paths
     - ghc-source-gen
+    - text
 
 executables:
   schema-dot-org-generator:
