@@ -22,9 +22,11 @@ library:
     - aeson
     - autodocodec
     - bytestring
+    - containers
     - ghc
     - ghc-paths
     - ghc-source-gen
+    - process
     - text
 
 executables:

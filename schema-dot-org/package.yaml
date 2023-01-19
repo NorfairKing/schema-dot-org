@@ -1,0 +1,22 @@
+name:                schema-dot-org
+version:             0.0.0.0
+github:              "NorfairKing/schema-dot-org"
+author:              "Tom Sydney Kerckhove"
+
+dependencies:
+- base >= 4.7 && < 5
+
+ghc-options:
+- -Wall
+- -Wcompat
+- -Widentities
+- -Wincomplete-record-updates
+- -Wincomplete-uni-patterns
+- -Wmissing-home-modules
+- -Wpartial-fields
+- -Wredundant-constraints
+
+library:
+  source-dirs: src
+  dependencies:
+  - text

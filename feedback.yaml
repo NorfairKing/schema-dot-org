@@ -1,0 +1,4 @@
+loops:
+  generate: |
+    stack install schema-dot-org-generator --exec='schema-dot-org-generator schemas.json' --no-nix-pure
+    stack build schema-dot-org

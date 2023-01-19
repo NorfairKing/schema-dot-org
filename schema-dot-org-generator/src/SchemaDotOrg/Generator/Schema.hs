@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 
@@ -7,6 +8,7 @@ module SchemaDotOrg.Generator.Schema where
 
 import Autodocodec
 import Data.Aeson as JSON (FromJSON, ToJSON, Value)
+import Data.String
 import Data.Text (Text)
 import GHC.Generics (Generic)
 
@@ -28,11 +30,13 @@ data Schema = Schema
   { schemaId :: Text,
     schemaType :: [Text],
     schemaComment :: Comment,
-    schemaLabel :: Comment
-    -- schemaDomainIncludes :: [Text]
-    -- schemaRangeIncludes :: [Text]
+    schemaLabel :: Comment,
+    schemaSubclassOf :: [SchemaRef],
+    schemaSubPropertyOf :: [SchemaRef],
+    schemaDomainIncludes :: [SchemaRef],
+    schemaRangeIncludes :: [SchemaRef]
   }
-  deriving stock (Show, Eq, Generic)
+  deriving stock (Show, Eq, Ord, Generic)
 
 instance HasCodec Schema where
   codec =
@@ -42,6 +46,10 @@ instance HasCodec Schema where
         <*> requiredFieldWith' "@type" (singleOrListCodec codec) .= schemaType
         <*> requiredField' "rdfs:comment" .= schemaComment
         <*> requiredField' "rdfs:label" .= schemaLabel
+        <*> optionalFieldWithOmittedDefaultWith' "rdfs:subClassOf" (singleOrListCodec codec) [] .= schemaSubclassOf
+        <*> optionalFieldWithOmittedDefaultWith' "rdfs:subPropertyOf" (singleOrListCodec codec) [] .= schemaSubPropertyOf
+        <*> optionalFieldWithOmittedDefaultWith' "schema:domainIncludes" (singleOrListCodec codec) [] .= schemaDomainIncludes
+        <*> optionalFieldWithOmittedDefaultWith' "schema:rangeIncludes" (singleOrListCodec codec) [] .= schemaRangeIncludes
 
 data Comment
   = CommentText Text
@@ -50,7 +58,7 @@ data Comment
       -- ^ Lang
       Text
       -- ^ Value
-  deriving stock (Show, Eq, Generic)
+  deriving stock (Show, Eq, Ord, Generic)
 
 instance HasCodec Comment where
   codec =
@@ -67,3 +75,12 @@ instance HasCodec Comment where
       g = \case
         CommentText t -> Left t
         CommentTextInLang l v -> Right (l, v)
+
+newtype SchemaRef = SchemaRef {unSchemaRef :: Text}
+  deriving stock (Show, Eq, Ord, Generic)
+
+instance HasCodec SchemaRef where
+  codec = object "SchemaRef" $ SchemaRef <$> requiredField' "@id" .= unSchemaRef
+
+instance IsString SchemaRef where
+  fromString = SchemaRef . fromString
