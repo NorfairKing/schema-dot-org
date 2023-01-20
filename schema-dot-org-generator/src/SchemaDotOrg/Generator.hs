@@ -7,8 +7,12 @@ module SchemaDotOrg.Generator (schemaDotOrgGenerator) where
 import Data.Aeson as JSON (eitherDecode')
 import qualified Data.ByteString as SB
 import qualified Data.ByteString.Lazy as LB
+import Data.Char
 import Data.Map (Map)
 import qualified Data.Map as M
+import Data.Maybe
+import Data.Set (Set)
+import qualified Data.Set as S
 import Data.String
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -34,8 +38,11 @@ schemaDotOrgGenerator = do
         Left err -> die err
         Right allSchemas -> do
           let schemaMap =
-                M.filter (not . (SchemaRef "https://pending.schema.org" `elem`) . schemaIsPartOf) $
-                  M.fromList (map (\s -> (schemaId s, s)) (allSchemasGraph allSchemas))
+                -- Filter out superseded schemas because of naming conflicts
+                M.filter (null . schemaSupersededBy) $
+                  -- Filter out pending schemas because they don't have consensus
+                  M.filter (not . (SchemaRef "https://pending.schema.org" `elem`) . schemaIsPartOf) $
+                    M.fromList (map (\s -> (schemaId s, s)) (allSchemasGraph allSchemas))
 
           -- Generate the source
           dynFlags <- runGhc (Just GHC.libdir) getDynFlags
@@ -64,17 +71,39 @@ schemaDotOrgGenerator = do
           callProcess "ormolu" ["-i", moduleFile]
 
 declsFor :: Map Text Schema -> Schema -> [HsDecl']
-declsFor schemaMap s@Schema {..} =
-  if "schema:Enumeration" `elem` schemaSubclassOf
-    then [] -- declsForEnumeration schemaMap s
-    else
-      if "rdfs:Class" `elem` schemaType
-        then declsForClass schemaMap s
-        else []
+declsFor schemaMap s@Schema {..}
+  | "schema:Enumeration" `elem` schemaSubclassOf = declsForEnumeration schemaMap s
+  | "rdfs:Class" `elem` schemaType = declsForClass schemaMap s
+  | otherwise = []
+
+toCamelCase :: String -> String
+toCamelCase = \case
+  [] -> []
+  [c] -> [toLower c]
+  (c1 : c2 : cs)
+    | isUpper c1 && isUpper c2 -> toLower c1 : toCamelCase (c2 : cs)
+    | isUpper c1 -> toLower c1 : c2 : cs
+    | otherwise -> c1 : c2 : cs
+
+toPascalCase :: String -> String
+toPascalCase = \case
+  [] -> []
+  (c : cs) -> toUpper c : cs
+
+directClassProperties :: Map Text Schema -> Schema -> Set Schema
+directClassProperties schemaMap schema =
+  S.fromList $ M.elems (M.filter ((SchemaRef (schemaId schema) `elem`) . schemaDomainIncludes) schemaMap)
+
+allClassProperties :: Map Text Schema -> Schema -> Set Schema
+allClassProperties schemaMap schema =
+  let superClassRefs = schemaSubclassOf schema
+      superClasses = mapMaybe ((`M.lookup` schemaMap) . unSchemaRef) superClassRefs
+   in S.unions $
+        directClassProperties schemaMap schema : map (allClassProperties schemaMap) superClasses
 
 declsForClass :: Map Text Schema -> Schema -> [HsDecl']
 declsForClass schemaMap schema =
-  let classProperties = M.elems (M.filter ((SchemaRef (schemaId schema) `elem`) . schemaDomainIncludes) schemaMap)
+  let classProperties = S.toList $ allClassProperties schemaMap schema
       propertyFieldType s = case schemaRangeIncludes s of
         ["schema:Text"] -> var "Text"
         ["schema:Boolean"] -> var "Bool"
@@ -83,10 +112,11 @@ declsForClass schemaMap schema =
           Nothing -> error $ "Unknown type for schema: " <> show s
           Just schemaId -> var "Text" -- TODO:  var $ fromString (T.unpack schemaId)
         _ -> var "Text" -- TODO we have to make our own extra sum type schema.
-      propertyFieldName s = schemaTypeNameString s -- TODO prefix naming
+      propertyFieldName s = toCamelCase classTypeNameString <> toPascalCase (schemaTypeNameString s) -- TODO prefix naming
       propertyField s =
         (fromString (propertyFieldName s), field (propertyFieldType s))
-      classTypeName = schemaTypeName schema
+      classTypeName = fromString classTypeNameString
+      classTypeNameString = schemaTypeNameString schema
    in if null classProperties
         then []
         else

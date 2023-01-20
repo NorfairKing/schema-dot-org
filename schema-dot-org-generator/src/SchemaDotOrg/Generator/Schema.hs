@@ -34,7 +34,8 @@ data Schema = Schema
     schemaSubPropertyOf :: [SchemaRef],
     schemaDomainIncludes :: [SchemaRef],
     schemaRangeIncludes :: [SchemaRef],
-    schemaIsPartOf :: [SchemaRef]
+    schemaIsPartOf :: [SchemaRef],
+    schemaSupersededBy :: [SchemaRef]
   }
   deriving stock (Show, Eq, Ord, Generic)
 
@@ -51,6 +52,7 @@ instance HasCodec Schema where
         <*> optionalFieldWithOmittedDefaultWith' "schema:domainIncludes" (singleOrListCodec codec) [] .= schemaDomainIncludes
         <*> optionalFieldWithOmittedDefaultWith' "schema:rangeIncludes" (singleOrListCodec codec) [] .= schemaRangeIncludes
         <*> optionalFieldWithOmittedDefaultWith' "schema:isPartOf" (singleOrListCodec codec) [] .= schemaIsPartOf
+        <*> optionalFieldWithOmittedDefaultWith' "schema:supersededBy" (singleOrListCodec codec) [] .= schemaSupersededBy
 
 data Comment
   = CommentText Text
