@@ -21,54 +21,65 @@ import GHC (runGhc)
 import GHC.Driver.Session (getDynFlags)
 import qualified GHC.Paths as GHC (libdir)
 import GHC.SourceGen
+import Path
+import SchemaDotOrg.Generator.OptParse
 import SchemaDotOrg.Generator.Schema
 import System.Environment (getArgs)
 import System.Exit
-import System.Process
+import System.Process.Typed
 
 schemaDotOrgGenerator :: IO ()
 schemaDotOrgGenerator = do
-  args <- getArgs
-  case args of
-    [] -> putStrLn "Supply the schema file."
-    (schemaFile : _) -> do
-      putStrLn $ unwords ["Parsing schemas from schema file:", schemaFile]
-      schemaFileContents <- SB.readFile schemaFile
-      case JSON.eitherDecode' (LB.fromStrict schemaFileContents) of
-        Left err -> die err
-        Right allSchemas -> do
-          let schemaMap =
-                -- Filter out superseded schemas because of naming conflicts
-                M.filter (null . schemaSupersededBy) $
-                  -- Filter out pending schemas because they don't have consensus
-                  M.filter (not . (SchemaRef "https://pending.schema.org" `elem`) . schemaIsPartOf) $
-                    M.fromList (map (\s -> (schemaId s, s)) (allSchemasGraph allSchemas))
+  Instructions dispatch settings <- getInstructions
 
-          -- Generate the source
-          dynFlags <- runGhc (Just GHC.libdir) getDynFlags
-          let code =
-                showPpr dynFlags $
-                  module'
-                    (Just "SchemaDotOrg")
-                    Nothing
-                    [ import' "GHC.Generics" `exposing` [var "Generic"],
-                      import' "Data.Aeson",
-                      import' "Data.Text" `exposing` [var "Text"]
-                    ]
-                    $ concatMap (declsFor schemaMap) (M.elems schemaMap)
+  let schemaFile = settingSchemasFile settings
 
-          let moduleHeader =
-                unlines
-                  [ "{-# LANGUAGE DeriveGeneric #-}",
-                    "{-# LANGUAGE EmptyDataDeriving #-}",
-                    "{-# LANGUAGE OverloadedStrings #-}",
-                    "{-# LANGUAGE LambdaCase #-}"
-                  ]
-          let moduleCodec = unlines [moduleHeader, code]
+  putStrLn $ unwords ["Parsing schemas from schema file:", fromAbsFile schemaFile]
+  schemaFileContents <- SB.readFile (fromAbsFile schemaFile)
+  schemaMap <- case JSON.eitherDecode' (LB.fromStrict schemaFileContents) of
+    Left err -> die err
+    Right allSchemas -> do
+      let schemaMap =
+            -- Filter out superseded schemas because of naming conflicts
+            M.filter (null . schemaSupersededBy) $
+              -- Filter out pending schemas because they don't have consensus
+              M.filter (not . (SchemaRef "https://pending.schema.org" `elem`) . schemaIsPartOf) $
+                M.fromList (map (\s -> (schemaId s, s)) (allSchemasGraph allSchemas))
 
-          let moduleFile = "schema-dot-org/src/SchemaDotOrg.hs"
-          SB.writeFile moduleFile $ TE.encodeUtf8 $ T.pack moduleCodec
-          callProcess "ormolu" ["-i", moduleFile]
+      pure schemaMap
+
+  case dispatch of
+    DispatchGenerate -> generateCodeFor schemaMap
+    DispatchGraph -> generateGraphFor schemaMap
+
+generateGraphFor = print
+
+generateCodeFor schemaMap = do
+  -- Generate the source
+  dynFlags <- runGhc (Just GHC.libdir) getDynFlags
+  let code =
+        showPpr dynFlags $
+          module'
+            (Just "SchemaDotOrg")
+            Nothing
+            [ import' "GHC.Generics" `exposing` [var "Generic"],
+              import' "Data.Aeson",
+              import' "Data.Text" `exposing` [var "Text"]
+            ]
+            $ concatMap (declsFor schemaMap) (M.elems schemaMap)
+
+  let moduleHeader =
+        unlines
+          [ "{-# LANGUAGE DeriveGeneric #-}",
+            "{-# LANGUAGE EmptyDataDeriving #-}",
+            "{-# LANGUAGE OverloadedStrings #-}",
+            "{-# LANGUAGE LambdaCase #-}"
+          ]
+  let moduleCodec = unlines [moduleHeader, code]
+
+  let moduleFile = "schema-dot-org/src/SchemaDotOrg.hs"
+  SB.writeFile moduleFile $ TE.encodeUtf8 $ T.pack moduleCodec
+  runProcess_ $ proc "ormolu" ["-i", moduleFile]
 
 declsFor :: Map Text Schema -> Schema -> [HsDecl']
 declsFor schemaMap s@Schema {..}

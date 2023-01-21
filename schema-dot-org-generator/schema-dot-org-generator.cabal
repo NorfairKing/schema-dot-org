@@ -19,6 +19,7 @@ source-repository head
 library
   exposed-modules:
       SchemaDotOrg.Generator
+      SchemaDotOrg.Generator.OptParse
       SchemaDotOrg.Generator.Schema
   other-modules:
       Paths_schema_dot_org_generator
@@ -28,14 +29,21 @@ library
   build-depends:
       aeson
     , autodocodec
+    , autodocodec-yaml
     , base >=4.7 && <5
     , bytestring
     , containers
+    , envparse
     , ghc
     , ghc-paths
     , ghc-source-gen
-    , process
+    , graphviz
+    , optparse-applicative
+    , path
+    , path-io
     , text
+    , typed-process
+    , yaml
   default-language: Haskell2010
 
 executable schema-dot-org-generator

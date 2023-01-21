@@ -21,13 +21,20 @@ library:
   dependencies:
     - aeson
     - autodocodec
+    - autodocodec-yaml
     - bytestring
     - containers
+    - envparse
     - ghc
     - ghc-paths
     - ghc-source-gen
-    - process
+    - graphviz
+    - optparse-applicative
+    - path
+    - path-io
     - text
+    - typed-process
+    - yaml
 
 executables:
   schema-dot-org-generator:
