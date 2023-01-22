@@ -19,6 +19,7 @@ source-repository head
 library
   exposed-modules:
       SchemaDotOrg.Generator
+      SchemaDotOrg.Generator.Graph
       SchemaDotOrg.Generator.OptParse
       SchemaDotOrg.Generator.Schema
   other-modules:
@@ -41,6 +42,7 @@ library
     , optparse-applicative
     , path
     , path-io
+    , pretty
     , text
     , typed-process
     , yaml

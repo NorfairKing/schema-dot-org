@@ -7,4 +7,6 @@ loops:
 
   graph: |
     stack install schema-dot-org-generator --exec='schema-dot-org-generator graph schemas.json' --no-nix-pure --fast
+    dot -Tsvg schemas.dot -oschemas.svg
+    firefox schemas.svg
     

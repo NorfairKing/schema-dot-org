@@ -1,6 +1,6 @@
 { mkDerivation, aeson, autodocodec, autodocodec-yaml, base
 , bytestring, containers, envparse, ghc, ghc-paths, ghc-source-gen
-, graphviz, lib, optparse-applicative, path, path-io, text
+, graphviz, lib, optparse-applicative, path, path-io, pretty, text
 , typed-process, yaml
 }:
 mkDerivation {
@@ -12,7 +12,7 @@ mkDerivation {
   libraryHaskellDepends = [
     aeson autodocodec autodocodec-yaml base bytestring containers
     envparse ghc ghc-paths ghc-source-gen graphviz optparse-applicative
-    path path-io text typed-process yaml
+    path path-io pretty text typed-process yaml
   ];
   executableHaskellDepends = [ base ];
   homepage = "https://github.com/NorfairKing/schema-dot-org#readme";

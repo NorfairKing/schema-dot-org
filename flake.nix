@@ -62,9 +62,11 @@
         withHoogle = true;
         doBenchmark = true;
         buildInputs = (with pkgs; [
+          cabal-install
+          graphviz
+          xdot
           niv
           zlib
-          cabal-install
         ]) ++ (with pre-commit-hooks.packages.${system};
           [
             hlint

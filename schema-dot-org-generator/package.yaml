@@ -27,6 +27,7 @@ library:
     - envparse
     - ghc
     - ghc-paths
+    - pretty
     - ghc-source-gen
     - graphviz
     - optparse-applicative

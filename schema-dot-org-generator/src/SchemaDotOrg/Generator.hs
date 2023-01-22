@@ -8,6 +8,9 @@ import Data.Aeson as JSON (eitherDecode')
 import qualified Data.ByteString as SB
 import qualified Data.ByteString.Lazy as LB
 import Data.Char
+import Data.GraphViz
+import Data.GraphViz.Printing (renderDot)
+import Data.GraphViz.Types.Monadic
 import Data.Map (Map)
 import qualified Data.Map as M
 import Data.Maybe
@@ -22,6 +25,7 @@ import GHC.Driver.Session (getDynFlags)
 import qualified GHC.Paths as GHC (libdir)
 import GHC.SourceGen
 import Path
+import SchemaDotOrg.Generator.Graph
 import SchemaDotOrg.Generator.OptParse
 import SchemaDotOrg.Generator.Schema
 import System.Environment (getArgs)
@@ -51,8 +55,6 @@ schemaDotOrgGenerator = do
   case dispatch of
     DispatchGenerate -> generateCodeFor schemaMap
     DispatchGraph -> generateGraphFor schemaMap
-
-generateGraphFor = print
 
 generateCodeFor schemaMap = do
   -- Generate the source
