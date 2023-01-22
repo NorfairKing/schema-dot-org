@@ -41,7 +41,7 @@ generateGraphFor schemaMap = do
   let doubleEdgesMap :: DoubleEdgesMap
       doubleEdgesMap = filterDoubleEdgesMapByRelevantSchemaEdgeTypes originalDoubleEdgesMap relevantEdgeTypes
   let relevantToEvent :: Set Text
-      relevantToEvent = nodesRelevantTo doubleEdgesMap "schema:Event"
+      relevantToEvent = nodesRelevantTo doubleEdgesMap "schema:GeoShape"
   let filteredDoubleEdgesMap :: DoubleEdgesMap
       filteredDoubleEdgesMap = filterDoubleEdgesMapByRelevantNodes doubleEdgesMap relevantToEvent
   -- print doubleEdgesMap

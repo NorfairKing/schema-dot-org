@@ -18,7 +18,7 @@ source-repository head
 
 library
   exposed-modules:
-      SchemaDotOrg
+      SchemaDotOrg.Schema
   other-modules:
       Paths_schema_dot_org
   hs-source-dirs:
