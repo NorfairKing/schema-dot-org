@@ -98,6 +98,28 @@ requireProperty property@(Property propertyName) = do
     Nothing -> fail $ unwords ["Property not found: ", show propertyName]
     Just options -> pure options
 
+lookupPropertyClass ::
+  Inherits classes propertyClass =>
+  Property propertyClass expectedTypes ->
+  Class clazz superClasses ->
+  ParserOf (clazz ': superClasses) a ->
+  ParserOf classes (Maybe a)
+lookupPropertyClass (Property propertyName) clazz classParserFunc = ParserOf $ \o -> do
+  case KeyMap.lookup (Key.fromText propertyName) o of
+    Nothing -> pure Nothing
+    Just v -> Just <$> parseClass clazz classParserFunc v
+
+requirePropertyClass ::
+  Inherits classes propertyClass =>
+  Property propertyClass expectedTypes ->
+  Class clazz superClasses ->
+  ParserOf (clazz ': superClasses) a ->
+  ParserOf classes a
+requirePropertyClass (Property propertyName) clazz classParserFunc = ParserOf $ \o -> do
+  case KeyMap.lookup (Key.fromText propertyName) o of
+    Nothing -> Left $ unwords ["Property not found: ", show propertyName]
+    Just v -> parseClass clazz classParserFunc v
+
 class Inherits classes clazz
 
 instance {-# OVERLAPS #-} Inherits (clazz ': otherClasses) clazz
@@ -166,15 +188,22 @@ exampleValue :: JSON.Value
 exampleValue =
   object
     [ ("@type", "A"),
-      ("name", "foobar")
+      ("name", "foobar"),
+      ( "B",
+        object
+          [ ("name", "quux")
+          ]
+      )
     ]
 
-exampleNameParsing :: Either String Text
+exampleNameParsing :: Either String (Text, Text)
 exampleNameParsing = flip (parseClass classA) exampleValue $ do
-  ExpectedOption errOrResult (UnexpectedOption _) <- requireProperty propertyDName
-  case errOrResult of
+  ExpectedOption errOrResult1 (UnexpectedOption _) <- requireProperty propertyDName
+  ExpectedOption errOrResult2 (UnexpectedOption _) <- requirePropertyClass propertyBE classE $ do
+    requireProperty propertyEAddress
+  case (,) <$> errOrResult1 <*> errOrResult2 of
     Left err -> fail err
-    Right result -> pure result
+    Right (name1, name2) -> pure (name1, name2)
 
 exampleARendering :: JSON.Value
 exampleARendering =
