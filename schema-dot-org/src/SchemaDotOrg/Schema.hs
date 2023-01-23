@@ -14,6 +14,9 @@ module SchemaDotOrg.Schema
     Class (..),
     Property (..),
 
+    -- ** Data types
+    Number,
+
     -- ** Parsing
     ParserOf (..),
     Options (..),
@@ -40,8 +43,11 @@ import qualified Data.Aeson.KeyMap as KeyMap
 import qualified Data.Aeson.Types as JSON
 import Data.Kind
 import Data.Proxy
+import Data.Scientific (Scientific)
 import Data.Text (Text)
 import qualified Data.Text as T
+
+type Number = Scientific
 
 -- | A class schema.
 --
