@@ -34,3 +34,4 @@ For example, producers want to make sure that dates are in the exact right forma
 A web scraper could be a consumer, for example, when they extract structured data in one of these forms from web pages.
 Consumers want to be as lenient as possible with what they can consume.
 For example, consumers don't want to fail to consume entirely if a date is spelled wrong.
+Consumers also rarely want to try to parse all possible properties.
