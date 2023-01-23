@@ -48,6 +48,9 @@ classD = Class "D"
 propertyDName :: Property D '[Text]
 propertyDName = Property "name"
 
+propertyBE :: Property B '[E]
+propertyBE = Property "B"
+
 data E
 
 classE :: Class E '[]
@@ -101,7 +104,7 @@ instance {-# OVERLAPS #-} Inherits (clazz ': otherClasses) clazz
 
 instance Inherits otherClasses clazz => Inherits (otherClass ': otherClasses) clazz
 
-newtype ParserOf classes a = ParserOf {unParser :: JSON.Object -> Either String a}
+newtype ParserOf (classes :: [Type]) a = ParserOf {unParser :: JSON.Object -> Either String a}
 
 instance Functor (ParserOf classes) where
   fmap f (ParserOf func) = ParserOf $ \o ->
@@ -127,7 +130,7 @@ parseClass :: Class clazz superClasses -> ParserOf (clazz : superClasses) a -> J
 parseClass (Class className) (ParserOf parseFunc) value =
   JSON.parseEither (withObject (T.unpack className) (either fail pure . parseFunc)) value
 
-newtype RenderOf classes = RenderOf {unRenderOf :: JSON.Object}
+newtype RenderOf (classes :: [Type]) = RenderOf {unRenderOf :: JSON.Object}
   deriving (Semigroup, Monoid)
 
 renderClass :: Class clazz superClasses -> RenderOf (clazz : superClasses) -> JSON.Value
@@ -150,6 +153,15 @@ renderProperty ::
 renderProperty (Property propertyName) actualValue =
   RenderOf $ KeyMap.singleton (Key.fromText propertyName) (toJSON actualValue)
 
+renderPropertyClass ::
+  (Inherits classes propertyClass) =>
+  Property propertyClass expectedTypes ->
+  Class clazz superClasses ->
+  RenderOf (clazz : superClasses) ->
+  RenderOf classes
+renderPropertyClass (Property propertyName) (Class className) (RenderOf object) =
+  RenderOf $ KeyMap.singleton (Key.fromText propertyName) (toJSON object)
+
 exampleValue :: JSON.Value
 exampleValue =
   object
@@ -165,4 +177,14 @@ exampleNameParsing = flip (parseClass classA) exampleValue $ do
     Right result -> pure result
 
 exampleARendering :: JSON.Value
-exampleARendering = renderClass classA (renderProperty propertyDName ("quux" :: Text))
+exampleARendering =
+  renderClass
+    classA
+    ( mconcat
+        [ renderProperty propertyDName ("quux" :: Text),
+          renderPropertyClass propertyBE classB $
+            mconcat
+              [ renderProperty propertyDName ("quux" :: Text)
+              ]
+        ]
+    )
