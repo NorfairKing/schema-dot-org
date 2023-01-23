@@ -15,7 +15,11 @@ module SchemaDotOrg.Schema
     Property (..),
 
     -- ** Data types
+    Boolean,
     Number,
+    Date,
+    Time,
+    DateTime,
 
     -- ** Parsing
     ParserOf (..),
@@ -46,6 +50,14 @@ import Data.Proxy
 import Data.Scientific (Scientific)
 import Data.Text (Text)
 import qualified Data.Text as T
+
+type Boolean = Bool
+
+type Date = Text -- TODO
+
+type Time = Text -- TODO
+
+type DateTime = Text -- TODO
 
 type Number = Scientific
 

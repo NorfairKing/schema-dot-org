@@ -45,10 +45,10 @@ schemaDotOrgGenerator = do
     Right allSchemas -> do
       let schemaMap =
             -- Filter out superseded schemas because of naming conflicts
-            M.filter (null . schemaSupersededBy) $
-              -- -- Filter out pending schemas because they don't have consensus
-              -- M.filter (not . (SchemaRef "https://pending.schema.org" `elem`) . schemaIsPartOf) $
-              M.fromList (map (\s -> (schemaId s, s)) (allSchemasGraph allSchemas))
+            -- M.filter (null . schemaSupersededBy) $
+            -- -- Filter out pending schemas because they don't have consensus
+            -- M.filter (not . (SchemaRef "https://pending.schema.org" `elem`) . schemaIsPartOf) $
+            M.fromList (map (\s -> (schemaId s, s)) (allSchemasGraph allSchemas))
 
       pure schemaMap
 
@@ -66,6 +66,7 @@ generateCodeFor schemaMap = do
             Nothing
             [ import' "GHC.Generics" `exposing` [var "Generic"],
               import' "Data.Text" `exposing` [var "Text"],
+              import' "Data.Aeson" `exposing` [thingAll "FromJSON", thingAll "ToJSON", bvar "withText"],
               import' "SchemaDotOrg.Schema"
             ]
             $ concatMap (declsFor schemaMap) (M.elems schemaMap)
@@ -86,9 +87,9 @@ generateCodeFor schemaMap = do
 
 declsFor :: Map Text Schema -> Schema -> [HsDecl']
 declsFor schemaMap s@Schema {..}
-  -- "schema:Enumeration" `elem` schemaSubclassOf = declsForEnumeration schemaMap s
+  | "schema:Enumeration" `elem` schemaSubclassOf = declsForEnumeration schemaMap s
   | "rdfs:Class" `elem` schemaType = declsForClass schemaMap s
-  -- "rdf:Property" `elem` schemaType = declsForProperty schemaMap s
+  | "rdf:Property" `elem` schemaType = declsForProperty schemaMap s
   | otherwise = []
 
 toCamelCase :: String -> String
@@ -129,45 +130,34 @@ declsForClass schemaMap schema =
         else
           [ data' classTypeName [] [] [],
             typeSig valueTypeName (bvar "Class" @@ bvar classTypeName @@ listPromotedTy (map (bvar . fromString) superClassTypeNames)),
-            funBind valueTypeName (match [] (var "Class" @@ string "TODO"))
+            funBind valueTypeName (match [] (var "Class" @@ string (T.unpack (commentText (schemaLabel schema)))))
           ]
 
---   let classProperties = S.toList $ allClassProperties schemaMap schema
---       propertyFieldType s = case schemaRangeIncludes s of
---         ["schema:Text"] -> var "Text"
---         ["schema:Boolean"] -> var "Bool"
---         ["schema:Number"] -> var "Double" -- TODO Double?
---         [sr] -> case T.stripPrefix "schema:" (unSchemaRef sr) of
---           Nothing -> error $ "Unknown type for schema: " <> show s
---           Just schemaId -> var "Text" -- TODO:  var $ fromString (T.unpack schemaId)
---         _ -> var "Text" -- TODO we have to make our own extra sum type schema.
---       propertyFieldName s = toCamelCase classTypeNameString <> toPascalCase (schemaTypeNameString s) -- TODO prefix naming
---       propertyField s =
---         (fromString (propertyFieldName s), field (propertyFieldType s))
---       classTypeName = fromString classTypeNameString
---       classTypeNameString = schemaTypeNameString schema
---    in if null classProperties
---         then []
---         else
---           [ data'
---               classTypeName
---               []
---               [recordCon (fromString (schemaTypeNameString schema)) (map propertyField classProperties)]
---               [ deriving'
---                   [ var "Show",
---                     var "Eq",
---                     var "Ord",
---                     var "Generic"
---                   ]
---               ]
---           ]
+declsForProperty :: Map Text Schema -> Schema -> [HsDecl']
+declsForProperty schemaMap schema =
+  let classTypeNameString = schemaTypeNameString schema
+      classTypeName = fromString classTypeNameString
+      propertyLabel = T.unpack (commentText (schemaLabel schema))
+      valueTypeName className = fromString $ "property" <> toPascalCase className <> toPascalCase propertyLabel
+   in if SchemaRef "https://meta.schema.org" `elem` schemaIsPartOf schema
+        then []
+        else
+          concatMap
+            ( \(SchemaRef ref) -> case T.unpack <$> T.stripPrefix "schema:" ref of
+                Nothing -> []
+                Just className ->
+                  let typeName = valueTypeName className
+                      rangeTypeNames = mapMaybe (fmap (toTypeName . T.unpack) . T.stripPrefix "schema:" . unSchemaRef) (schemaRangeIncludes schema)
+                   in [ typeSig typeName (bvar "Property" @@ bvar (fromString (toTypeName className)) @@ listPromotedTy (map (bvar . fromString) rangeTypeNames)),
+                        funBind typeName (match [] (bvar "Property" @@ string propertyLabel))
+                      ]
+            )
+            (schemaDomainIncludes schema)
 
 declsForEnumeration :: Map Text Schema -> Schema -> [HsDecl']
 declsForEnumeration schemaMap schema =
   let enumerationElems = M.elems $ M.filter ((schemaId schema `elem`) . schemaType) schemaMap
 
-      -- Use this as soon as comments work:
-      -- {con_doc = schemaDocString s}
       elemConstructor s = prefixCon (schemaTypeName s) []
 
       enumLiteral s = string ("https://schema.org/" <> schemaTypeNameString s)
@@ -177,7 +167,7 @@ declsForEnumeration schemaMap schema =
       enumOtherTypeNameString = "Other" <> schemaTypeNameString schema
       enumOtherTypeName = fromString enumOtherTypeNameString
    in if null enumerationElems
-        then []
+        then [type' enumTypeName [] (var "Text")]
         else
           [ data'
               enumTypeName
