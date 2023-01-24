@@ -204,8 +204,10 @@ newtype RenderOf (classes :: [Type]) = RenderOf {unRenderOf :: JSON.Object}
   deriving (Semigroup, Monoid)
 
 -- | Render a class using a given renderer for that class.
-renderClass :: Class clazz superClasses -> RenderOf (clazz : superClasses) -> JSON.Value
-renderClass (Class _) (RenderOf render) = Object render
+renderClass :: Class clazz superClasses -> [RenderOf (clazz : superClasses)] -> JSON.Value
+renderClass (Class _) renderers =
+  let (RenderOf render) = mconcat renderers
+   in Object render
 
 -- Whether the given 'actualType' is in the 'expectedTypes' list.
 class IsExpectedType expectedTypes actualType
@@ -226,6 +228,7 @@ renderProperty ::
 renderProperty (Property propertyName) actualValue =
   RenderOf $ KeyMap.singleton (Key.fromText propertyName) (toJSON actualValue)
 
+-- | Render a property that has only one possible expected type
 renderSimpleProperty ::
   ( Inherits classes propertyClass,
     ToJSON propertyType
@@ -240,7 +243,8 @@ renderPropertyClass ::
   (Inherits classes propertyClass) =>
   Property propertyClass expectedTypes ->
   Class clazz superClasses ->
-  RenderOf (clazz : superClasses) ->
+  [RenderOf (clazz : superClasses)] ->
   RenderOf classes
-renderPropertyClass (Property propertyName) (Class className) (RenderOf object) =
-  RenderOf $ KeyMap.singleton (Key.fromText propertyName) (toJSON object)
+renderPropertyClass (Property propertyName) (Class className) renderers =
+  let (RenderOf render) = mconcat renderers
+   in RenderOf $ KeyMap.singleton (Key.fromText propertyName) (toJSON render)

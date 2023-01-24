@@ -24,19 +24,23 @@ import SchemaDotOrg.Schema
 
 exampleEvent :: JSON.Value
 exampleEvent =
-  renderClass classEvent $
-    mconcat
-      [ renderSimpleProperty propertyThingName "Example event",
-        renderProperty propertyEventLocation ("Example location" :: Text),
-        renderProperty propertyEventEventAttendanceMode OfflineEventAttendanceMode,
-        renderPropertyClass propertyEventLocation classPlace $
-          renderPropertyClass propertyPlaceAddress classPostalAddress $
-            mconcat
-              [ renderProperty propertyPostalAddressAddressCountry ("Example country" :: Text),
-                renderSimpleProperty propertyPostalAddressAddressLocality "Example locality",
-                renderSimpleProperty propertyPostalAddressAddressRegion "Example region",
-                renderSimpleProperty propertyPostalAddressPostOfficeBoxNumber "Example post office box number",
-                renderSimpleProperty propertyPostalAddressPostalCode "Example postal code",
-                renderSimpleProperty propertyPostalAddressStreetAddress "example street address"
-              ]
-      ]
+  renderClass
+    classEvent
+    [ renderSimpleProperty propertyThingName "Example event",
+      renderProperty propertyEventLocation ("Example location" :: Text),
+      renderProperty propertyEventEventAttendanceMode OfflineEventAttendanceMode,
+      renderPropertyClass
+        propertyEventLocation
+        classPlace
+        [ renderPropertyClass
+            propertyPlaceAddress
+            classPostalAddress
+            [ renderProperty propertyPostalAddressAddressCountry ("Example country" :: Text),
+              renderSimpleProperty propertyPostalAddressAddressLocality "Example locality",
+              renderSimpleProperty propertyPostalAddressAddressRegion "Example region",
+              renderSimpleProperty propertyPostalAddressPostOfficeBoxNumber "Example post office box number",
+              renderSimpleProperty propertyPostalAddressPostalCode "Example postal code",
+              renderSimpleProperty propertyPostalAddressStreetAddress "example street address"
+            ]
+        ]
+    ]
