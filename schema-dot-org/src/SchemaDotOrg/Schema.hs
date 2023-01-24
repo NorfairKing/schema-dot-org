@@ -34,8 +34,10 @@ module SchemaDotOrg.Schema
 
     -- ** Rendering
     RenderOf (..),
+    renderClass,
     IsExpectedType (..),
     renderProperty,
+    renderSimpleProperty,
     renderPropertyClass,
   )
 where
@@ -224,6 +226,15 @@ renderProperty ::
 renderProperty (Property propertyName) actualValue =
   RenderOf $ KeyMap.singleton (Key.fromText propertyName) (toJSON actualValue)
 
+renderSimpleProperty ::
+  ( Inherits classes propertyClass,
+    ToJSON propertyType
+  ) =>
+  Property propertyClass '[propertyType] ->
+  propertyType ->
+  RenderOf classes
+renderSimpleProperty = renderProperty
+
 -- | Render a property that is a class
 renderPropertyClass ::
   (Inherits classes propertyClass) =>
@@ -233,78 +244,3 @@ renderPropertyClass ::
   RenderOf classes
 renderPropertyClass (Property propertyName) (Class className) (RenderOf object) =
   RenderOf $ KeyMap.singleton (Key.fromText propertyName) (toJSON object)
-
--- Example below here
-
--- Imagine this hyrarchy
---
--- A -> B -\
---  \       v
---   -> C -> D
-data A
-
-classA :: Class A '[B, C, D]
-classA = Class "A"
-
-data B
-
-classB :: Class B '[D]
-classB = Class "B"
-
-data C
-
-classC :: Class C '[D]
-classC = Class "C"
-
-data D
-
-classD :: Class D '[]
-classD = Class "D"
-
-propertyDName :: Property D '[Text]
-propertyDName = Property "name"
-
-propertyBE :: Property B '[E]
-propertyBE = Property "B"
-
-data E
-
-classE :: Class E '[]
-classE = Class "E"
-
-propertyEAddress :: Property E '[Text]
-propertyEAddress = Property "address"
-
-exampleValue :: JSON.Value
-exampleValue =
-  object
-    [ ("@type", "A"),
-      ("name", "foobar"),
-      ( "B",
-        object
-          [ ("name", "quux")
-          ]
-      )
-    ]
-
-exampleNameParsing :: Either String (Text, Text)
-exampleNameParsing = flip (parseClass classA) exampleValue $ do
-  ExpectedOption errOrResult1 (UnexpectedOption _) <- requireProperty propertyDName
-  ExpectedOption errOrResult2 (UnexpectedOption _) <- requirePropertyClass propertyBE classE $ do
-    requireProperty propertyEAddress
-  case (,) <$> errOrResult1 <*> errOrResult2 of
-    Left err -> fail err
-    Right (name1, name2) -> pure (name1, name2)
-
-exampleARendering :: JSON.Value
-exampleARendering =
-  renderClass
-    classA
-    ( mconcat
-        [ renderProperty propertyDName ("quux" :: Text),
-          renderPropertyClass propertyBE classB $
-            mconcat
-              [ renderProperty propertyDName ("quux" :: Text)
-              ]
-        ]
-    )
