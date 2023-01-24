@@ -47,6 +47,7 @@ import Data.Aeson hiding (Options)
 import qualified Data.Aeson.Key as Key
 import qualified Data.Aeson.KeyMap as KeyMap
 import qualified Data.Aeson.Types as JSON
+import Data.Foldable
 import Data.Kind
 import Data.Proxy
 import Data.Scientific (Scientific)
@@ -204,9 +205,13 @@ newtype RenderOf (classes :: [Type]) = RenderOf {unRenderOf :: JSON.Object}
   deriving (Semigroup, Monoid)
 
 -- | Render a class using a given renderer for that class.
-renderClass :: Class clazz superClasses -> [RenderOf (clazz : superClasses)] -> JSON.Value
+renderClass ::
+  Foldable f =>
+  Class clazz superClasses ->
+  f (RenderOf (clazz : superClasses)) ->
+  JSON.Value
 renderClass (Class _) renderers =
-  let (RenderOf render) = mconcat renderers
+  let (RenderOf render) = fold renderers
    in Object render
 
 -- Whether the given 'actualType' is in the 'expectedTypes' list.
@@ -240,11 +245,11 @@ renderSimpleProperty = renderProperty
 
 -- | Render a property that is a class
 renderPropertyClass ::
-  (Inherits classes propertyClass) =>
+  (Inherits classes propertyClass, Foldable f) =>
   Property propertyClass expectedTypes ->
   Class clazz superClasses ->
-  [RenderOf (clazz : superClasses)] ->
+  f (RenderOf (clazz : superClasses)) ->
   RenderOf classes
 renderPropertyClass (Property propertyName) (Class className) renderers =
-  let (RenderOf render) = mconcat renderers
+  let (RenderOf render) = fold renderers
    in RenderOf $ KeyMap.singleton (Key.fromText propertyName) (toJSON render)
