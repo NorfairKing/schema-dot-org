@@ -66,7 +66,7 @@ generateCodeFor schemaMap = do
             Nothing
             [ import' "GHC.Generics" `exposing` [var "Generic"],
               import' "Data.Text" `exposing` [var "Text"],
-              import' "Data.Aeson" `exposing` [thingAll "FromJSON", thingAll "ToJSON", bvar "withText"],
+              import' "Data.Aeson" `exposing` [thingAll "FromJSON", thingAll "ToJSON", bvar "withText", bvar "Value"],
               import' "SchemaDotOrg.Schema"
             ]
             $ concatMap (declsFor schemaMap) (M.elems schemaMap)
@@ -163,16 +163,13 @@ declsForEnumeration schemaMap schema =
       enumLiteral s = string ("https://schema.org/" <> schemaTypeNameString s)
 
       enumTypeName = schemaTypeName schema
-
-      enumOtherTypeNameString = "Other" <> schemaTypeNameString schema
-      enumOtherTypeName = fromString enumOtherTypeNameString
    in if null enumerationElems
         then [type' enumTypeName [] (var "Text")]
         else
           [ data'
               enumTypeName
               []
-              (map elemConstructor enumerationElems ++ [prefixCon enumOtherTypeName [field $ var "Text"]])
+              (map elemConstructor enumerationElems)
               [ deriving'
                   [ var "Show",
                     var "Eq",
@@ -186,18 +183,28 @@ declsForEnumeration schemaMap schema =
                   "parseJSON"
                   [ match [] $
                       (var "withText" @@ string (schemaTypeNameString schema))
-                        @@ op
-                          (var "pure")
-                          "."
-                          ( lambdaCase $
-                              map
-                                ( \s ->
-                                    match
-                                      [enumLiteral s]
-                                      (bvar (schemaTypeName s))
-                                )
-                                enumerationElems
-                                ++ [match [bvar "t"] (bvar enumOtherTypeName @@ bvar "t")]
+                        @@ lambdaCase
+                          ( map
+                              ( \s ->
+                                  match
+                                    [enumLiteral s]
+                                    (var "pure" @@ bvar (schemaTypeName s))
+                              )
+                              enumerationElems
+                              ++ [ match
+                                     [bvar "t"]
+                                     ( var "fail"
+                                         @@ op
+                                           ( string
+                                               ( "Failed to parse "
+                                                   ++ schemaTypeNameString schema
+                                                   ++ ": "
+                                               )
+                                           )
+                                           "<>"
+                                           (var "show" @@ bvar "t")
+                                     )
+                                 ]
                           )
                   ]
               ],
@@ -206,12 +213,11 @@ declsForEnumeration schemaMap schema =
               [ funBinds
                   "toJSON"
                   [ match [] $
-                      op (var "toJSON") "." $
+                      op (var "toJSON" @::@ (var "Text" GHC.SourceGen.--> var "Value")) "." $
                         lambdaCase $
                           map
                             (\s -> match [bvar (schemaTypeName s)] (enumLiteral s))
                             enumerationElems
-                            ++ [match [conP (fromString enumOtherTypeNameString) [bvar "t"]] (bvar "t")]
                   ]
               ]
           ]
