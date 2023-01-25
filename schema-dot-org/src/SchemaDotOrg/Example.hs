@@ -20,7 +20,7 @@ exampleEvent =
     classEvent
     [ renderSimpleProperty propertyThingName "Example event",
       renderProperty propertyEventLocation ("Example location" :: Text),
-      renderProperty propertyEventEventAttendanceMode EventAttendanceModeOfflineEventAttendanceMode,
+      renderProperty propertyEventEventAttendanceMode EventAttendanceModeEnumerationOfflineEventAttendanceMode,
       renderPropertyClass
         propertyEventLocation
         classPlace
