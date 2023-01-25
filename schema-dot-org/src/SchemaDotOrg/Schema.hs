@@ -210,9 +210,12 @@ renderClass ::
   Class clazz superClasses ->
   f (RenderOf (clazz : superClasses)) ->
   JSON.Value
-renderClass (Class _) renderers =
+renderClass clazz renderers =
   let (RenderOf render) = fold renderers
-   in Object render
+   in Object $ setClassType clazz render
+
+setClassType :: Class clazz superClasses -> JSON.Object -> JSON.Object
+setClassType (Class className) o = KeyMap.insert "@type" (toJSON className) o
 
 -- Whether the given 'actualType' is in the 'expectedTypes' list.
 class IsExpectedType expectedTypes actualType
@@ -231,7 +234,10 @@ renderProperty ::
   actualType ->
   RenderOf classes
 renderProperty (Property propertyName) actualValue =
-  RenderOf $ KeyMap.singleton (Key.fromText propertyName) (toJSON actualValue)
+  RenderOf $
+    KeyMap.singleton
+      (Key.fromText propertyName)
+      (toJSON actualValue)
 
 -- | Render a property that has only one possible expected type
 renderSimpleProperty ::
@@ -250,6 +256,8 @@ renderPropertyClass ::
   Class clazz superClasses ->
   f (RenderOf (clazz : superClasses)) ->
   RenderOf classes
-renderPropertyClass (Property propertyName) (Class className) renderers =
-  let (RenderOf render) = fold renderers
-   in RenderOf $ KeyMap.singleton (Key.fromText propertyName) (toJSON render)
+renderPropertyClass (Property propertyName) clazz renderers =
+  RenderOf $
+    KeyMap.singleton
+      (Key.fromText propertyName)
+      (renderClass clazz renderers)
