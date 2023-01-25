@@ -22,3 +22,4 @@ library:
   - aeson
   - scientific
   - text
+  - time

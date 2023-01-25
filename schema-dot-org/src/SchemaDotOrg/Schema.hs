@@ -53,14 +53,15 @@ import Data.Kind
 import Data.Scientific (Scientific)
 import Data.Text (Text)
 import qualified Data.Text as T
+import Data.Time as Time
 
 type Boolean = Bool
 
-type Date = Text -- TODO
+type Date = Time.Day -- TODO
 
-type Time = Text -- TODO
+type Time = Time.TimeOfDay -- TODO
 
-type DateTime = Text -- TODO
+type DateTime = Time.LocalTime -- TODO
 
 type Number = Scientific
 
@@ -68,13 +69,13 @@ type Number = Scientific
 --
 -- Existence of a value of this type (in this library) implies that there is a
 -- class schema on schema.org called `clazz` with superclasses `superClasses`.
-data Class clazz superClasses = Class Text
+data Class clazz superClasses = Class {className :: Text}
 
 -- | A class schema.
 --
 -- Existence of a value of this type (in this library) implies that there is a
 -- property schema on schema.org for class `clazz` with expected types `expectedTypes`.
-data Property clazz expectedTypes = Property Text
+data Property clazz expectedTypes = Property {propertyName :: Text}
 
 -- | A parser for a given class. The type-level list `classes` contains the
 -- class itself, and its transitive superclasses.
@@ -148,16 +149,16 @@ parseClass ::
   ParserOf (clazz : superClasses) a ->
   JSON.Value ->
   Either String a
-parseClass (Class className) (ParserOf parseFunc) value =
-  JSON.parseEither (withObject (T.unpack className) (either fail pure . parseFunc)) value
+parseClass clazz (ParserOf parseFunc) value =
+  JSON.parseEither (withObject (T.unpack (className clazz)) (either fail pure . parseFunc)) value
 
 -- | Lookup a property in a 'Class'.
 lookupProperty ::
   (Inherits classes propertyClass, ParseableOptions expectedTypes) =>
   Property propertyClass expectedTypes ->
   ParserOf classes (Maybe (Options expectedTypes))
-lookupProperty (Property propertyName) = ParserOf $ \o ->
-  case KeyMap.lookup (Key.fromText propertyName) o of
+lookupProperty property = ParserOf $ \o ->
+  case KeyMap.lookup (Key.fromText (propertyName property)) o of
     Nothing -> pure Nothing
     Just v -> pure $ Just $ parseOptions v
 
@@ -168,10 +169,10 @@ requireProperty ::
   (Inherits classes propertyClass, ParseableOptions expectedTypes) =>
   Property propertyClass expectedTypes ->
   ParserOf classes (Options expectedTypes)
-requireProperty property@(Property propertyName) = do
+requireProperty property = do
   mProperty <- lookupProperty property
   case mProperty of
-    Nothing -> fail $ unwords ["Property not found: ", show propertyName]
+    Nothing -> fail $ unwords ["Property not found: ", show (propertyName property)]
     Just options -> pure options
 
 -- | Lookup a property in a 'Class', that is itself a class.
@@ -181,8 +182,8 @@ lookupPropertyClass ::
   Class clazz superClasses ->
   ParserOf (clazz ': superClasses) a ->
   ParserOf classes (Maybe a)
-lookupPropertyClass (Property propertyName) clazz classParserFunc = ParserOf $ \o -> do
-  case KeyMap.lookup (Key.fromText propertyName) o of
+lookupPropertyClass property clazz classParserFunc = ParserOf $ \o -> do
+  case KeyMap.lookup (Key.fromText (propertyName property)) o of
     Nothing -> pure Nothing
     Just v -> Just <$> parseClass clazz classParserFunc v
 
@@ -195,9 +196,9 @@ requirePropertyClass ::
   Class clazz superClasses ->
   ParserOf (clazz ': superClasses) a ->
   ParserOf classes a
-requirePropertyClass (Property propertyName) clazz classParserFunc = ParserOf $ \o -> do
-  case KeyMap.lookup (Key.fromText propertyName) o of
-    Nothing -> Left $ unwords ["Property not found: ", show propertyName]
+requirePropertyClass property clazz classParserFunc = ParserOf $ \o -> do
+  case KeyMap.lookup (Key.fromText (propertyName property)) o of
+    Nothing -> Left $ unwords ["Property not found: ", show (propertyName property)]
     Just v -> parseClass clazz classParserFunc v
 
 -- | Render a value of a class in the `classes` hierarchy.
@@ -212,10 +213,13 @@ renderClass ::
   JSON.Value
 renderClass clazz renderers =
   let (RenderOf render) = fold renderers
-   in Object $ setClassType clazz render
+   in Object $ setContext $ setClassType clazz render
+
+setContext :: JSON.Object -> JSON.Object
+setContext = KeyMap.insert "@context" (toJSON ("https://schema.org" :: Text))
 
 setClassType :: Class clazz superClasses -> JSON.Object -> JSON.Object
-setClassType (Class className) o = KeyMap.insert "@type" (toJSON className) o
+setClassType clazz o = KeyMap.insert "@type" (toJSON (className clazz)) o
 
 -- Whether the given 'actualType' is in the 'expectedTypes' list.
 class IsExpectedType expectedTypes actualType
@@ -233,10 +237,10 @@ renderProperty ::
   Property propertyClass expectedTypes ->
   actualType ->
   RenderOf classes
-renderProperty (Property propertyName) actualValue =
+renderProperty property actualValue =
   RenderOf $
     KeyMap.singleton
-      (Key.fromText propertyName)
+      (Key.fromText (propertyName property))
       (toJSON actualValue)
 
 -- | Render a property that has only one possible expected type
@@ -256,8 +260,8 @@ renderPropertyClass ::
   Class clazz superClasses ->
   f (RenderOf (clazz : superClasses)) ->
   RenderOf classes
-renderPropertyClass (Property propertyName) clazz renderers =
+renderPropertyClass property clazz renderers =
   RenderOf $
     KeyMap.singleton
-      (Key.fromText propertyName)
+      (Key.fromText (propertyName property))
       (renderClass clazz renderers)
