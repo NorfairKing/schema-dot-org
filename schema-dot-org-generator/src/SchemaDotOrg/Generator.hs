@@ -92,16 +92,16 @@ declsFor schemaMap s@Schema {..}
 subclassOfEnumeration :: Map Text Schema -> Schema -> Bool
 subclassOfEnumeration schemaMap s = "schema:Enumeration" `elem` transitiveSuperclasses schemaMap s
 
-transitiveSuperclasses :: Map Text Schema -> Schema -> Set Text
+transitiveSuperclasses :: Map Text Schema -> Schema -> [Text]
 transitiveSuperclasses schemaMap schema = go (map unSchemaRef (schemaSubclassOf schema))
   where
-    go :: [Text] -> Set Text
+    go :: [Text] -> [Text]
     go superClasses =
-      S.union (S.fromList superClasses) $
-        let superSuperClasses t = case M.lookup t schemaMap of
-              Nothing -> S.empty
-              Just schema -> go (map unSchemaRef (schemaSubclassOf schema))
-         in S.unions (map superSuperClasses superClasses)
+      superClasses
+        ++ let superSuperClasses t = case M.lookup t schemaMap of
+                 Nothing -> []
+                 Just schema -> go (map unSchemaRef (schemaSubclassOf schema))
+            in concatMap superSuperClasses superClasses
 
 toCamelCase :: String -> String
 toCamelCase = \case
@@ -133,8 +133,8 @@ declsForClass schemaMap schema =
   let classTypeNameString = schemaTypeNameString schema
       classTypeName = fromString classTypeNameString
       valueTypeName = fromString $ "class" <> classTypeNameString
-      superClasses = schemaSubclassOf schema
-      superClassTypeNames = mapMaybe (fmap (toTypeName . T.unpack) . T.stripPrefix "schema:" . unSchemaRef) superClasses
+      superClasses = transitiveSuperclasses schemaMap schema
+      superClassTypeNames = mapMaybe (fmap (toTypeName . T.unpack) . T.stripPrefix "schema:") superClasses
       primitiveTypes = ["Text"]
    in case find (\primitiveType -> schemaSubclassOf schema == [SchemaRef ("schema:" <> primitiveType)]) primitiveTypes of
         Just primitiveType -> [type' classTypeName [] (var (fromString (T.unpack primitiveType)))]
