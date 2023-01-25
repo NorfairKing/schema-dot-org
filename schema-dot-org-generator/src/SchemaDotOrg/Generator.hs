@@ -21,6 +21,7 @@ import Data.String
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
+import Debug.Trace
 import GHC (runGhc)
 import GHC.Driver.Session (getDynFlags)
 import qualified GHC.Paths as GHC (libdir)
@@ -44,12 +45,7 @@ schemaDotOrgGenerator = do
   schemaMap <- case JSON.eitherDecode' (LB.fromStrict schemaFileContents) of
     Left err -> die err
     Right allSchemas -> do
-      let schemaMap =
-            -- Filter out superseded schemas because of naming conflicts
-            -- M.filter (null . schemaSupersededBy) $
-            -- -- Filter out pending schemas because they don't have consensus
-            -- M.filter (not . (SchemaRef "https://pending.schema.org" `elem`) . schemaIsPartOf) $
-            M.fromList (map (\s -> (schemaId s, s)) (allSchemasGraph allSchemas))
+      let schemaMap = M.fromList (map (\s -> (schemaId s, s)) (allSchemasGraph allSchemas))
 
       pure schemaMap
 
@@ -88,10 +84,24 @@ generateCodeFor schemaMap = do
 
 declsFor :: Map Text Schema -> Schema -> [HsDecl']
 declsFor schemaMap s@Schema {..}
-  | "schema:Enumeration" `elem` schemaSubclassOf = declsForEnumeration schemaMap s
+  | subclassOfEnumeration schemaMap s = declsForEnumeration schemaMap s
   | "rdfs:Class" `elem` schemaType = declsForClass schemaMap s
   | "rdf:Property" `elem` schemaType = declsForProperty schemaMap s
   | otherwise = []
+
+subclassOfEnumeration :: Map Text Schema -> Schema -> Bool
+subclassOfEnumeration schemaMap s = "schema:Enumeration" `elem` transitiveSuperclasses schemaMap s
+
+transitiveSuperclasses :: Map Text Schema -> Schema -> Set Text
+transitiveSuperclasses schemaMap schema = go (map unSchemaRef (schemaSubclassOf schema))
+  where
+    go :: [Text] -> Set Text
+    go superClasses =
+      S.union (S.fromList superClasses) $
+        let superSuperClasses t = case M.lookup t schemaMap of
+              Nothing -> S.empty
+              Just schema -> go (map unSchemaRef (schemaSubclassOf schema))
+         in S.unions (map superSuperClasses superClasses)
 
 toCamelCase :: String -> String
 toCamelCase = \case
