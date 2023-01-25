@@ -11,6 +11,7 @@ import Data.Char
 import Data.GraphViz
 import Data.GraphViz.Printing (renderDot)
 import Data.GraphViz.Types.Monadic
+import Data.List
 import Data.Map (Map)
 import qualified Data.Map as M
 import Data.Maybe
@@ -124,14 +125,18 @@ declsForClass schemaMap schema =
       valueTypeName = fromString $ "class" <> classTypeNameString
       superClasses = schemaSubclassOf schema
       superClassTypeNames = mapMaybe (fmap (toTypeName . T.unpack) . T.stripPrefix "schema:" . unSchemaRef) superClasses
-   in if "schema:DataType" `elem` schemaType schema
-        || commentText (schemaLabel schema) `elem` ["Class", "Property", "Integer", "Float"]
-        then []
-        else
-          [ data' classTypeName [] [] [],
-            typeSig valueTypeName (bvar "Class" @@ bvar classTypeName @@ listPromotedTy (map (bvar . fromString) superClassTypeNames)),
-            funBind valueTypeName (match [] (var "Class" @@ string (T.unpack (commentText (schemaLabel schema)))))
-          ]
+      primitiveTypes = ["Text"]
+   in case find (\primitiveType -> schemaSubclassOf schema == [SchemaRef ("schema:" <> primitiveType)]) primitiveTypes of
+        Just primitiveType -> [type' classTypeName [] (var (fromString (T.unpack primitiveType)))]
+        Nothing ->
+          if "schema:DataType" `elem` schemaType schema
+            || commentText (schemaLabel schema) `elem` ["Class", "Property", "Integer", "Float"]
+            then []
+            else
+              [ data' classTypeName [] [] [],
+                typeSig valueTypeName (bvar "Class" @@ bvar classTypeName @@ listPromotedTy (map (bvar . fromString) superClassTypeNames)),
+                funBind valueTypeName (match [] (var "Class" @@ string (T.unpack (commentText (schemaLabel schema)))))
+              ]
 
 declsForProperty :: Map Text Schema -> Schema -> [HsDecl']
 declsForProperty schemaMap schema =
