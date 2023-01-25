@@ -8,6 +8,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE TypeOperators #-}
+{-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
 module SchemaDotOrg.Schema
   ( -- * Schema declaration
@@ -25,7 +26,7 @@ module SchemaDotOrg.Schema
     ParserOf (..),
     Options (..),
     ParseableOptions (..),
-    Inherits (..),
+    Inherits,
     parseClass,
     lookupProperty,
     requireProperty,
@@ -35,7 +36,7 @@ module SchemaDotOrg.Schema
     -- ** Rendering
     RenderOf (..),
     renderClass,
-    IsExpectedType (..),
+    IsExpectedType,
     renderProperty,
     renderSimpleProperty,
     renderPropertyClass,
@@ -49,7 +50,6 @@ import qualified Data.Aeson.KeyMap as KeyMap
 import qualified Data.Aeson.Types as JSON
 import Data.Foldable
 import Data.Kind
-import Data.Proxy
 import Data.Scientific (Scientific)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -92,7 +92,7 @@ instance Applicative (ParserOf classes) where
     pure (f a)
 
 instance Alternative (ParserOf classes) where
-  empty = ParserOf $ \o -> Left "empty"
+  empty = ParserOf $ \_ -> Left "empty"
   (ParserOf fa) <|> (ParserOf fb) =
     ParserOf $ \o -> fa o <|> fb o
 

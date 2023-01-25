@@ -9,16 +9,8 @@
 
 module SchemaDotOrg.Example where
 
-import Control.Applicative
-import Data.Aeson hiding (Options)
-import qualified Data.Aeson.Key as Key
-import qualified Data.Aeson.KeyMap as KeyMap
 import qualified Data.Aeson.Types as JSON
-import Data.Kind
-import Data.Proxy
-import Data.Scientific (Scientific)
 import Data.Text (Text)
-import qualified Data.Text as T
 import SchemaDotOrg.Generated
 import SchemaDotOrg.Schema
 

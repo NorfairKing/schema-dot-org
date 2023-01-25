@@ -18,6 +18,7 @@ source-repository head
 
 library
   exposed-modules:
+      SchemaDotOrg
       SchemaDotOrg.Example
       SchemaDotOrg.Generated
       SchemaDotOrg.Schema
