@@ -173,7 +173,8 @@ declsForEnumeration :: Map Text Schema -> Schema -> [HsDecl']
 declsForEnumeration schemaMap schema =
   let enumerationElems = M.elems $ M.filter ((schemaId schema `elem`) . schemaType) schemaMap
 
-      elemConstructor s = prefixCon (schemaTypeName s) []
+      elemConstructorName s = schemaTypeNameString schema <> schemaTypeNameString s
+      elemConstructor s = prefixCon (fromString (elemConstructorName s)) []
 
       enumLiteral s = string ("https://schema.org/" <> schemaTypeNameString s)
 
@@ -203,7 +204,7 @@ declsForEnumeration schemaMap schema =
                               ( \s ->
                                   match
                                     [enumLiteral s]
-                                    (var "pure" @@ bvar (schemaTypeName s))
+                                    (var "pure" @@ bvar (fromString (elemConstructorName s)))
                               )
                               enumerationElems
                               ++ [ match
@@ -231,7 +232,7 @@ declsForEnumeration schemaMap schema =
                       op (var "toJSON" @::@ (var "Text" GHC.SourceGen.--> var "Value")) "." $
                         lambdaCase $
                           map
-                            (\s -> match [bvar (schemaTypeName s)] (enumLiteral s))
+                            (\s -> match [bvar (fromString (elemConstructorName s))] (enumLiteral s))
                             enumerationElems
                   ]
               ]
