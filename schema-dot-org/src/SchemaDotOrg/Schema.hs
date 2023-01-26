@@ -28,12 +28,16 @@ module SchemaDotOrg.Schema
     ParserOf (..),
     Inherits,
     parseClass,
+    checkClass,
     lookupProperty,
     requireProperty,
     Interpretation (..),
     lookupPropertyInterpretation,
     lookupPropertyMInterpretation,
+    requirePropertyInterpretation,
+    requirePropertyEInterpretation,
     lookupPropertyText,
+    requirePropertyText,
     lookupPropertySingleValue,
     interpretText,
     interpretNumber,
@@ -134,6 +138,18 @@ parseClass ::
 parseClass clazz parser value =
   JSON.parseEither (withObject (T.unpack (className clazz)) (either fail pure . runParserOf parser)) value
 
+checkClass ::
+  Inherits classes clazz =>
+  Class clazz superclasses ->
+  ParserOf classes ()
+checkClass clazz = ParserOf $ \o -> case KeyMap.lookup "@type" o of
+  Nothing -> Left "Key '@type' not found."
+  Just (String t) ->
+    if t == className clazz
+      then pure ()
+      else Left "Type mismatch."
+  Just _ -> Left "Key '@type' found but was not a String"
+
 runParserOf :: ParserOf (clazz ': superClasses) a -> JSON.Object -> Either String a
 runParserOf (ParserOf parseFunc) o = parseFunc o
 
@@ -181,6 +197,26 @@ lookupPropertyInterpretation property interpretation = ParserOf $ \o ->
     Nothing -> pure Nothing
     Just value -> pure $ Just $ runInterpretation value interpretation
 
+requirePropertyInterpretation ::
+  Inherits classes propertyClass =>
+  Property propertyClass expectedTypes ->
+  Interpretation expectedTypes interpretation ->
+  ParserOf classes [interpretation]
+requirePropertyInterpretation property interpretation = do
+  mInterpretations <- lookupPropertyInterpretation property interpretation
+  case mInterpretations of
+    Nothing -> fail $ unwords ["Property not found: ", show (propertyName property)]
+    Just is -> pure is
+
+requirePropertyEInterpretation ::
+  Inherits classes propertyClass =>
+  Property propertyClass expectedTypes ->
+  Interpretation expectedTypes (Either String interpretation) ->
+  ParserOf classes interpretation
+requirePropertyEInterpretation property interpretation = do
+  interpretations <- requirePropertyInterpretation property interpretation
+  require $ msum interpretations
+
 -- | Lookup a property and try to interpret every possible value, then choose the first 'Just'.
 lookupPropertyMInterpretation ::
   Inherits classes propertyClass =>
@@ -203,6 +239,24 @@ lookupPropertyText property =
         interpretText
         (EmptyInterpretation Nothing)
     )
+
+-- | Require a property that may only be 'Text'.
+--
+-- Interpret literal text as text, and anything else as Nothing.
+requirePropertyText ::
+  Inherits classes propertyClass =>
+  Property propertyClass '[Text] ->
+  ParserOf classes Text
+requirePropertyText property =
+  requirePropertyEInterpretation
+    property
+    ( InterpretProperty
+        (\ee ees -> msum (ee : either (const []) id ees))
+        (EmptyInterpretation (Left "unused"))
+    )
+
+require :: Either String a -> ParserOf classes a
+require errOrRes = ParserOf $ \_ -> errOrRes
 
 -- | Lookup a property that may only be of a given single value.
 --
