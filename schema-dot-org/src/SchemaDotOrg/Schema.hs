@@ -4,9 +4,11 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeOperators #-}
 {-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
@@ -24,12 +26,17 @@ module SchemaDotOrg.Schema
 
     -- ** Parsing
     ParserOf (..),
-    Options (..),
-    ParseableOptions (..),
     Inherits,
     parseClass,
     lookupProperty,
     requireProperty,
+    Interpretation (..),
+    lookupPropertyInterpretation,
+    lookupPropertyMInterpretation,
+    lookupPropertyText,
+    interpretText,
+    interpretNumber,
+    interpretSingleValue,
     lookupPropertyClass,
     requirePropertyClass,
 
@@ -44,6 +51,7 @@ module SchemaDotOrg.Schema
 where
 
 import Control.Applicative
+import Control.Monad
 import Data.Aeson hiding (Options)
 import qualified Data.Aeson.Key as Key
 import qualified Data.Aeson.KeyMap as KeyMap
@@ -106,35 +114,6 @@ instance Monad (ParserOf classes) where
 instance MonadFail (ParserOf classes) where
   fail err = ParserOf $ \_ -> Left err
 
--- | All possible interpretations of a given 'Value' as a value of any of the
--- `expectedTypes` types.
---
--- We keep the options in the order that they appear in the property.
--- Even if one of the options succeeds to parse, we still allow evaluating the
--- other parse-interpretations.
--- I.e. something can be both a valid Text and a valid 'DateTime'.
--- The consumer decides which to use and how.
-data Options expectedTypes where
-  -- | The consumer can always access the raw 'Value'.
-  UnexpectedOption :: Value -> Options '[]
-  -- | The parse result of the first `expectedType` in the list
-  ExpectedOption :: Either String a -> Options otherExpectedType -> Options (a ': otherExpectedType)
-
--- | Whether a list of 'expectedTypes' is parseable.
---
--- This just means they all have 'FromJSON' instances.
-class ParseableOptions expectedTypes where
-  parseOptions :: JSON.Value -> Options expectedTypes
-
-instance ParseableOptions '[] where
-  parseOptions = UnexpectedOption
-
-instance
-  (FromJSON firstExpectedType, ParseableOptions otherExpectedTypes) =>
-  ParseableOptions (firstExpectedType ': otherExpectedTypes)
-  where
-  parseOptions v = ExpectedOption (JSON.parseEither parseJSON v) (parseOptions v)
-
 -- | Whether a class is in the given inheritance hierarchy
 class Inherits classes clazz
 
@@ -146,34 +125,120 @@ instance Inherits otherClasses clazz => Inherits (otherClass ': otherClasses) cl
 parseClass ::
   Class clazz superClasses ->
   -- | How to parse the value
-  ParserOf (clazz : superClasses) a ->
+  ParserOf (clazz ': superClasses) a ->
   JSON.Value ->
   Either String a
-parseClass clazz (ParserOf parseFunc) value =
-  JSON.parseEither (withObject (T.unpack (className clazz)) (either fail pure . parseFunc)) value
+parseClass clazz parser value =
+  JSON.parseEither (withObject (T.unpack (className clazz)) (either fail pure . runParserOf parser)) value
+
+runParserOf :: ParserOf (clazz ': superClasses) a -> JSON.Object -> Either String a
+runParserOf (ParserOf parseFunc) o = parseFunc o
 
 -- | Lookup a property in a 'Class'.
+--
+-- TODO consider removing this because it doesn't force you to teal with every option.
 lookupProperty ::
-  (Inherits classes propertyClass, ParseableOptions expectedTypes) =>
+  ( Inherits classes propertyClass,
+    IsExpectedType expectedTypes actualType,
+    FromJSON actualType
+  ) =>
   Property propertyClass expectedTypes ->
-  ParserOf classes (Maybe (Options expectedTypes))
+  ParserOf classes (Maybe actualType)
 lookupProperty property = ParserOf $ \o ->
   case KeyMap.lookup (Key.fromText (propertyName property)) o of
     Nothing -> pure Nothing
-    Just v -> pure $ Just $ parseOptions v
+    Just v -> Just <$> JSON.parseEither parseJSON v
 
 -- | Lookup a property in a 'Class', fail if it wasn't there.
 --
 -- All properties are optional, so you may want to use 'lookupProperty' instead.
 requireProperty ::
-  (Inherits classes propertyClass, ParseableOptions expectedTypes) =>
+  ( Inherits classes propertyClass,
+    IsExpectedType expectedTypes actualType,
+    FromJSON actualType
+  ) =>
   Property propertyClass expectedTypes ->
-  ParserOf classes (Options expectedTypes)
+  ParserOf classes actualType
 requireProperty property = do
   mProperty <- lookupProperty property
   case mProperty of
     Nothing -> fail $ unwords ["Property not found: ", show (propertyName property)]
-    Just options -> pure options
+    Just v -> pure v
+
+-- | Lookup a property and interpret every possible value that is expected.
+--
+-- This forces the consumer to deal with every possible value.
+lookupPropertyInterpretation ::
+  Inherits classes propertyClass =>
+  Property propertyClass expectedTypes ->
+  Interpretation expectedTypes interpretation ->
+  ParserOf classes (Maybe [interpretation])
+lookupPropertyInterpretation property interpretation = ParserOf $ \o ->
+  case KeyMap.lookup (Key.fromText (propertyName property)) o of
+    Nothing -> pure Nothing
+    Just value -> pure $ Just $ runInterpretation value interpretation
+
+-- | Lookup a property and try to interpret every possible value, then choose the first 'Just'.
+lookupPropertyMInterpretation ::
+  Inherits classes propertyClass =>
+  Property propertyClass expectedTypes ->
+  Interpretation expectedTypes (Maybe interpretation) ->
+  ParserOf classes (Maybe interpretation)
+lookupPropertyMInterpretation property interpretation = (msum =<<) <$> lookupPropertyInterpretation property interpretation
+
+-- | Lookup a property that may only be 'Text'.
+--
+-- Interpret literal text as text, and anything else as Nothing.
+lookupPropertyText ::
+  Inherits classes propertyClass =>
+  Property propertyClass '[Text] ->
+  ParserOf classes (Maybe Text)
+lookupPropertyText property =
+  lookupPropertyMInterpretation
+    property
+    ( InterpretProperty
+        interpretText
+        (EmptyInterpretation Nothing)
+    )
+
+interpretText :: Either String Text -> Either String [Either String Text] -> Maybe Text
+interpretText = interpretSingleValue
+
+interpretNumber :: Either String Number -> Either String [Either String Number] -> Maybe Number
+interpretNumber = interpretSingleValue
+
+interpretSingleValue :: Either String a -> Either String [Either String a] -> Maybe a
+interpretSingleValue errOrVal _ = either (const Nothing) Just errOrVal
+
+runInterpretation :: JSON.Value -> Interpretation types a -> [a]
+runInterpretation v = go
+  where
+    go :: Interpretation ts a -> [a]
+    go = \case
+      EmptyInterpretation defaultValue -> [defaultValue]
+      InterpretProperty combiner i ->
+        combiner
+          (JSON.parseEither parseJSON v)
+          (map (JSON.parseEither parseJSON) <$> JSON.parseEither parseJSON v) :
+        go i
+      InterpretClass parser combiner i ->
+        combiner
+          (runParserOf parser <$> JSON.parseEither parseJSON v)
+          (map (runParserOf parser) <$> JSON.parseEither parseJSON v) :
+        go i
+
+data Interpretation (expectedTypes :: [Type]) a where
+  EmptyInterpretation :: a -> Interpretation '[] a
+  InterpretProperty ::
+    FromJSON expectedType =>
+    (Either String expectedType -> Either String [Either String expectedType] -> a) ->
+    Interpretation otherExpectedTypes a ->
+    Interpretation (expectedType ': otherExpectedTypes) a
+  InterpretClass ::
+    ParserOf (clazz ': superClasses) e ->
+    (Either String (Either String e) -> Either String [Either String e] -> a) ->
+    Interpretation otherExpectedTypes a ->
+    Interpretation (clazz ': otherExpectedTypes) a
 
 -- | Lookup a property in a 'Class', that is itself a class.
 lookupPropertyClass ::
@@ -242,6 +307,8 @@ renderProperty property actualValue =
     KeyMap.singleton
       (Key.fromText (propertyName property))
       (toJSON actualValue)
+
+-- TODO remove this?
 
 -- | Render a property that has only one possible expected type
 renderSimpleProperty ::
