@@ -19,6 +19,7 @@ source-repository head
 library
   exposed-modules:
       SchemaDotOrg.Generator
+      SchemaDotOrg.Generator.Code
       SchemaDotOrg.Generator.Graph
       SchemaDotOrg.Generator.OptParse
       SchemaDotOrg.Generator.Schema
@@ -26,7 +27,7 @@ library
       Paths_schema_dot_org_generator
   hs-source-dirs:
       src
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+  ghc-options: -Wall -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
       aeson
     , autodocodec
@@ -54,7 +55,7 @@ executable schema-dot-org-generator
       Paths_schema_dot_org_generator
   hs-source-dirs:
       app
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
     , schema-dot-org-generator
