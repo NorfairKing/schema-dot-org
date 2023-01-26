@@ -18,7 +18,7 @@ exampleEvent :: JSON.Value
 exampleEvent =
   renderClass
     classEvent
-    [ renderSimpleProperty propertyThingName "Example event",
+    [ renderProperty propertyThingName ("Example event" :: Text),
       renderProperty propertyEventLocation ("Example location" :: Text),
       renderProperty propertyEventEventAttendanceMode EventAttendanceModeEnumerationOfflineEventAttendanceMode,
       renderPropertyClass
@@ -28,11 +28,11 @@ exampleEvent =
             propertyPlaceAddress
             classPostalAddress
             [ renderProperty propertyPostalAddressAddressCountry ("Example country" :: Text),
-              renderSimpleProperty propertyPostalAddressAddressLocality "Example locality",
-              renderSimpleProperty propertyPostalAddressAddressRegion "Example region",
-              renderSimpleProperty propertyPostalAddressPostOfficeBoxNumber "Example post office box number",
-              renderSimpleProperty propertyPostalAddressPostalCode "Example postal code",
-              renderSimpleProperty propertyPostalAddressStreetAddress "example street address"
+              renderProperty propertyPostalAddressAddressLocality ("Example locality" :: Text),
+              renderProperty propertyPostalAddressAddressRegion ("Example region" :: Text),
+              renderProperty propertyPostalAddressPostOfficeBoxNumber ("Example post office box number" :: Text),
+              renderProperty propertyPostalAddressPostalCode ("Example postal code" :: Text),
+              renderProperty propertyPostalAddressStreetAddress ("example street address" :: Text)
             ]
         ]
     ]

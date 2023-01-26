@@ -34,6 +34,7 @@ module SchemaDotOrg.Schema
     lookupPropertyInterpretation,
     lookupPropertyMInterpretation,
     lookupPropertyText,
+    lookupPropertySingleValue,
     interpretText,
     interpretNumber,
     interpretSingleValue,
@@ -45,8 +46,10 @@ module SchemaDotOrg.Schema
     renderClass,
     IsExpectedType,
     renderProperty,
-    renderSimpleProperty,
     renderPropertyClass,
+    renderTextProperty,
+    renderSimpleProperty,
+    renderUnspecifiedProperty,
   )
 where
 
@@ -201,6 +204,22 @@ lookupPropertyText property =
         (EmptyInterpretation Nothing)
     )
 
+-- | Lookup a property that may only be of a given single value.
+--
+-- This is for enumerations, for example.
+lookupPropertySingleValue ::
+  FromJSON a =>
+  Inherits classes propertyClass =>
+  Property propertyClass '[a] ->
+  ParserOf classes (Maybe a)
+lookupPropertySingleValue property =
+  lookupPropertyMInterpretation
+    property
+    ( InterpretProperty
+        interpretSingleValue
+        (EmptyInterpretation Nothing)
+    )
+
 interpretText :: Either String Text -> Either String [Either String Text] -> Maybe Text
 interpretText = interpretSingleValue
 
@@ -294,6 +313,26 @@ instance {-# OVERLAPS #-} IsExpectedType (actualType ': otherTypes) actualType
 instance IsExpectedType otherTypes actualType => IsExpectedType (otherType ': otherTypes) actualType
 
 -- | Render a property
+renderTextProperty ::
+  ( Inherits classes propertyClass,
+    IsExpectedType expectedTypes Text
+  ) =>
+  Property propertyClass expectedTypes ->
+  Text ->
+  RenderOf classes
+renderTextProperty = renderProperty
+
+-- | Render a property
+renderSimpleProperty ::
+  ( Inherits classes propertyClass,
+    ToJSON actualType
+  ) =>
+  Property propertyClass '[actualType] ->
+  actualType ->
+  RenderOf classes
+renderSimpleProperty = renderProperty
+
+-- | Render a property
 renderProperty ::
   ( Inherits classes propertyClass,
     IsExpectedType expectedTypes actualType,
@@ -303,22 +342,9 @@ renderProperty ::
   actualType ->
   RenderOf classes
 renderProperty property actualValue =
-  RenderOf $
-    KeyMap.singleton
-      (Key.fromText (propertyName property))
-      (toJSON actualValue)
-
--- TODO remove this?
-
--- | Render a property that has only one possible expected type
-renderSimpleProperty ::
-  ( Inherits classes propertyClass,
-    ToJSON propertyType
-  ) =>
-  Property propertyClass '[propertyType] ->
-  propertyType ->
-  RenderOf classes
-renderSimpleProperty = renderProperty
+  renderUnspecifiedProperty
+    (Key.fromText (propertyName property))
+    (toJSON actualValue)
 
 -- | Render a property that is a class
 renderPropertyClass ::
@@ -328,7 +354,13 @@ renderPropertyClass ::
   f (RenderOf (clazz : superClasses)) ->
   RenderOf classes
 renderPropertyClass property clazz renderers =
-  RenderOf $
-    KeyMap.singleton
-      (Key.fromText (propertyName property))
-      (renderClass clazz renderers)
+  renderUnspecifiedProperty
+    (Key.fromText (propertyName property))
+    (renderClass clazz renderers)
+
+renderUnspecifiedProperty ::
+  JSON.Key ->
+  JSON.Value ->
+  RenderOf classes
+renderUnspecifiedProperty key value =
+  RenderOf $ KeyMap.singleton key value
