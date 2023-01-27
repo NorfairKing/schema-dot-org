@@ -21,6 +21,7 @@ library
       SchemaDotOrg.JSONLD
       SchemaDotOrg.JSONLD.Parse
       SchemaDotOrg.JSONLD.Render
+      SchemaDotOrg.JSONLD.Scalpel
   other-modules:
       Paths_schema_dot_org_jsonld
   hs-source-dirs:
@@ -29,6 +30,8 @@ library
   build-depends:
       aeson
     , base >=4.7 && <5
+    , bytestring
+    , scalpel
     , schema-dot-org
     , text
   default-language: Haskell2010
