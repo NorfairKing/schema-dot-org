@@ -1,9 +1,15 @@
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE TypeOperators #-}
+{-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
 module SchemaDotOrg.Schema
   ( -- * Schema declaration
     Class (..),
     Property (..),
+    Inherits,
 
     -- ** Data types
     Boolean,
@@ -39,3 +45,10 @@ data Class clazz superClasses = Class {className :: Text}
 -- Existence of a value of this type (in this library) implies that there is a
 -- property schema on schema.org for class `clazz` with expected types `expectedTypes`.
 data Property clazz expectedTypes = Property {propertyName :: Text}
+
+-- | Whether a class is in the given inheritance hierarchy
+class Inherits classes clazz
+
+instance {-# OVERLAPS #-} Inherits (clazz ': otherClasses) clazz
+
+instance Inherits otherClasses clazz => Inherits (otherClass ': otherClasses) clazz

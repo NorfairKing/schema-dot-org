@@ -19,6 +19,8 @@ source-repository head
 library
   exposed-modules:
       SchemaDotOrg.JSONLD
+      SchemaDotOrg.JSONLD.Parse
+      SchemaDotOrg.JSONLD.Render
   other-modules:
       Paths_schema_dot_org_jsonld
   hs-source-dirs:

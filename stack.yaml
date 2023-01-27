@@ -18,3 +18,7 @@ extra-deps:
 - validity-aeson-0.2.0.5@sha256:e4baa2ad9deaf2c903e1ef8e55e9977410ed867c9e46fa14427e8f6ef8b4dc2e,1402
 
 
+system-ghc: true
+nix:
+  enable: false
+with-hpack: hpack
