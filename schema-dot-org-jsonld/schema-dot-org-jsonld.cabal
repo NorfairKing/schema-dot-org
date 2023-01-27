@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 
-name:           schema-dot-org
+name:           schema-dot-org-jsonld
 version:        0.0.0.0
 homepage:       https://github.com/NorfairKing/schema-dot-org#readme
 bug-reports:    https://github.com/NorfairKing/schema-dot-org/issues
@@ -18,18 +18,15 @@ source-repository head
 
 library
   exposed-modules:
-      SchemaDotOrg
-      SchemaDotOrg.Generated
-      SchemaDotOrg.Schema
+      SchemaDotOrg.JSONLD
   other-modules:
-      Paths_schema_dot_org
+      Paths_schema_dot_org_jsonld
   hs-source-dirs:
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wunused-packages
   build-depends:
       aeson
     , base >=4.7 && <5
-    , scientific
+    , schema-dot-org
     , text
-    , time
   default-language: Haskell2010

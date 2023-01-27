@@ -8,7 +8,9 @@ with final.haskell.lib;
       (
         self: super:
           {
+            schema-dot-org = buildStrictly (self.callPackage ../schema-dot-org { });
             schema-dot-org-generator = buildStrictly (self.callPackage ../schema-dot-org-generator { });
+            schema-dot-org-jsonld = buildStrictly (self.callPackage ../schema-dot-org-jsonld { });
           }
       );
   });

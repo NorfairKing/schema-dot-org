@@ -61,7 +61,7 @@ filterDoubleEdgesMapByRelevantNodes dem relevantIds =
 nodesRelevantTo :: DoubleEdgesMap -> Text -> Set Text
 nodesRelevantTo dem sid = case M.lookup sid dem of
   Nothing -> S.empty
-  Just (edgesTo, _, edgesFrom) ->
+  Just (_, _, _) ->
     S.insert sid $
       S.union
         (eventuallyReachableFrom dem sid)

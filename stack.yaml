@@ -1,9 +1,13 @@
 resolver: lts-19.6
 packages:
+# Code generator
 - schema-dot-org-generator
 
 # Generated code
 - schema-dot-org
+
+# Companions
+- schema-dot-org-jsonld
 
 extra-deps:
 

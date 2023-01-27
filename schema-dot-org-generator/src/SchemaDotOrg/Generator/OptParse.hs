@@ -10,7 +10,6 @@ import Autodocodec
 import Autodocodec.Yaml
 import Control.Applicative
 import Data.Maybe
-import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Yaml (FromJSON, ToJSON)
 import qualified Env
@@ -19,7 +18,6 @@ import Options.Applicative as OptParse
 import qualified Options.Applicative.Help as OptParse (string)
 import Path
 import Path.IO
-import System.Exit
 
 data Instructions
   = Instructions !Dispatch !Settings

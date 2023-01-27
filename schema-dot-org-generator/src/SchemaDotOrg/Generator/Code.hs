@@ -10,8 +10,6 @@ import Data.List
 import Data.Map (Map)
 import qualified Data.Map as M
 import Data.Maybe
-import Data.Set (Set)
-import qualified Data.Set as S
 import Data.String
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -56,7 +54,7 @@ declsFor :: Map Text Schema -> Schema -> [HsDecl']
 declsFor schemaMap s@Schema {..}
   | subclassOfEnumeration schemaMap s = declsForEnumeration schemaMap s
   | "rdfs:Class" `elem` schemaType = declsForClass schemaMap s
-  | "rdf:Property" `elem` schemaType = declsForProperty schemaMap s
+  | "rdf:Property" `elem` schemaType = declsForProperty s
   | otherwise = []
 
 subclassOfEnumeration :: Map Text Schema -> Schema -> Bool
@@ -70,33 +68,13 @@ transitiveSuperclasses schemaMap schema = go (map unSchemaRef (schemaSubclassOf 
       superClasses
         ++ let superSuperClasses t = case M.lookup t schemaMap of
                  Nothing -> []
-                 Just schema -> go (map unSchemaRef (schemaSubclassOf schema))
+                 Just s -> go (map unSchemaRef (schemaSubclassOf s))
             in concatMap superSuperClasses superClasses
-
-toCamelCase :: String -> String
-toCamelCase = \case
-  [] -> []
-  [c] -> [toLower c]
-  (c1 : c2 : cs)
-    | isUpper c1 && isUpper c2 -> toLower c1 : toCamelCase (c2 : cs)
-    | isUpper c1 -> toLower c1 : c2 : cs
-    | otherwise -> c1 : c2 : cs
 
 toPascalCase :: String -> String
 toPascalCase = \case
   [] -> []
   (c : cs) -> toUpper c : cs
-
-directClassProperties :: Map Text Schema -> Schema -> Set Schema
-directClassProperties schemaMap schema =
-  S.fromList $ M.elems (M.filter ((SchemaRef (schemaId schema) `elem`) . schemaDomainIncludes) schemaMap)
-
-allClassProperties :: Map Text Schema -> Schema -> Set Schema
-allClassProperties schemaMap schema =
-  let superClassRefs = schemaSubclassOf schema
-      superClasses = mapMaybe ((`M.lookup` schemaMap) . unSchemaRef) superClassRefs
-   in S.unions $
-        directClassProperties schemaMap schema : map (allClassProperties schemaMap) superClasses
 
 declsForClass :: Map Text Schema -> Schema -> [HsDecl']
 declsForClass schemaMap schema =
@@ -118,11 +96,9 @@ declsForClass schemaMap schema =
                 funBind valueTypeName (match [] (var "Class" @@ string (T.unpack (commentText (schemaLabel schema)))))
               ]
 
-declsForProperty :: Map Text Schema -> Schema -> [HsDecl']
-declsForProperty schemaMap schema =
-  let classTypeNameString = schemaTypeNameString schema
-      classTypeName = fromString classTypeNameString
-      propertyLabel = T.unpack (commentText (schemaLabel schema))
+declsForProperty :: Schema -> [HsDecl']
+declsForProperty schema =
+  let propertyLabel = T.unpack (commentText (schemaLabel schema))
       valueTypeName className = fromString $ "property" <> toPascalCase className <> toPascalCase propertyLabel
    in if SchemaRef "https://meta.schema.org" `elem` schemaIsPartOf schema
         then []

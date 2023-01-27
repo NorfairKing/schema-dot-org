@@ -8,3 +8,5 @@
     name: "Use tuple-section"
 - ignore:
     name: "Use fmap"
+- ignore:
+    name: "Use const"
