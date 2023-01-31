@@ -64,13 +64,6 @@ setContext = KeyMap.insert "@context" (toJSON ("https://schema.org" :: Text))
 setClassType :: Class clazz superClasses -> JSON.Object -> JSON.Object
 setClassType clazz o = KeyMap.insert "@type" (toJSON (className clazz)) o
 
--- Whether the given 'actualType' is in the 'expectedTypes' list.
-class IsExpectedType expectedTypes actualType
-
-instance {-# OVERLAPS #-} IsExpectedType (actualType ': otherTypes) actualType
-
-instance IsExpectedType otherTypes actualType => IsExpectedType (otherType ': otherTypes) actualType
-
 -- | Render a property
 --
 -- > renderTextProperty = renderProperty
