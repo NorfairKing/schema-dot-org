@@ -13,8 +13,11 @@
 
 module SchemaDotOrg.JSONLD.Parse
   ( -- ** Parsing
+    parseValues,
+    parseValue,
     ParserOf (..),
     parseClass,
+    checkContext,
     checkClass,
     lookupProperty,
     requireProperty,
@@ -41,10 +44,39 @@ import qualified Data.Aeson.Key as Key
 import qualified Data.Aeson.KeyMap as KeyMap
 import qualified Data.Aeson.Types as JSON
 import Data.Either
+import Data.Foldable
 import Data.Kind
+import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
 import SchemaDotOrg
+
+-- | Try to use the parser where possible.
+--
+-- This will try to:
+-- 1. Parse an object directly
+-- 2. Parse a list of objects
+-- 3. Parse an object containing an @graph key if there is one.
+--  a) If there is an object in the @graph attribute, try to parse it
+--  b) If there is a listo fo objects in the @graph attribute, try to parse each one.
+parseValues :: ParserOf classes a -> Value -> [Either String a]
+parseValues (ParserOf parserFunc) = \case
+  Object o ->
+    parserFunc o : case KeyMap.lookup "@graph" o of
+      Nothing -> []
+      Just (Object o') -> [parserFunc o']
+      Just (Array as) -> flip mapMaybe (toList as) $ \case
+        Object o' -> Just $ parserFunc o'
+        _ -> Nothing
+      Just _ -> []
+  Array as -> flip mapMaybe (toList as) $ \case
+    Object o -> Just $ parserFunc o
+    _ -> Nothing
+  _ -> []
+
+-- | Like 'parseValues', but return the first match or the first error.
+parseValue :: ParserOf classes a -> Value -> Either String a
+parseValue parser = msum . parseValues parser
 
 -- | A parser for a given class. The type-level list `classes` contains the
 -- class itself, and its transitive superclasses.
@@ -85,6 +117,11 @@ parseClass ::
 parseClass clazz parser value =
   JSON.parseEither (withObject (T.unpack (className clazz)) (either fail pure . runParserOf parser)) value
 
+-- Check that "https://schema.org" is mentioned in the "@context"
+checkContext :: ParserOf classes ()
+checkContext = undefined
+
+-- Check that the given class is mentioned in the "@type"
 checkClass ::
   Inherits classes clazz =>
   Class clazz superclasses ->
