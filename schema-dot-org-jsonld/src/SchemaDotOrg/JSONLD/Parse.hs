@@ -16,12 +16,16 @@ module SchemaDotOrg.JSONLD.Parse
     parseValues,
     parseValue,
     ParserOf (..),
+    runParserOf,
     parseClass,
     checkContext,
     checkClass,
     lookupProperty,
     requireProperty,
     Interpretation (..),
+    Interpret (..),
+    Actual (..),
+    runInterpretation,
     lookupPropertyInterpretation,
     lookupPropertyMInterpretation,
     requirePropertyInterpretation,
@@ -45,7 +49,6 @@ import Data.Aeson hiding (Options)
 import qualified Data.Aeson.Key as Key
 import qualified Data.Aeson.KeyMap as KeyMap
 import qualified Data.Aeson.Types as JSON
-import Data.Either
 import Data.Foldable
 import Data.Kind
 import Data.Maybe
@@ -58,9 +61,9 @@ import SchemaDotOrg
 -- This will try to:
 -- 1. Parse an object directly
 -- 2. Parse a list of objects
--- 3. Parse an object containing an @graph key if there is one.
---  a) If there is an object in the @graph attribute, try to parse it
---  b) If there is a listo fo objects in the @graph attribute, try to parse each one.
+-- 3. Parse an object containing an @@graph@ key, if there is one.
+--  a) If there is an object in the @@graph@ attribute, try to parse it
+--  b) If there is a listo fo objects in the @@graph@ attribute, try to parse each one.
 parseValues :: ParserOf classes a -> Value -> [Either String a]
 parseValues (ParserOf parserFunc) = \case
   Object o ->
@@ -109,6 +112,12 @@ instance Monad (ParserOf classes) where
 instance MonadFail (ParserOf classes) where
   fail err = ParserOf $ \_ -> Left err
 
+-- | Run a 'ParserOf' on a JSON 'Object' directly.
+--
+-- You probably want to use 'parseClass' instead.
+runParserOf :: ParserOf (clazz ': superClasses) a -> JSON.Object -> Either String a
+runParserOf (ParserOf parseFunc) o = parseFunc o
+
 -- | Parse a value of a given class, from a 'JSON.Value'.
 parseClass ::
   Class clazz superClasses ->
@@ -116,14 +125,17 @@ parseClass ::
   ParserOf (clazz ': superClasses) a ->
   JSON.Value ->
   Either String a
-parseClass clazz parser value =
-  JSON.parseEither (withObject (T.unpack (className clazz)) (either fail pure . runParserOf parser)) value
+parseClass clazz parser =
+  JSON.parseEither $
+    withObject
+      (T.unpack (className clazz))
+      (either fail pure . runParserOf parser)
 
--- Check that "https://schema.org" is mentioned in the "@context"
+-- | Check that "https://schema.org" is mentioned in the @@context@ property
 checkContext :: ParserOf classes ()
 checkContext = undefined
 
--- Check that the given class is mentioned in the "@type"
+-- | Check that the given class is mentioned in the @@type@ property
 checkClass ::
   Inherits classes clazz =>
   Class clazz superclasses ->
@@ -136,9 +148,6 @@ checkClass clazz = ParserOf $ \o -> case KeyMap.lookup "@type" o of
       else Left "Type mismatch."
   Just _ -> Left "Key '@type' found but was not a String"
 
-runParserOf :: ParserOf (clazz ': superClasses) a -> JSON.Object -> Either String a
-runParserOf (ParserOf parseFunc) o = parseFunc o
-
 -- | Lookup a property in a 'Class'.
 --
 -- Note that this function does not force you to deal with every possible 'expectedType'.
@@ -148,6 +157,7 @@ lookupProperty ::
     IsExpectedType expectedTypes actualType,
     FromJSON actualType
   ) =>
+  -- | Property
   Property propertyClass expectedTypes ->
   ParserOf classes (Maybe actualType)
 lookupProperty property = ParserOf $ \o ->
@@ -166,6 +176,7 @@ requireProperty ::
     IsExpectedType expectedTypes actualType,
     FromJSON actualType
   ) =>
+  -- | Property
   Property propertyClass expectedTypes ->
   ParserOf classes actualType
 requireProperty property = do
@@ -179,6 +190,7 @@ requireProperty property = do
 -- This forces the consumer to deal with every possible value.
 lookupPropertyInterpretation ::
   Inherits classes propertyClass =>
+  -- | Property
   Property propertyClass expectedTypes ->
   Interpretation expectedTypes interpretation ->
   ParserOf classes (Maybe [interpretation])
@@ -187,8 +199,13 @@ lookupPropertyInterpretation property interpretation = ParserOf $ \o ->
     Nothing -> pure Nothing
     Just value -> pure $ Just $ runInterpretation value interpretation
 
+-- | Lookup a property, require that it's there, and interpret every possible
+-- value that is expected.
+--
+-- This forces the consumer to deal with every possible value.
 requirePropertyInterpretation ::
   Inherits classes propertyClass =>
+  -- | Property
   Property propertyClass expectedTypes ->
   Interpretation expectedTypes interpretation ->
   ParserOf classes [interpretation]
@@ -198,8 +215,13 @@ requirePropertyInterpretation property interpretation = do
     Nothing -> fail $ unwords ["Property not found: ", show (propertyName property)]
     Just is -> pure is
 
+-- | Lookup a property, require that it's there, interpret every possible value
+-- that is expected, and then choose the first 'Right'.
+--
+-- This forces the consumer to deal with every possible value.
 requirePropertyEInterpretation ::
   Inherits classes propertyClass =>
+  -- | Property
   Property propertyClass expectedTypes ->
   Interpretation expectedTypes (Either String interpretation) ->
   ParserOf classes interpretation
@@ -207,9 +229,11 @@ requirePropertyEInterpretation property interpretation = do
   interpretations <- requirePropertyInterpretation property interpretation
   require $ msum interpretations
 
--- | Lookup a property and try to interpret every possible value, then choose the first 'Just'.
+-- | Lookup a property and try to interpret every possible value, then choose
+-- the first 'Just'.
 lookupPropertyMInterpretation ::
   Inherits classes propertyClass =>
+  -- | Property
   Property propertyClass expectedTypes ->
   Interpretation expectedTypes (Maybe interpretation) ->
   ParserOf classes (Maybe interpretation)
@@ -220,6 +244,7 @@ lookupPropertyMInterpretation property interpretation = (msum =<<) <$> lookupPro
 -- Interpret literal text as text, and anything else as Nothing.
 lookupPropertyText ::
   Inherits classes propertyClass =>
+  -- | Property
   Property propertyClass '[Text] ->
   ParserOf classes (Maybe Text)
 lookupPropertyText property =
@@ -235,6 +260,7 @@ lookupPropertyText property =
 -- Interpret literal text as text, and anything else as Nothing.
 requirePropertyText ::
   Inherits classes propertyClass =>
+  -- | Property
   Property propertyClass '[Text] ->
   ParserOf classes Text
 requirePropertyText property =
@@ -244,16 +270,6 @@ requirePropertyText property =
         interpretText
         (EmptyInterpretation (const (Left "unused")))
     )
-
--- | Require a value to be 'Right', fail to parse otherwise.
-require :: Either String a -> ParserOf classes a
-require errOrRes = ParserOf $ \_ -> errOrRes
-
--- | A convenience function for modifiying interpreters.
---
--- > forgiveError = either (const Nothing) Just
-forgiveError :: Either String a -> Maybe a
-forgiveError = either (const Nothing) Just
 
 -- | Lookup a property that may only be of a given single value.
 --
@@ -268,7 +284,7 @@ lookupPropertySingleValue property =
     property
     ( InterpretProperty
         (forgiveError <$> interpretSingleValue)
-        (EmptyInterpretation Nothing)
+        (EmptyInterpretation (const Nothing))
     )
 
 -- Run an 'Interpretation' on a given JSON 'Value'.
@@ -279,15 +295,15 @@ runInterpretation v = go
     go = \case
       EmptyInterpretation mkDefaultValue -> [mkDefaultValue v]
       InterpretProperty (Interpret func) i ->
-        let a = case v of
+        let actual = case v of
               Array a -> ActualList (map (JSON.parseEither parseJSON) (toList a))
               _ -> ActualSingle (JSON.parseEither parseJSON v)
-         in func a : go i
+         in func actual : go i
       InterpretClass parser (Interpret func) i ->
-        let a = case v of
+        let actual = case v of
               Array a -> ActualList (map (JSON.parseEither parseJSON >=> runParserOf parser) (toList a))
               _ -> ActualSingle ((JSON.parseEither parseJSON >=> runParserOf parser) v)
-         in func a : go i
+         in func actual : go i
 
 -- | An 'Interpretation' of a property
 --
@@ -309,9 +325,12 @@ data Interpretation (expectedTypes :: [Type]) a where
     Interpretation otherExpectedTypes a ->
     Interpretation (clazz ': otherExpectedTypes) a
 
+-- | The value found at a 'Property'
+--
+-- The schema.org specifications do not specify whether a property will have 0,
+-- 1, or a list of values for a given property, so we deal with each option.
 data Actual expectedType
-  = ActualNothing
-  | ActualSingle (Either String expectedType)
+  = ActualSingle (Either String expectedType)
   | ActualList [Either String expectedType]
 
 data Interpret (expectedType :: Type) (result :: Type) = Interpret
@@ -323,30 +342,35 @@ instance Functor (Interpret expectedType) where
 
 instance Applicative (Interpret expectedType) where
   pure a = Interpret (const a)
-  (Interpret ff) <*> (Interpret fa) = Interpret (\a -> (ff a) (fa a))
+  (Interpret ff) <*> (Interpret fa) = Interpret (\a -> ff a (fa a))
 
 instance Monad (Interpret expectedType) where
   Interpret fa >>= f = Interpret $ \a ->
     let Interpret fb = f (fa a)
      in fb a
 
+-- | Interpret a single 'Text'
 interpretText :: Interpret Text (Either String Text)
 interpretText = interpretSingleValue
 
+-- | Interpret a single 'Number'
 interpretNumber :: Interpret Number (Either String Number)
 interpretNumber = interpretSingleValue
 
+-- | Interpret only a single value, not a list.
 interpretSingleValue :: Interpret a (Either String a)
 interpretSingleValue = Interpret $ \case
-  ActualNothing -> Left "Expected a value but got none."
   ActualSingle ee -> ee
   ActualList _ -> Left "Lists of values are not interpreted."
 
 -- | Lookup a property in a 'Class', that is itself a class.
 lookupPropertyClass ::
   Inherits classes propertyClass =>
+  -- | Property
   Property propertyClass expectedTypes ->
+  -- | Property class
   Class clazz superClasses ->
+  -- | Property class parser
   ParserOf (clazz ': superClasses) a ->
   ParserOf classes (Maybe a)
 lookupPropertyClass property clazz classParserFunc = ParserOf $ \o -> do
@@ -359,11 +383,24 @@ lookupPropertyClass property clazz classParserFunc = ParserOf $ \o -> do
 -- All properties are optional, so you may want to use 'lookupPropertyClass' instead.
 requirePropertyClass ::
   Inherits classes propertyClass =>
+  -- | Property
   Property propertyClass expectedTypes ->
+  -- | Property class
   Class clazz superClasses ->
+  -- | Property class parser
   ParserOf (clazz ': superClasses) a ->
   ParserOf classes a
 requirePropertyClass property clazz classParserFunc = ParserOf $ \o -> do
   case KeyMap.lookup (Key.fromText (propertyName property)) o of
     Nothing -> Left $ unwords ["Property not found: ", show (propertyName property)]
     Just v -> parseClass clazz classParserFunc v
+
+-- | Require a value to be 'Right', fail to parse otherwise.
+require :: Either String a -> ParserOf classes a
+require errOrRes = ParserOf $ \_ -> errOrRes
+
+-- | A convenience function for modifiying interpreters.
+--
+-- > forgiveError = either (const Nothing) Just
+forgiveError :: Either String a -> Maybe a
+forgiveError = either (const Nothing) Just
