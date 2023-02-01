@@ -36,6 +36,11 @@ module SchemaDotOrg.JSONLD.Parse
     interpretText,
     interpretNumber,
     interpretSingleValue,
+    interpretFirstValue,
+    interpretAnyListValues,
+    interpretAllListValues,
+    interpretNothing,
+    interpretLeft,
     lookupPropertyClass,
     requirePropertyClass,
     require,
@@ -49,6 +54,7 @@ import Data.Aeson hiding (Options)
 import qualified Data.Aeson.Key as Key
 import qualified Data.Aeson.KeyMap as KeyMap
 import qualified Data.Aeson.Types as JSON
+import Data.Either
 import Data.Foldable
 import Data.Kind
 import Data.Maybe
@@ -231,6 +237,8 @@ requirePropertyEInterpretation property interpretation = do
 
 -- | Lookup a property and try to interpret every possible value, then choose
 -- the first 'Just'.
+--
+-- You may want to just use 'requirePropertyEInterpretation' with 'optional' instead.
 lookupPropertyMInterpretation ::
   Inherits classes propertyClass =>
   -- | Property
@@ -362,6 +370,38 @@ interpretSingleValue :: Interpret a (Either String a)
 interpretSingleValue = Interpret $ \case
   ActualSingle ee -> ee
   ActualList _ -> Left "Lists of values are not interpreted."
+
+-- | Intepret the first 'Right' in either a single value or a list.
+interpretFirstValue :: Interpret a (Either String a)
+interpretFirstValue = Interpret $ \case
+  ActualSingle ee -> ee
+  ActualList ees -> msum ees
+
+-- | Intepret any parseable list values
+interpretAnyListValues :: Interpret a [a]
+interpretAnyListValues = Interpret $ \case
+  ActualSingle ee -> case ee of
+    Left _ -> []
+    Right a -> [a]
+  ActualList ees -> snd $ partitionEithers ees
+
+-- | Intepret values as a list, but only if they're all parseable.
+interpretAllListValues :: Interpret a [a]
+interpretAllListValues = Interpret $ \a ->
+  let errOrList = case a of
+        ActualSingle ee -> (: []) <$> ee
+        ActualList ees -> sequence ees
+   in case errOrList of
+        Left _ -> []
+        Right as -> as
+
+-- | Don't try to interpret anything, and return 'Nothing'.
+interpretNothing :: Interpret a (Maybe b)
+interpretNothing = pure Nothing
+
+-- | Don't try to interpret anything, and return 'Left' with the given 'e'.
+interpretLeft :: e -> Interpret a (Either e b)
+interpretLeft e = pure (Left e)
 
 -- | Lookup a property in a 'Class', that is itself a class.
 lookupPropertyClass ::
