@@ -10,21 +10,21 @@
 --
 -- > data FooBar
 --
--- `FooBar` is called 'classTypeName'.
+-- @FooBar@ is called 'classTypeName'.
 --
 -- > classFooBar :: Class FooBar [FooBarSuperClass, FooBarSuperClassSuperClass]
 -- > classFooBar = Class "FooBar"
 --
--- `classFooBar` is called 'classValueName'.
--- `"FooBar"` is called 'classNameValue'.
+-- @classFooBar@ is called 'classValueName'.
+-- @"FooBar"@ is called 'classNameValue'.
 --
 -- * For a property `fooBar` of a class `Quux`:
 --
 -- > propertyQuuxFooBar :: Property Quux '[QuuxSuperClass, QuuxSuperClassSuperClass]
 -- > propertyQuuxFooBar = Property "fooBar"
 --
--- `propertyQuuxFooBar` is called 'propertyValueName'.
--- `"fooBar"` is called 'propertyNameValue'.
+-- @propertyQuuxFooBar@ is called 'propertyValueName'.
+-- @"fooBar"@ is called 'propertyNameValue'.
 --
 -- * For an enumeration `FooBar`:
 --
@@ -32,8 +32,8 @@
 -- >   = FooBarEnumerationValue1
 -- >   | FooBarEnumerationValue2
 --
--- `FooBarEnumeration` is called 'enumerationTypeName'.
--- `FooBarEnumerationValue1` is called 'enumerationConstructorName'.
+-- @FooBarEnumeration@ is called 'enumerationTypeName'.
+-- @FooBarEnumerationValue1@ is called 'enumerationConstructorName'.
 --
 -- > instance FromJSON FooBarEnumeration where
 -- >    parseJSON = withText "FooBarEnumeration"
@@ -43,8 +43,8 @@
 -- >        t -> fail ("Failed to parse FooBarEnumeration: " <> show t
 -- >      )
 --
--- `"FooBarEnumeration"` is called `enumerationTypeNameValue` and is also used in the error.
--- `"https://schema.org/FooBarEnumerationValue1"` is called `enumConstructorSerialisation`.
+-- @"FooBarEnumeration"@ is called `enumerationTypeNameValue` and is also used in the error.
+-- @"https://schema.org/FooBarEnumerationValue1"@ is called `enumConstructorSerialisation`.
 --
 -- > instance ToJSON FooBarEnumeration where
 -- >    toJSON = (toJSON :: Text -> Value)
