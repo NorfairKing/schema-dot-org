@@ -44,7 +44,7 @@
 -- >      )
 --
 -- @"FooBarEnumeration"@ is called `enumerationTypeNameValue` and is also used in the error.
--- @"https://schema.org/FooBarEnumerationValue1"@ is called `enumConstructorSerialisation`.
+-- @"https://schema.org/FooBarEnumerationValue1"@ is called `enumerationConstructorSerialisation`.
 --
 -- > instance ToJSON FooBarEnumeration where
 -- >    toJSON = (toJSON :: Text -> Value)
@@ -169,19 +169,16 @@ declsForEnumeration :: Map Text Schema -> Schema -> [HsDecl']
 declsForEnumeration schemaMap schema =
   let enumerationElems = M.elems $ M.filter ((schemaId schema `elem`) . schemaType) schemaMap
 
-      elemConstructorName s = schemaTypeNameString schema <> schemaTypeNameString s
-      elemConstructor s = prefixCon (fromString (elemConstructorName s)) []
+      elemConstructorName s = enumerationConstructorName schema s
 
-      enumLiteral s = string ("https://schema.org/" <> schemaTypeNameString s)
-
-      enumTypeName = schemaTypeName schema
+      enumTypeName = enumerationTypeName schema
    in if null enumerationElems
         then [type' enumTypeName [] (var "Text")]
         else
           [ data'
               enumTypeName
               []
-              (map elemConstructor enumerationElems)
+              (map (enumerationConstructorDecl schema) enumerationElems)
               [ deriving'
                   [ var "Show",
                     var "Eq",
@@ -194,13 +191,13 @@ declsForEnumeration schemaMap schema =
               [ funBinds
                   "parseJSON"
                   [ match [] $
-                      (var "withText" @@ string (schemaTypeNameString schema))
+                      (var "withText" @@ enumerationTypeNameValue schema)
                         @@ lambdaCase
                           ( map
                               ( \s ->
                                   match
-                                    [enumLiteral s]
-                                    (var "pure" @@ bvar (fromString (elemConstructorName s)))
+                                    [enumerationConstructorSerialisationPattern s]
+                                    (var "pure" @@ enumerationConstructorExpression schema s)
                               )
                               enumerationElems
                               ++ [ match
@@ -228,22 +225,118 @@ declsForEnumeration schemaMap schema =
                       op (var "toJSON" @::@ (var "Text" GHC.SourceGen.--> var "Value")) "." $
                         lambdaCase $
                           map
-                            (\s -> match [bvar (fromString (elemConstructorName s))] (enumLiteral s))
+                            ( \s ->
+                                match
+                                  [enumerationConstructorPattern schema s]
+                                  (enumerationConstructorSerialisationExpression s)
+                            )
                             enumerationElems
                   ]
               ]
           ]
 
-schemaTypeName :: Schema -> OccNameStr
-schemaTypeName = fromString . schemaTypeNameString
+-- | The @FooBar@ in
+--
+-- > data FooBar
+classTypeName :: Schema -> String
+classTypeName = undefined
+
+-- | The @classFooBar@ in
+--
+-- > classFooBar = Class "FooBar"
+classValueName :: Schema -> String
+classValueName = undefined
+
+-- | The @"FooBar"@ in
+--
+-- > classFooBar = Class "FooBar"
+classNameValue :: Schema -> String
+classNameValue = undefined
+
+-- | The @propertyQuuxFooBar@ in
+--
+-- > propertyQuuxFooBar = Property "fooBar"
+propertyValueName :: Schema -> String
+propertyValueName = undefined
+
+-- | The @"fooBar"@ in
+--
+-- > propertyQuuxFooBar = Property "fooBar"
+propertyNameValue :: Schema -> String
+propertyNameValue = undefined
+
+-- | The @"FooBarEnumeration"@ in
+--
+-- > instance FromJSON FooBarEnumeration where
+-- >    parseJSON = withText "FooBarEnumeration"
+enumerationTypeNameValue :: Schema -> HsExpr'
+enumerationTypeNameValue = string . schemaTypeNameString
+
+-- | The @FooBarEnumeration@ in
+--
+-- > data FooBarEnumeration
+-- >   = FooBarEnumerationValue1
+-- >   | FooBarEnumerationValue2
+enumerationTypeName :: Schema -> OccNameStr
+enumerationTypeName = fromString . schemaTypeNameString
+
+-- | The @FooBarEnumerationValue1@ in
+--
+-- >  "https://schema.org/FooBarEnumerationValue1" -> pure FooBarEnumerationValue1
+enumerationConstructorExpression :: Schema -> Schema -> HsExpr'
+enumerationConstructorExpression super sub = bvar $ fromString $ enumerationConstructorName super sub
+
+-- | The @FooBarEnumerationValue1@ in
+--
+-- >  FooBarEnumerationValue1 -> "https://schema.org/FooBarEnumerationValue1"
+enumerationConstructorPattern :: Schema -> Schema -> Pat'
+enumerationConstructorPattern super sub = bvar $ fromString $ enumerationConstructorName super sub
+
+-- | The @FooBarEnumerationValue1@ in
+--
+-- > data FooBarEnumeration
+-- >   = FooBarEnumerationValue1
+-- >   | FooBarEnumerationValue2
+enumerationConstructorDecl :: Schema -> Schema -> ConDecl'
+enumerationConstructorDecl super sub = prefixCon (fromString (enumerationConstructorName super sub)) []
+
+-- | The @FooBarEnumerationValue1@ in
+--
+-- > data FooBarEnumeration
+-- >   = FooBarEnumerationValue1
+-- >   | FooBarEnumerationValue2
+enumerationConstructorName :: Schema -> Schema -> String
+enumerationConstructorName super sub = schemaTypeNameString super <> schemaTypeNameString sub
+
+-- | The @"https://schema.org/FooBarEnumerationValue1"@ in
+--
+-- >  FooBarEnumerationValue1 -> "https://schema.org/FooBarEnumerationValue1"
+enumerationConstructorSerialisationExpression :: Schema -> HsExpr'
+enumerationConstructorSerialisationExpression = string . enumerationConstructorSerialisation
+
+-- | The @"https://schema.org/FooBarEnumerationValue1"@ in
+--
+-- >  "https://schema.org/FooBarEnumerationValue1" -> pure FooBarEnumerationValue1
+enumerationConstructorSerialisationPattern :: Schema -> Pat'
+enumerationConstructorSerialisationPattern = string . enumerationConstructorSerialisation
+
+-- | The @https://schema.org/FooBarEnumerationValue1@ in
+--
+-- > "https://schema.org/FooBarEnumerationValue1"
+enumerationConstructorSerialisation :: Schema -> String
+enumerationConstructorSerialisation s =
+  "https://schema.org/" <> schemaLabelString s
 
 schemaTypeNameString :: Schema -> String
-schemaTypeNameString = toTypeName . T.unpack . commentText . schemaLabel
+schemaTypeNameString = toTypeName . schemaLabelString
+
+toTypeName :: String -> String
+toTypeName = dropWhile isDigit
+
+schemaLabelString :: Schema -> String
+schemaLabelString = T.unpack . commentText . schemaLabel
 
 commentText :: Comment -> Text
 commentText = \case
   CommentText t -> t
   CommentTextInLang _ t -> t
-
-toTypeName :: String -> String
-toTypeName = dropWhile isDigit
