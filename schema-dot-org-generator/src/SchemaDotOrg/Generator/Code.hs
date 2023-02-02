@@ -2,6 +2,56 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 
+-- | Generate the code for a gives schemas.json file
+--
+-- We generate the following code in `schema-dot-org/src/SchemaDotOrg/Generated.hs`:
+--
+-- * For a class `FooBar`:
+--
+-- > data FooBar
+--
+-- `FooBar` is called 'classTypeName'.
+--
+-- > classFooBar :: Class FooBar [FooBarSuperClass, FooBarSuperClassSuperClass]
+-- > classFooBar = Class "FooBar"
+--
+-- `classFooBar` is called 'classValueName'.
+-- `"FooBar"` is called 'classNameValue'.
+--
+-- * For a property `fooBar` of a class `Quux`:
+--
+-- > propertyQuuxFooBar :: Property Quux '[QuuxSuperClass, QuuxSuperClassSuperClass]
+-- > propertyQuuxFooBar = Property "fooBar"
+--
+-- `propertyQuuxFooBar` is called 'propertyValueName'.
+-- `"fooBar"` is called 'propertyNameValue'.
+--
+-- * For an enumeration `FooBar`:
+--
+-- > data FooBarEnumeration
+-- >   = FooBarEnumerationValue1
+-- >   | FooBarEnumerationValue2
+--
+-- `FooBarEnumeration` is called 'enumerationTypeName'.
+-- `FooBarEnumerationValue1` is called 'enumerationConstructorName'.
+--
+-- > instance FromJSON FooBarEnumeration where
+-- >    parseJSON = withText "FooBarEnumeration"
+-- >      ( \case
+-- >        "https://schema.org/FooBarEnumerationValue1" -> pure FooBarEnumerationValue1
+-- >        "https://schema.org/FooBarEnumerationValue2" -> pure FooBarEnumerationValue2
+-- >        t -> fail ("Failed to parse FooBarEnumeration: " <> show t
+-- >      )
+--
+-- `"FooBarEnumeration"` is called `enumerationTypeNameValue` and is also used in the error.
+-- `"https://schema.org/FooBarEnumerationValue1"` is called `enumConstructorSerialisation`.
+--
+-- > instance ToJSON FooBarEnumeration where
+-- >    toJSON = (toJSON :: Text -> Value)
+-- >      . ( \case
+-- >          FooBarEnumerationValue1 -> "https://schema.org/FooBarEnumerationValue1"
+-- >          FooBarEnumerationValue2 -> "https://schema.org/FooBarEnumerationValue2"
+-- >        )
 module SchemaDotOrg.Generator.Code (generateCodeFor) where
 
 import qualified Data.ByteString as SB
