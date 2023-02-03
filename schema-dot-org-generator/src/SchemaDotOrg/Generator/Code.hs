@@ -56,7 +56,6 @@ module SchemaDotOrg.Generator.Code (generateCodeFor) where
 
 import qualified Data.ByteString as SB
 import Data.Char
-import Data.List
 import Data.Map (Map)
 import qualified Data.Map as M
 import Data.Maybe
@@ -102,74 +101,108 @@ generateCodeFor schemaMap = do
 
 declsFor :: Map Text Schema -> Schema -> [HsDecl']
 declsFor schemaMap s@Schema {..}
+  | isMetaType s = []
+  | isPrimitiveType s = []
+  | isPrimitiveTypeValueSchema schemaMap s = []
+  | isTextSynonym s = declsForTextSynonym s
   | subclassOfEnumeration schemaMap s = declsForEnumeration schemaMap s
+  | isEnumerationValueSchema schemaMap s = []
   | "rdfs:Class" `elem` schemaType = declsForClass schemaMap s
-  | "rdf:Property" `elem` schemaType = declsForProperty s
-  | otherwise = []
+  | "rdf:Property" `elem` schemaType = declsForProperty schemaMap s
+  | otherwise =
+    error $
+      unlines
+        [ "Found a schema that we don't know how to deal with:",
+          show s
+        ]
 
 subclassOfEnumeration :: Map Text Schema -> Schema -> Bool
-subclassOfEnumeration schemaMap s = "schema:Enumeration" `elem` transitiveSuperclasses schemaMap s
+subclassOfEnumeration schemaMap s = any ((== "schema:Enumeration") . schemaId) (transitiveSuperclasses schemaMap s)
 
-transitiveSuperclasses :: Map Text Schema -> Schema -> [Text]
-transitiveSuperclasses schemaMap schema = go (map unSchemaRef (schemaSubclassOf schema))
+isEnumerationValueSchema :: Map Text Schema -> Schema -> Bool
+isEnumerationValueSchema schemaMap s =
+  any
+    (subclassOfEnumeration schemaMap)
+    (mapMaybe (`M.lookup` schemaMap) (schemaType s))
+
+transitiveSuperclasses :: Map Text Schema -> Schema -> [Schema]
+transitiveSuperclasses schemaMap schema = go (schemaSubclassOf schema)
   where
-    go :: [Text] -> [Text]
-    go superClasses =
-      superClasses
-        ++ let superSuperClasses t = case M.lookup t schemaMap of
-                 Nothing -> []
-                 Just s -> go (map unSchemaRef (schemaSubclassOf s))
-            in concatMap superSuperClasses superClasses
+    go :: [SchemaRef] -> [Schema]
+    go superClassRefs =
+      let superClasses = mapMaybe ((`M.lookup` schemaMap) . unSchemaRef) superClassRefs
+       in superClasses
+            ++ let superSuperClasses superClass = go (schemaSubclassOf superClass)
+                in concatMap superSuperClasses superClasses
 
 toPascalCase :: String -> String
 toPascalCase = \case
   [] -> []
   (c : cs) -> toUpper c : cs
 
+isMetaType :: Schema -> Bool
+isMetaType s = schemaLabelString s `elem` ["Property", "Class"]
+
+isPrimitiveType :: Schema -> Bool
+isPrimitiveType s =
+  let types = schemaType s
+   in or
+        [ "schema:DataType" `elem` types,
+          schemaLabelString s `elem` ["Integer", "Float"]
+        ]
+
+isPrimitiveTypeValueSchema :: Map Text Schema -> Schema -> Bool
+isPrimitiveTypeValueSchema schemaMap schema =
+  any isPrimitiveType (mapMaybe (`M.lookup` schemaMap) (schemaType schema))
+
+isTextSynonym :: Schema -> Bool
+isTextSynonym = ("schema:Text" `elem`) . schemaSubclassOf
+
+declsForTextSynonym :: Schema -> [HsDecl']
+declsForTextSynonym schema = [type' (classTypeName schema) [] (var "Text")]
+
 declsForClass :: Map Text Schema -> Schema -> [HsDecl']
 declsForClass schemaMap schema =
-  let classTypeNameString = schemaTypeNameString schema
-      classTypeName = fromString classTypeNameString
-      valueTypeName = fromString $ "class" <> classTypeNameString
+  let typeName = classTypeName schema
+      valueName = classValueName schema
       superClasses = transitiveSuperclasses schemaMap schema
-      superClassTypeNames = mapMaybe (fmap (toTypeName . T.unpack) . T.stripPrefix "schema:") superClasses
-      primitiveTypes = ["Text"]
-   in case find (\primitiveType -> schemaSubclassOf schema == [SchemaRef ("schema:" <> primitiveType)]) primitiveTypes of
-        Just primitiveType -> [type' classTypeName [] (var (fromString (T.unpack primitiveType)))]
-        Nothing ->
-          if "schema:DataType" `elem` schemaType schema
-            || commentText (schemaLabel schema) `elem` ["Class", "Property", "Integer", "Float"]
-            then []
-            else
-              [ data' classTypeName [] [] [],
-                typeSig valueTypeName (bvar "Class" @@ bvar classTypeName @@ listPromotedTy (map (bvar . fromString) superClassTypeNames)),
-                funBind valueTypeName (match [] (var "Class" @@ string (T.unpack (commentText (schemaLabel schema)))))
-              ]
+      superClassTypeNames = map classTypeName superClasses
+   in [ data' typeName [] [] [],
+        typeSig valueName (bvar "Class" @@ bvar typeName @@ listPromotedTy (map bvar superClassTypeNames)),
+        funBind valueName (match [] (var "Class" @@ classNameValue schema))
+      ]
 
-declsForProperty :: Schema -> [HsDecl']
-declsForProperty schema =
-  let propertyLabel = T.unpack (commentText (schemaLabel schema))
-      valueTypeName className = fromString $ "property" <> toPascalCase className <> toPascalCase propertyLabel
+declsForProperty :: Map Text Schema -> Schema -> [HsDecl']
+declsForProperty schemaMap schema =
+  let valueTypeName clazz = propertyValueName clazz schema
+      rangeClasses = mapMaybe ((`M.lookup` schemaMap) . unSchemaRef) (schemaRangeIncludes schema)
+      domainClasses = mapMaybe ((`M.lookup` schemaMap) . unSchemaRef) (schemaDomainIncludes schema)
    in if SchemaRef "https://meta.schema.org" `elem` schemaIsPartOf schema
         then []
         else
           concatMap
-            ( \(SchemaRef ref) -> case T.unpack <$> T.stripPrefix "schema:" ref of
-                Nothing -> []
-                Just className ->
-                  let typeName = valueTypeName className
-                      rangeTypeNames = mapMaybe (fmap (toTypeName . T.unpack) . T.stripPrefix "schema:" . unSchemaRef) (schemaRangeIncludes schema)
-                   in [ typeSig typeName (bvar "Property" @@ bvar (fromString (toTypeName className)) @@ listPromotedTy (map (bvar . fromString) rangeTypeNames)),
-                        funBind typeName (match [] (bvar "Property" @@ string propertyLabel))
-                      ]
+            ( \clazz ->
+                let typeName = valueTypeName clazz
+                    rangeTypeNames = map classTypeName rangeClasses
+                 in [ typeSig
+                        typeName
+                        ( bvar "Property"
+                            @@ bvar (classTypeName clazz)
+                            @@ listPromotedTy (map bvar rangeTypeNames)
+                        ),
+                      funBind
+                        typeName
+                        ( match
+                            []
+                            (bvar "Property" @@ propertyNameValue schema)
+                        )
+                    ]
             )
-            (schemaDomainIncludes schema)
+            domainClasses
 
 declsForEnumeration :: Map Text Schema -> Schema -> [HsDecl']
 declsForEnumeration schemaMap schema =
   let enumerationElems = M.elems $ M.filter ((schemaId schema `elem`) . schemaType) schemaMap
-
-      elemConstructorName s = enumerationConstructorName schema s
 
       enumTypeName = enumerationTypeName schema
    in if null enumerationElems
@@ -238,32 +271,44 @@ declsForEnumeration schemaMap schema =
 -- | The @FooBar@ in
 --
 -- > data FooBar
-classTypeName :: Schema -> String
-classTypeName = undefined
+classTypeName :: Schema -> OccNameStr
+classTypeName = fromString . classTypeNameString
+
+-- | The @FooBar@ 'String' in
+--
+-- > data FooBar
+classTypeNameString :: Schema -> String
+classTypeNameString = schemaTypeNameString
 
 -- | The @classFooBar@ in
 --
 -- > classFooBar = Class "FooBar"
-classValueName :: Schema -> String
-classValueName = undefined
+classValueName :: Schema -> OccNameStr
+classValueName schema = fromString $ "class" <> classTypeNameString schema
 
 -- | The @"FooBar"@ in
 --
 -- > classFooBar = Class "FooBar"
-classNameValue :: Schema -> String
-classNameValue = undefined
+classNameValue :: Schema -> HsExpr'
+classNameValue = string . classTypeNameString
 
 -- | The @propertyQuuxFooBar@ in
 --
 -- > propertyQuuxFooBar = Property "fooBar"
-propertyValueName :: Schema -> String
-propertyValueName = undefined
+propertyValueName :: Schema -> Schema -> OccNameStr
+propertyValueName super sub =
+  fromString $
+    mconcat
+      [ "property",
+        toPascalCase (classTypeNameString super),
+        toPascalCase (schemaLabelString sub)
+      ]
 
 -- | The @"fooBar"@ in
 --
 -- > propertyQuuxFooBar = Property "fooBar"
-propertyNameValue :: Schema -> String
-propertyNameValue = undefined
+propertyNameValue :: Schema -> HsExpr'
+propertyNameValue = string . schemaLabelString
 
 -- | The @"FooBarEnumeration"@ in
 --
