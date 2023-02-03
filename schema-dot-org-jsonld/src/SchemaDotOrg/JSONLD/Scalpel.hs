@@ -10,6 +10,7 @@ import Data.Text (Text)
 import qualified Data.Text.Encoding as TE
 import SchemaDotOrg.JSONLD.Parse
 import Text.HTML.Scalpel
+import qualified Text.HTML.TagSoup as TagSoup
 
 scrapeJSONLDValues :: Monad m => ParserOf classes a -> ScraperT Text m [[Either String a]]
 scrapeJSONLDValues parser = map (parseValues parser) <$> scrapeRawJSONLDValues
@@ -24,4 +25,8 @@ scrapeRawJSONLDValues =
 
 -- | Scrape the raw JSONLD 'Text's on a page.
 scrapeJSONLDText :: Monad m => ScraperT Text m [Text]
-scrapeJSONLDText = texts ("script" @: ["type" @= "application/ld+json"])
+scrapeJSONLDText = map unHTMLText <$> texts ("script" @: ["type" @= "application/ld+json"])
+
+-- | Decode HTML entities
+unHTMLText :: Text -> Text
+unHTMLText = TagSoup.innerText . TagSoup.parseTags
