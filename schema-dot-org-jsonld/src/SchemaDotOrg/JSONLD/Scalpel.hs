@@ -5,16 +5,17 @@ module SchemaDotOrg.JSONLD.Scalpel where
 
 import Data.Aeson as JSON
 import qualified Data.ByteString.Lazy as LB
-import Data.Either
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text.Encoding as TE
 import SchemaDotOrg.JSONLD.Parse
 import Text.HTML.Scalpel
 
-scrapeJSONLDValues :: Monad m => ParserOf classes a -> ScraperT Text m [a]
-scrapeJSONLDValues parser =
-  snd . partitionEithers . concatMap (parseValues parser) <$> scrapeRawJSONLDValues
+scrapeJSONLDValues :: Monad m => ParserOf classes a -> ScraperT Text m [[Either String a]]
+scrapeJSONLDValues parser = map (parseValues parser) <$> scrapeRawJSONLDValues
+
+scrapeJSONLDValue :: Monad m => ParserOf classes a -> ScraperT Text m [Either String a]
+scrapeJSONLDValue parser = map (parseValue parser) <$> scrapeRawJSONLDValues
 
 -- | Scrape all JSONLD values on the pages.
 scrapeRawJSONLDValues :: Monad m => ScraperT Text m [JSON.Value]
