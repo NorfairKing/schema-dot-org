@@ -21,6 +21,7 @@ We have a few options:
 * Have users generate the library with exactly the schemas they need.
   This works for applications but not for libraries.
 
+For this library we've chosen the first option.
 
 ### Usage
 

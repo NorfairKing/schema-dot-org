@@ -40,8 +40,14 @@
     in
     {
       overlays.${system} = import ./nix/overlay.nix;
-      packages.${system}.default = pkgs.schema-dot-org-generator;
+      packages.${system} = {
+        default = pkgs.haskellPackages.schema-dot-org;
+        jsonld = pkgs.haskellPackages.schema-dot-org-jsonld;
+        generator = pkgs.schema-dot-org-generator;
+      };
       checks.${system} = {
+        generator = self.packages.${system}.generator;
+        jsonld = self.packages.${system}.jsonld;
         release = self.packages.${system}.default;
         shell = self.devShells.${system}.default;
         pre-commit = pre-commit-hooks.lib.${system}.run {
