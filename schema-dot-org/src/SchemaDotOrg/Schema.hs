@@ -21,6 +21,7 @@ module SchemaDotOrg.Schema
   )
 where
 
+import Data.Kind
 import Data.Scientific (Scientific)
 import Data.Text (Text)
 import Data.Time as Time
@@ -39,13 +40,13 @@ type Number = Scientific
 --
 -- Existence of a value of this type (in this library) implies that there is a
 -- class schema on schema.org called `clazz` with superclasses `superClasses`.
-data Class clazz superClasses = Class {className :: Text}
+data Class (clazz :: Type) (superClasses :: [Type]) = Class {className :: Text}
 
 -- | A class schema.
 --
 -- Existence of a value of this type (in this library) implies that there is a
 -- property schema on schema.org for class `clazz` with expected types `expectedTypes`.
-data Property clazz expectedTypes = Property {propertyName :: Text}
+data Property (clazz :: Type) (expectedTypes :: [Type]) = Property {propertyName :: Text}
 
 -- | Whether a class is in the given inheritance hierarchy
 class Inherits classes clazz

@@ -101,7 +101,6 @@ generateCodeFor schemaMap = do
 
 declsFor :: Map Text Schema -> Schema -> [HsDecl']
 declsFor schemaMap s@Schema {..}
-  | isMetaType s = []
   | isPrimitiveType s = []
   | isPrimitiveTypeValueSchema schemaMap s = []
   | isTextSynonym s = declsForTextSynonym s
@@ -139,9 +138,6 @@ toPascalCase :: String -> String
 toPascalCase = \case
   [] -> []
   (c : cs) -> toUpper c : cs
-
-isMetaType :: Schema -> Bool
-isMetaType s = schemaLabelString s `elem` ["Property", "Class"]
 
 isPrimitiveType :: Schema -> Bool
 isPrimitiveType s =
@@ -278,7 +274,10 @@ classTypeName = fromString . classTypeNameString
 --
 -- > data FooBar
 classTypeNameString :: Schema -> String
-classTypeNameString = schemaTypeNameString
+classTypeNameString s = case schemaTypeNameString s of
+  "Property" -> "Property_"
+  "Class" -> "Class_"
+  r -> r
 
 -- | The @classFooBar@ in
 --
@@ -290,7 +289,7 @@ classValueName schema = fromString $ "class" <> classTypeNameString schema
 --
 -- > classFooBar = Class "FooBar"
 classNameValue :: Schema -> HsExpr'
-classNameValue = string . classTypeNameString
+classNameValue = string . schemaTypeNameString
 
 -- | The @propertyQuuxFooBar@ in
 --
