@@ -45,10 +45,12 @@ module SchemaDotOrg.JSONLD.Parse
     requirePropertyClass,
     require,
     forgiveError,
+    listError,
   )
 where
 
 import Control.Applicative
+import Control.Arrow (left)
 import Control.Monad
 import Data.Aeson hiding (Options)
 import qualified Data.Aeson.Key as Key
@@ -59,7 +61,6 @@ import Data.Foldable
 import Data.Kind
 import Data.Maybe
 import Data.Text (Text)
-import qualified Data.Text as T
 import SchemaDotOrg
 
 -- | Try to use the parser where possible.
@@ -70,28 +71,28 @@ import SchemaDotOrg
 -- 3. Parse an object containing an @@graph@ key, if there is one.
 --  a) If there is an object in the @@graph@ attribute, try to parse it
 --  b) If there is a listo fo objects in the @@graph@ attribute, try to parse each one.
-parseValues :: ParserOf classes a -> Value -> [Either String a]
-parseValues (ParserOf parserFunc) = \case
+parseValues :: ParserOf classes a -> Value -> [Either [String] a]
+parseValues parser = \case
   Object o ->
-    parserFunc o : case KeyMap.lookup "@graph" o of
+    runParserOf parser o : case KeyMap.lookup "@graph" o of
       Nothing -> []
-      Just (Object o') -> [parserFunc o']
+      Just (Object o') -> [runParserOf parser o']
       Just (Array as) -> flip mapMaybe (toList as) $ \case
-        Object o' -> Just $ parserFunc o'
+        Object o' -> Just $ runParserOf parser o'
         _ -> Nothing
       Just _ -> []
   Array as -> flip mapMaybe (toList as) $ \case
-    Object o -> Just $ parserFunc o
+    Object o -> Just $ runParserOf parser o
     _ -> Nothing
   _ -> []
 
 -- | Like 'parseValues', but return the first match or the first error.
-parseValue :: ParserOf classes a -> Value -> Either String a
-parseValue parser = msum . parseValues parser
+parseValue :: ParserOf classes a -> Value -> Either [String] a
+parseValue parser = eitherChoices' . parseValues parser
 
 -- | A parser for a given class. The type-level list `classes` contains the
 -- class itself, and its transitive superclasses.
-newtype ParserOf (classes :: [Type]) (a :: Type) = ParserOf {unParser :: JSON.Object -> Either String a}
+newtype ParserOf (classes :: [Type]) (a :: Type) = ParserOf {unParser :: JSON.Object -> Either [String] a}
 
 instance Functor (ParserOf classes) where
   fmap f (ParserOf func) = ParserOf $ \o ->
@@ -99,15 +100,21 @@ instance Functor (ParserOf classes) where
 
 instance Applicative (ParserOf classes) where
   pure a = ParserOf $ \_ -> pure a
-  (ParserOf ff) <*> (ParserOf fa) = ParserOf $ \o -> do
-    f <- ff o
-    a <- fa o
-    pure (f a)
+  (ParserOf ff) <*> (ParserOf fa) = ParserOf $ \o ->
+    case (ff o, fa o) of
+      (Right f, Right a) -> Right (f a)
+      (Left errs, Right _) -> Left errs
+      (Right _, Left errs) -> Left errs
+      (Left errs1, Left errs2) -> Left (errs1 ++ errs2)
 
 instance Alternative (ParserOf classes) where
-  empty = ParserOf $ \_ -> Left "empty"
+  empty = ParserOf $ \_ -> Left ["empty"]
   (ParserOf fa) <|> (ParserOf fb) =
-    ParserOf $ \o -> fa o <|> fb o
+    -- Take the first result or the last error
+    ParserOf $ \o -> case (fa o, fb o) of
+      (Right a, _) -> Right a
+      (Left _, Right b) -> Right b
+      (Left errs1, Left errs2) -> Left (errs1 ++ errs2)
 
 instance Monad (ParserOf classes) where
   (ParserOf fa) >>= func = ParserOf $ \o -> do
@@ -116,12 +123,12 @@ instance Monad (ParserOf classes) where
     fb o
 
 instance MonadFail (ParserOf classes) where
-  fail err = ParserOf $ \_ -> Left err
+  fail err = ParserOf $ \_ -> Left [err]
 
 -- | Run a 'ParserOf' on a JSON 'Object' directly.
 --
 -- You probably want to use 'parseClass' instead.
-runParserOf :: ParserOf (clazz ': superClasses) a -> JSON.Object -> Either String a
+runParserOf :: ParserOf classes a -> JSON.Object -> Either [String] a
 runParserOf (ParserOf parseFunc) o = parseFunc o
 
 -- | Parse a value of a given class, from a 'JSON.Value'.
@@ -130,16 +137,17 @@ parseClass ::
   -- | How to parse the value
   ParserOf (clazz ': superClasses) a ->
   JSON.Value ->
-  Either String a
-parseClass clazz parser =
-  JSON.parseEither $
-    withObject
-      (T.unpack (className clazz))
-      (either fail pure . runParserOf parser)
+  Either [String] a
+parseClass clazz parser = \case
+  Object o -> runParserOf parser o
+  _ -> Left ["Not a JSON Object while parsing class: " <> show (className clazz)]
 
 -- | Check that "https://schema.org" is mentioned in the @@context@ property
 checkContext :: ParserOf classes ()
-checkContext = undefined
+checkContext = ParserOf $ \o -> case KeyMap.lookup "@context" o of
+  Nothing -> Left ["Key '@context' not found."]
+  Just (String "https://schema.org") -> pure ()
+  Just v -> Left ["Key '@context' was not 'https://schema.org': " <> show v]
 
 -- | Check that the given class is mentioned in the @@type@ property
 checkClass ::
@@ -147,12 +155,20 @@ checkClass ::
   Class clazz superclasses ->
   ParserOf classes ()
 checkClass clazz = ParserOf $ \o -> case KeyMap.lookup "@type" o of
-  Nothing -> Left "Key '@type' not found."
+  Nothing -> Left ["Key '@type' not found."]
   Just (String t) ->
     if t == className clazz
       then pure ()
-      else Left "Type mismatch."
-  Just _ -> Left "Key '@type' found but was not a String"
+      else
+        Left
+          [ unwords
+              [ "Type mismatch; actual:",
+                show t,
+                ", expected: ",
+                show (className clazz)
+              ]
+          ]
+  Just _ -> Left ["Key '@type' found but was not a String"]
 
 -- | Lookup a property in a 'Class'.
 --
@@ -169,7 +185,7 @@ lookupProperty ::
 lookupProperty property = ParserOf $ \o ->
   case KeyMap.lookup (Key.fromText (propertyName property)) o of
     Nothing -> pure Nothing
-    Just v -> Just <$> JSON.parseEither parseJSON v
+    Just v -> Just <$> listError (JSON.parseEither parseJSON v)
 
 -- | Lookup a property in a 'Class', fail if it wasn't there.
 --
@@ -226,14 +242,15 @@ requirePropertyInterpretation property interpretation = do
 --
 -- This forces the consumer to deal with every possible value.
 requirePropertyEInterpretation ::
+  Show interpretation =>
   Inherits classes propertyClass =>
   -- | Property
   Property propertyClass expectedTypes ->
-  Interpretation expectedTypes (Either String interpretation) ->
+  Interpretation expectedTypes (Either [String] interpretation) ->
   ParserOf classes interpretation
 requirePropertyEInterpretation property interpretation = do
   interpretations <- requirePropertyInterpretation property interpretation
-  require $ msum interpretations
+  require' $ eitherChoices' interpretations
 
 -- | Lookup a property and try to interpret every possible value, then choose
 -- the first 'Just'.
@@ -245,7 +262,7 @@ lookupPropertyMInterpretation ::
   Property propertyClass expectedTypes ->
   Interpretation expectedTypes (Maybe interpretation) ->
   ParserOf classes (Maybe interpretation)
-lookupPropertyMInterpretation property interpretation = (msum =<<) <$> lookupPropertyInterpretation property interpretation
+lookupPropertyMInterpretation property interpretation = (asum =<<) <$> lookupPropertyInterpretation property interpretation
 
 -- | Lookup a property that may only be 'Text'.
 --
@@ -276,7 +293,7 @@ requirePropertyText property =
     property
     ( InterpretProperty
         interpretText
-        (EmptyInterpretation (const (Left "unused")))
+        (EmptyInterpretation (const (Left ["Could not parse value as Text value."])))
     )
 
 -- | Lookup a property that may only be of a given single value.
@@ -304,13 +321,13 @@ runInterpretation v = go
       EmptyInterpretation mkDefaultValue -> [mkDefaultValue v]
       InterpretProperty (Interpret func) i ->
         let actual = case v of
-              Array a -> ActualList (map (JSON.parseEither parseJSON) (toList a))
-              _ -> ActualSingle (JSON.parseEither parseJSON v)
+              Array a -> ActualList (map (parseEither' parseJSON) (toList a))
+              _ -> ActualSingle (parseEither' parseJSON v)
          in func actual : go i
       InterpretClass parser (Interpret func) i ->
         let actual = case v of
-              Array a -> ActualList (map (JSON.parseEither parseJSON >=> runParserOf parser) (toList a))
-              _ -> ActualSingle ((JSON.parseEither parseJSON >=> runParserOf parser) v)
+              Array a -> ActualList (map (parseEither' parseJSON >=> runParserOf parser) (toList a))
+              _ -> ActualSingle ((parseEither' parseJSON >=> runParserOf parser) v)
          in func actual : go i
 
 -- | An 'Interpretation' of a property
@@ -338,8 +355,8 @@ data Interpretation (expectedTypes :: [Type]) a where
 -- The schema.org specifications do not specify whether a property will have 0,
 -- 1, or a list of values for a given property, so we deal with each option.
 data Actual expectedType
-  = ActualSingle (Either String expectedType)
-  | ActualList [Either String expectedType]
+  = ActualSingle (Either [String] expectedType)
+  | ActualList [Either [String] expectedType]
 
 data Interpret (expectedType :: Type) (result :: Type) = Interpret
   { interpretActual :: Actual expectedType -> result
@@ -358,24 +375,24 @@ instance Monad (Interpret expectedType) where
      in fb a
 
 -- | Interpret a single 'Text'
-interpretText :: Interpret Text (Either String Text)
+interpretText :: Interpret Text (Either [String] Text)
 interpretText = interpretSingleValue
 
 -- | Interpret a single 'Number'
-interpretNumber :: Interpret Number (Either String Number)
+interpretNumber :: Interpret Number (Either [String] Number)
 interpretNumber = interpretSingleValue
 
 -- | Interpret only a single value, not a list.
-interpretSingleValue :: Interpret a (Either String a)
+interpretSingleValue :: Interpret a (Either [String] a)
 interpretSingleValue = Interpret $ \case
   ActualSingle ee -> ee
-  ActualList _ -> Left "Lists of values are not interpreted."
+  ActualList _ -> Left ["Lists of values are not interpreted in interpretSingleValue."]
 
 -- | Intepret the first 'Right' in either a single value or a list.
-interpretFirstValue :: Interpret a (Either String a)
+interpretFirstValue :: Interpret a (Either [String] a)
 interpretFirstValue = Interpret $ \case
   ActualSingle ee -> ee
-  ActualList ees -> msum ees
+  ActualList ees -> eitherChoices' ees
 
 -- | Intepret any parseable list values
 interpretAnyListValues :: Interpret a [a]
@@ -432,15 +449,38 @@ requirePropertyClass ::
   ParserOf classes a
 requirePropertyClass property clazz classParserFunc = ParserOf $ \o -> do
   case KeyMap.lookup (Key.fromText (propertyName property)) o of
-    Nothing -> Left $ unwords ["Property not found: ", show (propertyName property)]
+    Nothing -> Left [unwords ["Property not found: ", show (propertyName property)]]
     Just v -> parseClass clazz classParserFunc v
 
 -- | Require a value to be 'Right', fail to parse otherwise.
 require :: Either String a -> ParserOf classes a
-require errOrRes = ParserOf $ \_ -> errOrRes
+require errOrRes = ParserOf $ \_ -> listError errOrRes
+
+require' :: Either [String] a -> ParserOf classes a
+require' errsOrRes = ParserOf $ \_ -> errsOrRes
+
+parseEither' :: (a -> JSON.Parser b) -> a -> Either [String] b
+parseEither' func = listError . JSON.parseEither func
 
 -- | A convenience function for modifiying interpreters.
 --
 -- > forgiveError = either (const Nothing) Just
-forgiveError :: Either String a -> Maybe a
+forgiveError :: Either e a -> Maybe a
 forgiveError = either (const Nothing) Just
+
+eitherChoices :: [Either e a] -> Either [e] a
+eitherChoices = go
+  where
+    go :: [Either e a] -> Either [e] a
+    go = \case
+      [] -> Left []
+      (Right a : _) -> Right a
+      (Left err' : rest) -> case go rest of
+        Left errs -> Left (err' : errs)
+        Right a -> Right a
+
+eitherChoices' :: [Either [e] a] -> Either [e] a
+eitherChoices' = left concat . eitherChoices
+
+listError :: Either e a -> Either [e] a
+listError = left (: [])

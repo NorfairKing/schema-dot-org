@@ -12,10 +12,10 @@ import SchemaDotOrg.JSONLD.Parse
 import Text.HTML.Scalpel
 import qualified Text.HTML.TagSoup as TagSoup
 
-scrapeJSONLDValues :: Monad m => ParserOf classes a -> ScraperT Text m [[Either String a]]
+scrapeJSONLDValues :: Monad m => ParserOf classes a -> ScraperT Text m [[Either [String] a]]
 scrapeJSONLDValues parser = map (parseValues parser) <$> scrapeRawJSONLDValues
 
-scrapeJSONLDValue :: Monad m => ParserOf classes a -> ScraperT Text m [Either String a]
+scrapeJSONLDValue :: Monad m => ParserOf classes a -> ScraperT Text m [Either [String] a]
 scrapeJSONLDValue parser = map (parseValue parser) <$> scrapeRawJSONLDValues
 
 -- | Scrape all JSONLD values on the pages.
