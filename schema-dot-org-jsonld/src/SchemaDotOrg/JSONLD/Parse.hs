@@ -46,6 +46,7 @@ module SchemaDotOrg.JSONLD.Parse
     require,
     forgiveError,
     listError,
+    eitherChoices,
   )
 where
 
