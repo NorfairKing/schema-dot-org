@@ -1,15 +1,15 @@
 {
   description = "schema-dot-org";
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-22.11";
+    nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-23.05";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
-    autodocodec.url = "github:NorfairKing/autodocodec?ref=flake";
+    autodocodec.url = "github:NorfairKing/autodocodec";
     autodocodec.flake = false;
-    safe-coloured-text.url = "github:NorfairKing/safe-coloured-text?ref=flake";
+    safe-coloured-text.url = "github:NorfairKing/safe-coloured-text";
     safe-coloured-text.flake = false;
-    sydtest.url = "github:NorfairKing/sydtest?ref=flake";
+    sydtest.url = "github:NorfairKing/sydtest";
     sydtest.flake = false;
-    validity.url = "github:NorfairKing/validity?ref=flake";
+    validity.url = "github:NorfairKing/validity";
     validity.flake = false;
   };
 

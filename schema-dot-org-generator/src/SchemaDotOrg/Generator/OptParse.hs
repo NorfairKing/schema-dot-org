@@ -89,10 +89,8 @@ environmentParser :: Env.Parser Env.Error Environment
 environmentParser =
   Env.prefixed "SCHEMA_DOT_ORG_GENERATOR_" $
     Environment
-      <$> Env.var (fmap Just . Env.str) "CONFIG_FILE" (mE <> Env.help "Config file")
-      <*> Env.var (fmap Just . Env.str) "SCHEMAS_FILE" (mE <> Env.help "Path to the schemas file")
-  where
-    mE = Env.def Nothing <> Env.keep
+      <$> optional (Env.var Env.str "CONFIG_FILE" (Env.help "Config file"))
+      <*> optional (Env.var Env.str "SCHEMAS_FILE" (Env.help "Path to the schemas file"))
 
 data Arguments
   = Arguments !Command !Flags
