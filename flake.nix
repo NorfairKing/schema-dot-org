@@ -1,12 +1,14 @@
 {
   description = "schema-dot-org";
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-23.05";
+    nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-23.11";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     autodocodec.url = "github:NorfairKing/autodocodec";
     autodocodec.flake = false;
     safe-coloured-text.url = "github:NorfairKing/safe-coloured-text";
     safe-coloured-text.flake = false;
+    fast-myers-diff.url = "github:NorfairKing/sydtest";
+    fast-myers-diff.flake = false;
     sydtest.url = "github:NorfairKing/sydtest";
     sydtest.flake = false;
     validity.url = "github:NorfairKing/validity";
@@ -16,10 +18,10 @@
   outputs =
     { self
     , nixpkgs
-    , home-manager
     , pre-commit-hooks
     , autodocodec
     , safe-coloured-text
+    , fast-myers-diff
     , sydtest
     , validity
     }:
@@ -32,6 +34,7 @@
           self.overlays.${system}
           (import (autodocodec + "/nix/overlay.nix"))
           (import (safe-coloured-text + "/nix/overlay.nix"))
+          (import (fast-myers-diff + "/nix/overlay.nix"))
           (import (sydtest + "/nix/overlay.nix"))
           (import (validity + "/nix/overlay.nix"))
         ];

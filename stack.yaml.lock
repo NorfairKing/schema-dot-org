@@ -3,45 +3,10 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/lock_files
 
-packages:
-- completed:
-    hackage: autodocodec-0.2.0.0@sha256:435fde13e95ba55dd3b2e4195b00a49d4ddb6e4ce64a15c5868c40317fc33e21,1652
-    pantry-tree:
-      sha256: 75a5105911bbf7721829eb553afef73efbb6955e5c1e4d356d60983ef041d3a2
-      size: 760
-  original:
-    hackage: autodocodec-0.2.0.0@sha256:435fde13e95ba55dd3b2e4195b00a49d4ddb6e4ce64a15c5868c40317fc33e21,1652
-- completed:
-    hackage: autodocodec-schema-0.1.0.2@sha256:1d1f9fa85ab111f622d59eb280c42129d2ad7c6a3c207c50ca3858a9e45267e7,1094
-    pantry-tree:
-      sha256: 7ab6b5df3e6bd42329d9dfabb3a036960be66334ef7666d9dee7edd864a978d0
-      size: 235
-  original:
-    hackage: autodocodec-schema-0.1.0.2@sha256:1d1f9fa85ab111f622d59eb280c42129d2ad7c6a3c207c50ca3858a9e45267e7,1094
-- completed:
-    hackage: autodocodec-yaml-0.2.0.2@sha256:8f9981085572af2aa827e9fa92881d8cabd2a72e407dbd2e8efb06ea96cc34fa,1211
-    pantry-tree:
-      sha256: a0e0287cee6f8a9bfceb903bdd945c4a9bbe1b7ff3cde47db652fc20aa5c5830
-      size: 439
-  original:
-    hackage: autodocodec-yaml-0.2.0.2@sha256:8f9981085572af2aa827e9fa92881d8cabd2a72e407dbd2e8efb06ea96cc34fa,1211
-- completed:
-    hackage: safe-coloured-text-0.2.0.1@sha256:cb01d89f7c1ec009f8341c5b83c880a3798928beca3254a47d161d6ef0fb0165,1104
-    pantry-tree:
-      sha256: 9c8efa357ed689fe7d73e53e502f114e71ed7c2d561e5e91b443656af9158161
-      size: 427
-  original:
-    hackage: safe-coloured-text-0.2.0.1@sha256:cb01d89f7c1ec009f8341c5b83c880a3798928beca3254a47d161d6ef0fb0165,1104
-- completed:
-    hackage: validity-aeson-0.2.0.5@sha256:e4baa2ad9deaf2c903e1ef8e55e9977410ed867c9e46fa14427e8f6ef8b4dc2e,1402
-    pantry-tree:
-      sha256: bbd77378527e7ce68c5e581213f8a9036efbbb36c4e62f3933e96fe440c2e10e
-      size: 301
-  original:
-    hackage: validity-aeson-0.2.0.5@sha256:e4baa2ad9deaf2c903e1ef8e55e9977410ed867c9e46fa14427e8f6ef8b4dc2e,1402
+packages: []
 snapshots:
 - completed:
-    sha256: 4c972e067bae16b95961dbfdd12e07f1ee6c8fffabbfa05c3d65100b03f548b7
-    size: 650253
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/20/23.yaml
-  original: lts-20.23
+    sha256: afd5ba64ab602cabc2d3942d3d7e7dd6311bc626dcb415b901eaf576cb62f0ea
+    size: 640060
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/21/22.yaml
+  original: lts-21.22

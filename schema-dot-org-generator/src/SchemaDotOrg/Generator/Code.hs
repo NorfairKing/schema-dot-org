@@ -74,8 +74,8 @@ generateCodeFor :: Map Text Schema -> IO ()
 generateCodeFor schemaMap = do
   dynFlags <- runGhc (Just GHC.libdir) getDynFlags
   let code =
-        showPpr dynFlags $
-          module'
+        showPpr dynFlags
+          $ module'
             (Just "SchemaDotOrg.Generated")
             Nothing
             [ import' "GHC.Generics" `exposing` [var "Generic"],
@@ -83,7 +83,7 @@ generateCodeFor schemaMap = do
               import' "Data.Aeson" `exposing` [thingAll "FromJSON", thingAll "ToJSON", bvar "withText", bvar "Value"],
               import' "SchemaDotOrg.Schema"
             ]
-            $ concatMap (declsFor schemaMap) (M.elems schemaMap)
+          $ concatMap (declsFor schemaMap) (M.elems schemaMap)
 
   let moduleHeader =
         unlines
@@ -109,11 +109,11 @@ declsFor schemaMap s@Schema {..}
   | "rdfs:Class" `elem` schemaType = declsForClass schemaMap s
   | "rdf:Property" `elem` schemaType = declsForProperty schemaMap s
   | otherwise =
-    error $
-      unlines
-        [ "Found a schema that we don't know how to deal with:",
-          show s
-        ]
+      error $
+        unlines
+          [ "Found a schema that we don't know how to deal with:",
+            show s
+          ]
 
 subclassOfEnumeration :: Map Text Schema -> Schema -> Bool
 subclassOfEnumeration schemaMap s = any ((== "schema:Enumeration") . schemaId) (transitiveSuperclasses schemaMap s)
