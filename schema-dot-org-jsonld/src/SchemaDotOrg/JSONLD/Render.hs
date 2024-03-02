@@ -14,12 +14,15 @@
 module SchemaDotOrg.JSONLD.Render
   ( -- ** Rendering
     renderClass,
+    renderClassList,
     RenderOf (..),
     setContext,
     setClassType,
     IsExpectedType,
     renderProperty,
+    renderPropertyList,
     renderPropertyClass,
+    renderPropertyClassList,
     renderTextProperty,
     renderSimpleProperty,
     renderUnspecifiedProperty,
@@ -33,6 +36,7 @@ import qualified Data.Aeson.Types as JSON
 import Data.Foldable
 import Data.Kind
 import Data.Text (Text)
+import qualified Data.Vector as V
 import SchemaDotOrg
 
 -- | Render a value of a class in the `classes` hierarchy.
@@ -55,6 +59,17 @@ renderClass ::
 renderClass clazz renderers =
   let (RenderOf render) = fold renderers
    in Object $ setContext $ setClassType clazz render
+
+-- | Render a class using a given renderer for that class.
+renderClassList ::
+  (Foldable f, Foldable g) =>
+  Class clazz superClasses ->
+  -- | Renderers
+  f (g (RenderOf (clazz : superClasses))) ->
+  -- | The resulting JSON 'Value'.
+  JSON.Value
+renderClassList clazz rendererss =
+  Array $ V.fromList $ map (renderClass clazz) (toList rendererss)
 
 -- | Set the @@context@ property to @"https://schema.org"@.
 setContext :: JSON.Object -> JSON.Object
@@ -110,6 +125,25 @@ renderProperty property actualValue =
     (Key.fromText (propertyName property))
     (toJSON actualValue)
 
+-- | Render a property.
+renderPropertyList ::
+  ( Inherits classes propertyClass,
+    IsExpectedType expectedTypes actualType,
+    ToJSON actualType,
+    Foldable f
+  ) =>
+  -- | Property
+  Property propertyClass expectedTypes ->
+  -- | Value
+  --
+  -- The value can be of any type that the property allows.
+  f actualType ->
+  RenderOf classes
+renderPropertyList property actualValue =
+  renderUnspecifiedProperty
+    (Key.fromText (propertyName property))
+    (toJSON (toList actualValue))
+
 -- | Render a property that is a class.
 renderPropertyClass ::
   (Inherits classes propertyClass, Foldable f) =>
@@ -124,6 +158,20 @@ renderPropertyClass property clazz renderers =
   renderUnspecifiedProperty
     (Key.fromText (propertyName property))
     (renderClass clazz renderers)
+
+renderPropertyClassList ::
+  (Inherits classes propertyClass, Foldable f, Foldable g) =>
+  -- | Property
+  Property propertyClass expectedTypes ->
+  -- | Class of the value
+  Class clazz superClasses ->
+  -- | Renderers for the value
+  f (g (RenderOf (clazz : superClasses))) ->
+  RenderOf classes
+renderPropertyClassList property clazz renderers =
+  renderUnspecifiedProperty
+    (Key.fromText (propertyName property))
+    (renderClassList clazz renderers)
 
 -- | Render a property that has not been specified.
 --

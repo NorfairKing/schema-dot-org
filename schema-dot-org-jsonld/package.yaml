@@ -26,3 +26,4 @@ library:
   - schema-dot-org
   - tagsoup
   - text
+  - vector
