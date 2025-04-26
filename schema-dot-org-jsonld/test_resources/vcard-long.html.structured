@@ -17,10 +17,19 @@
         },
         "photo": "jack-bauer.jpg",
         "rev": "2008-07-20 21:00:00+01:00",
-        "tel": {
-            "type": "cell",
-            "value": "+1 (310) 555 3781"
-        },
-        "url": "https://en.wikipedia.org/wiki/Jack_Bauer"
+        "tel": [
+            {
+                "type": "cell",
+                "value": "+1 (310) 555 3781"
+            },
+            {
+                "type": "home",
+                "value": "01632 960 123"
+            }
+        ],
+        "url": [
+            "https://en.wikipedia.org/wiki/Jack_Bauer",
+            "http://www.jackbauerfacts.com/"
+        ]
     }
 ]

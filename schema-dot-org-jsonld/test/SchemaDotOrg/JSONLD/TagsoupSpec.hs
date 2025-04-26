@@ -19,4 +19,4 @@ spec = do
         it (unwords ["can parse the structured data in", show fp]) $ do
           goldenJSONFile (fp <> ".structured") $ do
             contents <- SB.readFile fp
-            pure $ findStructuredDataValues (LB.fromStrict contents)
+            pure $ toJSON $ findStructuredDataValues (LB.fromStrict contents)

@@ -28,6 +28,7 @@ import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Encoding.Error as EE
 import qualified Data.Text.Lazy as Lazy
 import qualified Data.Text.Lazy.Encoding as LTE
+import qualified Data.Vector as Vector
 import Debug.Trace
 import Text.HTML.TagSoup as TagSoup
 import Text.HTML.TagSoup.Match as TagSoup
@@ -78,7 +79,6 @@ findStructuredDataInTags = go
           TagOpen tagName attrs ->
             -- Open tag, definitely push a new context onto the stack.
             let newMProp = Key.fromText . dec <$> lookup "itemprop" attrs
-                newIsItem = any ((== "itemscope") . fst) attrs
                 props = typeAndIdProps attrs
              in case newMProp of
                   Nothing ->
@@ -165,7 +165,14 @@ findStructuredDataInTags = go
                in collapsed :| rest'
 
     collapseCtx (Ctx open mProp obj) (Ctx open' mProp' obj') =
-      Ctx open' (mProp' <|> mProp) (KM.union obj' obj)
+      Ctx open' (mProp' <|> mProp) (KM.unionWith combineValue obj' obj)
+
+    combineValue :: JSON.Value -> JSON.Value -> JSON.Value
+    combineValue v1 v2 = case (v1, v2) of
+      (Array a1, Array a2) -> Array $ a1 <> a2
+      (Array a1, _) -> Array $ a1 <> Vector.singleton v2
+      (_, Array a2) -> Array $ Vector.singleton v1 <> a2
+      _ -> Array $ Vector.singleton v1 <> Vector.singleton v2
 
     goTextual :: ([Tag LB.ByteString] -> [Tag LB.ByteString]) -> [LB.ByteString] -> [Tag LB.ByteString] -> (Text, [Tag LB.ByteString])
     goTextual acc tags = \case
