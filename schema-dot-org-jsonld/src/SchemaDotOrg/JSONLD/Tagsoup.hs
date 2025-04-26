@@ -4,6 +4,7 @@
 
 module SchemaDotOrg.JSONLD.Tagsoup
   ( Structured (..),
+    findStructuredDataValues,
     findStructuredData,
     findRawJSONLDValues,
     findJSONLDTexts,
@@ -36,6 +37,15 @@ data Structured
   | JSONLD JSON.Value
   deriving (Show, Eq)
 
+findStructuredDataValues :: LB.ByteString -> [JSON.Value]
+findStructuredDataValues =
+  map
+    ( \case
+        Microdata o -> toJSON o
+        JSONLD v -> v
+    )
+    . findStructuredData
+
 findStructuredData :: LB.ByteString -> [Structured]
 findStructuredData = findStructuredDataInTags . TagSoup.parseTagsOptions parseOptionsFast
 
@@ -63,9 +73,9 @@ findStructuredDataInTags = go
     goMicrodata :: NonEmpty Ctx -> [Tag LB.ByteString] -> [Structured]
     goMicrodata stack@(Ctx open mProp obj :| rest) = \case
       [] -> []
-      (t : ts) -> traceShow stack $ traceShow ("go", t) $ case t of
-        TagOpen tagName attrs ->
-          traceShow ("open", tagName) $
+      (t : ts) ->
+        case t of
+          TagOpen tagName attrs ->
             -- Open tag, definitely push a new context onto the stack.
             let newMProp = Key.fromText . dec <$> lookup "itemprop" attrs
                 newIsItem = any ((== "itemscope") . fst) attrs
@@ -99,8 +109,7 @@ findStructuredDataInTags = go
                               newCtx' = Ctx open mProp newObj'
                               newStack' = newCtx' :| rest
                            in goMicrodata newStack' restTags
-        TagClose tagName ->
-          traceShow ("close", tagName) $
+          TagClose tagName ->
             -- We don't check if the tag name matches here, yet because:
             -- It can happen that we close a tag that wasn't open
             -- This can happen in situations like this:
@@ -118,8 +127,7 @@ findStructuredDataInTags = go
             --
             -- so we want to collapse the contexts upward until we find the "span" context.
             let (ctx'@(Ctx open' mProp' obj') :| rest') =
-                  (\col -> traceShow ("Collapsed:", open, col) col) $
-                    collapseUpward tagName stack
+                  collapseUpward tagName stack
              in if open' == tagName
                   then -- Current context is closed.
                   case NE.nonEmpty rest' of
@@ -141,8 +149,8 @@ findStructuredDataInTags = go
                            in goMicrodata newStack ts
                   else -- If the tag name still doesn't match after collapsing, ignore the closing tag.
                     goMicrodata stack ts
-        -- Ignore any other tags
-        _ -> goMicrodata stack ts
+          -- Ignore any other tags
+          _ -> goMicrodata stack ts
 
     collapseUpward expectedOpen stack@(ctx@(Ctx open _ _) :| rest)
       | expectedOpen == open = stack

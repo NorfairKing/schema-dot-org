@@ -1,4 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module SchemaDotOrg.JSONLD.TagsoupSpec (spec) where
@@ -20,11 +19,4 @@ spec = do
         it (unwords ["can parse the structured data in", show fp]) $ do
           goldenJSONFile (fp <> ".structured") $ do
             contents <- SB.readFile fp
-            pure
-              $ toJSON
-              $ map
-                ( \case
-                    Microdata o -> toJSON o
-                    JSONLD v -> v
-                )
-              $ findStructuredData (LB.fromStrict contents)
+            pure $ findStructuredDataValues (LB.fromStrict contents)
