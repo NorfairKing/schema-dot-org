@@ -22,6 +22,7 @@ library
       SchemaDotOrg.JSONLD.Parse
       SchemaDotOrg.JSONLD.Render
       SchemaDotOrg.JSONLD.Scalpel
+      SchemaDotOrg.JSONLD.Tagsoup
   other-modules:
       Paths_schema_dot_org_jsonld
   hs-source-dirs:
@@ -36,4 +37,24 @@ library
     , tagsoup
     , text
     , vector
+  default-language: Haskell2010
+
+test-suite schema-dot-org-jsonld-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      SchemaDotOrg.JSONLD.TagsoupSpec
+      Paths_schema_dot_org_jsonld
+  hs-source-dirs:
+      test/
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wunused-packages -threaded -rtsopts -with-rtsopts=-N -Wall
+  build-tool-depends:
+      sydtest-discover:sydtest-discover
+  build-depends:
+      aeson
+    , base >=4.7 && <5
+    , bytestring
+    , schema-dot-org-jsonld
+    , sydtest
+    , sydtest-aeson
   default-language: Haskell2010
