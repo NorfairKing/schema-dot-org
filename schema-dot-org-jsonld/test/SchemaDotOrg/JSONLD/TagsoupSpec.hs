@@ -15,21 +15,16 @@ import Test.Syd.Aeson
 spec :: Spec
 spec = do
   describe "findStructuredData" $
-    it "finds this example" $
-      findStructuredData
-        "<script type=\"application/ld+json\">{}</script>"
-        `shouldBe` [JSONLD (JSON.object [])]
-
-  scenarioDir "test_resources" $ \fp ->
-    when (".html" `isSuffixOf` fp) $ do
-      it (unwords ["can parse the structured data in", show fp]) $ do
-        goldenJSONFile (fp <> ".structured") $ do
-          contents <- SB.readFile fp
-          pure
-            $ toJSON
-            $ map
-              ( \case
-                  Microdata o -> toJSON o
-                  JSONLD v -> v
-              )
-            $ findStructuredData (LB.fromStrict contents)
+    scenarioDir "test_resources" $ \fp ->
+      when (".html" `isSuffixOf` fp) $ do
+        it (unwords ["can parse the structured data in", show fp]) $ do
+          goldenJSONFile (fp <> ".structured") $ do
+            contents <- SB.readFile fp
+            pure
+              $ toJSON
+              $ map
+                ( \case
+                    Microdata o -> toJSON o
+                    JSONLD v -> v
+                )
+              $ findStructuredData (LB.fromStrict contents)

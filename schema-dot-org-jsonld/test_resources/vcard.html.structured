@@ -1,1 +1,11 @@
-[]
+[
+  {
+    "@type": "http://microformats.org/profile/hcard",
+    "fn": {
+        "n": {
+            "given-name": "George",
+            "family-name": "Washington"
+        }
+    }
+    }
+]

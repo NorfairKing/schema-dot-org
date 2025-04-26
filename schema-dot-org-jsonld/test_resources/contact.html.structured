@@ -1,1 +1,10 @@
-[]
+[
+    {
+        "family-name": "Person",
+        "given-name": "Alfred",
+        "locality": "Mountain View",
+        "postal-code": "94043",
+        "region": "CA",
+        "street-address": "Building 43, Second Floor"
+    }
+]
