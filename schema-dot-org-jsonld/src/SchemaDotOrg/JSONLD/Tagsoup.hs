@@ -95,7 +95,7 @@ findStructuredDataInTags = go
                       Nothing -> case attrsFromSingleTag propKey tagName attrs of
                         Just (k, v) ->
                           -- Data in attrs
-                          let newObj' = KM.insert k v obj
+                          let newObj' = KM.insertWith (flip combineValue) k v obj
                               newCtx' = Ctx open mProp newObj'
                               newStack' = newCtx' :| rest
                            in goMicrodata newStack' ts
@@ -105,7 +105,7 @@ findStructuredDataInTags = go
                           -- We just find the text and put it in the current context immediately.
                           -- TODO undo this so this is proper tail-recursive.
                           let (text, restTags) = goTextual id [] ts
-                              newObj' = KM.insert propKey (toJSON text) obj
+                              newObj' = KM.insertWith (flip combineValue) propKey (toJSON text) obj
                               newCtx' = Ctx open mProp newObj'
                               newStack' = newCtx' :| rest
                            in goMicrodata newStack' restTags
@@ -139,7 +139,7 @@ findStructuredDataInTags = go
                         Just prop ->
                           -- The object is complete, but it was part of the context before, add it there and continue.
 
-                          let newOuterObj = KM.insert prop (toJSON obj') outerObj
+                          let newOuterObj = KM.insertWith combineValue prop (toJSON obj') outerObj
                               newOuter = Ctx outerTag mOuterProp newOuterObj
                               newStack = newOuter :| outerRest
                            in goMicrodata newStack ts
