@@ -1,0 +1,11 @@
+[
+    {
+        "@type": "http://schema.org/Product",
+        "name": "Panasonic White 60L Refrigerator",
+        "aggregateRating": {
+            "@type": "http://schema.org/AggregateRating",
+            "ratingValue": "3.5",
+            "reviewCount": "11"
+        }
+    }
+]

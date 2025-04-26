@@ -1,0 +1,42 @@
+[
+    {
+        "@type": "http://microformats.org/profile/hcard",
+        "adr": {
+            "country-name": "United States",
+            "locality": "Los Angeles",
+            "postal-code": "90064",
+            "region": "CA",
+            "street-address": "10201 W. Pico Blvd."
+        },
+        "email": "j.bauer@la.ctu.gov.invalid",
+        "fn": "\n  \n   Jack\n   Bauer\n  \n ",
+        "geo": "34.052339;-118.410623",
+        "org": {
+            "organization-name": "Counter-Terrorist Unit",
+            "organization-unit": "Los Angeles Division"
+        },
+        "photo": "jack-bauer.jpg",
+        "rev": "2008-07-20 21:00:00+01:00",
+        "tel": [
+            {
+                "type": "cell",
+                "value": "+1 (310) 555 3781"
+            },
+            {
+                "type": [
+                    "work",
+                    "voice"
+                ],
+                "value": "+1 (310) 597 3781"
+            },
+            {
+                "type": "home",
+                "value": "01632 960 123"
+            }
+        ],
+        "url": [
+            "https://en.wikipedia.org/wiki/Jack_Bauer",
+            "http://www.jackbauerfacts.com/"
+        ]
+    }
+]

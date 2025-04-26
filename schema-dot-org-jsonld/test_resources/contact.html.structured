@@ -1,0 +1,20 @@
+[
+    {
+        "@type": "http://microformats.org/profile/hcard",
+        "fn": {
+            "n": {
+                "given-name": "Alfred",
+                "family-name": "Person"
+            }
+        },
+        "adr": {
+            "street-address": [
+              "1600 Amphitheatre Parkway",
+              "Building 43, Second Floor"
+            ],
+            "locality": "Mountain View",
+            "region": "CA",
+            "postal-code": "94043"
+        }
+    }
+]

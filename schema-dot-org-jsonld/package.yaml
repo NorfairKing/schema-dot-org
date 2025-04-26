@@ -22,8 +22,24 @@ library:
   dependencies:
   - aeson
   - bytestring
-  - scalpel
   - schema-dot-org
   - tagsoup
   - text
   - vector
+
+tests:
+  schema-dot-org-jsonld-test:
+    main: Spec.hs
+    source-dirs: test/
+    build-tools: sydtest-discover
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    - -Wall
+    dependencies:
+    - aeson
+    - bytestring
+    - schema-dot-org-jsonld
+    - sydtest
+    - sydtest-aeson
