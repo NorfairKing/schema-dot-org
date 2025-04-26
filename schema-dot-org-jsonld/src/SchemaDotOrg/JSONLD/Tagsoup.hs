@@ -124,20 +124,20 @@ findStructuredDataInTags = go
                       -- The object is complete.
                       Microdata obj' : go ts
                     Just (outerCtx@(Ctx outerIsItem outerTag mOuterProp outerObj) :| outerRest) ->
-                      if isItem
-                        then -- The object is complete, but it was part of the context before, add it there and continue.
+                      -- if isItem
+                      --   then -- The object is complete, but it was part of the context before, add it there and continue.
 
-                          let newOuterObj = case mOuterProp of
-                                Nothing -> outerObj
-                                Just prop -> KM.insert prop (toJSON obj') outerObj
-                              newOuter = Ctx outerIsItem outerTag mOuterProp newOuterObj
-                              newStack = newOuter :| outerRest
-                           in goMicrodata newStack ts
-                        else -- The outer was not an item, collapse the state with it
+                      --     let newOuterObj = case mOuterProp of
+                      --           Nothing -> outerObj
+                      --           Just prop -> KM.insert prop (toJSON obj') outerObj
+                      --         newOuter = Ctx outerIsItem outerTag mOuterProp newOuterObj
+                      --         newStack = newOuter :| outerRest
+                      --      in goMicrodata newStack ts
+                      --   else -- The outer was not an item, collapse the state with it
 
-                          let newOuter = collapseCtx ctx' outerCtx
-                              newStack = newOuter :| outerRest
-                           in goMicrodata newStack ts
+                      let newOuter = collapseCtx ctx' outerCtx
+                          newStack = newOuter :| outerRest
+                       in goMicrodata newStack ts
                   else -- If the tag name still doesn't match after collapsing, ignore the closing tag.
                     goMicrodata stack ts
         -- Ignore any other tags
