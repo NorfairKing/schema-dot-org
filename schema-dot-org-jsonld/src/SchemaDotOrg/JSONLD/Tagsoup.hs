@@ -14,7 +14,6 @@ where
 
 import Control.Applicative
 import Data.Aeson as JSON
-import Data.Aeson.Key (Key)
 import qualified Data.Aeson.Key as Key
 import qualified Data.Aeson.KeyMap as KM
 import qualified Data.Aeson.Types as JSON
@@ -23,13 +22,11 @@ import Data.List.NonEmpty (NonEmpty (..), (<|))
 import qualified Data.List.NonEmpty as NE
 import Data.Maybe
 import Data.Text (Text)
-import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Encoding.Error as EE
 import qualified Data.Text.Lazy as Lazy
 import qualified Data.Text.Lazy.Encoding as LTE
 import qualified Data.Vector as Vector
-import Debug.Trace
 import Text.HTML.TagSoup as TagSoup
 import Text.HTML.TagSoup.Match as TagSoup
 
@@ -164,7 +161,7 @@ findStructuredDataInTags = go
                   collapsed = collapseCtx ctx ctx'
                in collapsed :| rest'
 
-    collapseCtx (Ctx open mProp obj) (Ctx open' mProp' obj') =
+    collapseCtx (Ctx _ mProp obj) (Ctx open' mProp' obj') =
       Ctx open' (mProp' <|> mProp) (KM.unionWith combineValue obj' obj)
 
     combineValue :: JSON.Value -> JSON.Value -> JSON.Value
@@ -177,7 +174,7 @@ findStructuredDataInTags = go
     goTextual :: ([Tag LB.ByteString] -> [Tag LB.ByteString]) -> [LB.ByteString] -> [Tag LB.ByteString] -> (Text, [Tag LB.ByteString])
     goTextual acc tags = \case
       [] -> (dec (innerText (acc [])), [])
-      tss@(t : ts) -> case t of
+      (t : ts) -> case t of
         TagText {} -> goTextual (acc . (t :)) tags ts
         TagOpen name _ -> goTextual acc (name : tags) ts
         TagClose name -> case dropWhile (/= name) tags of

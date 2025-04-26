@@ -22,7 +22,6 @@ library:
   dependencies:
   - aeson
   - bytestring
-  - scalpel
   - schema-dot-org
   - tagsoup
   - text

@@ -1,13 +1,12 @@
-{ mkDerivation, aeson, base, bytestring, lib, scalpel
-, schema-dot-org, sydtest, sydtest-aeson, sydtest-discover, tagsoup
-, text, vector
+{ mkDerivation, aeson, base, bytestring, lib, schema-dot-org
+, sydtest, sydtest-aeson, sydtest-discover, tagsoup, text, vector
 }:
 mkDerivation {
   pname = "schema-dot-org-jsonld";
   version = "0.0.0.0";
   src = ./.;
   libraryHaskellDepends = [
-    aeson base bytestring scalpel schema-dot-org tagsoup text vector
+    aeson base bytestring schema-dot-org tagsoup text vector
   ];
   testHaskellDepends = [
     aeson base bytestring sydtest sydtest-aeson
