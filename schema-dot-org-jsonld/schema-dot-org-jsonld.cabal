@@ -21,7 +21,6 @@ library
       SchemaDotOrg.JSONLD
       SchemaDotOrg.JSONLD.Parse
       SchemaDotOrg.JSONLD.Render
-      SchemaDotOrg.JSONLD.Scalpel
       SchemaDotOrg.JSONLD.Tagsoup
   other-modules:
       Paths_schema_dot_org_jsonld
