@@ -69,30 +69,33 @@ findStructuredDataInTags = go
             -- Open tag, definitely push a new context onto the stack.
             let newMProp = Key.fromText . dec <$> lookup "itemprop" attrs
                 newIsItem = any ((== "itemscope") . fst) attrs
+                props = typeAndIdProps attrs
              in case newMProp of
                   Nothing ->
                     -- Not a property, just new open that needs to be closed later.
-                    goMicrodata (Ctx tagName Nothing KM.empty <| stack) ts
+                    goMicrodata (Ctx tagName Nothing props <| stack) ts
                   Just propKey ->
                     -- Definitely a property
                     case lookup "itemscope" attrs of
                       Just _ ->
                         -- Its own type
-                        let newCtx = Ctx tagName (Just propKey) (typeAndIdProps attrs)
+                        let newCtx = Ctx tagName (Just propKey) props
                             newStack = newCtx <| stack
                          in goMicrodata newStack ts
                       Nothing -> case attrsFromSingleTag propKey tagName attrs of
                         Just (k, v) ->
                           -- Data in attrs
-                          let newCtx = Ctx tagName (Just propKey) (KM.singleton k v)
-                              newStack = newCtx <| stack
-                           in goMicrodata newStack ts
+                          let newObj' = KM.insert k v obj
+                              newCtx' = Ctx open mProp newObj'
+                              newStack' = newCtx' :| rest
+                           in goMicrodata newStack' ts
                         Nothing ->
                           -- Textual data
                           -- We don't build a whole new context and continue.
                           -- We just find the text and put it in the current context immediately.
+                          -- TODO undo this so this is proper tail-recursive.
                           let (text, restTags) = goTextual id [] ts
-                              newObj' = KM.insert propKey (toJSON text) (typeAndIdProps attrs)
+                              newObj' = KM.insert propKey (toJSON text) obj
                               newCtx' = Ctx open mProp newObj'
                               newStack' = newCtx' :| rest
                            in goMicrodata newStack' restTags
@@ -114,7 +117,7 @@ findStructuredDataInTags = go
             -- and we find a closing "span"
             --
             -- so we want to collapse the contexts upward until we find the "span" context.
-            let (ctx'@(Ctx open' _ obj') :| rest') =
+            let (ctx'@(Ctx open' mProp' obj') :| rest') =
                   (\col -> traceShow ("Collapsed:", open, col) col) $
                     collapseUpward tagName stack
              in if open' == tagName
@@ -124,9 +127,18 @@ findStructuredDataInTags = go
                       -- The object is complete.
                       Microdata obj' : go ts
                     Just (outerCtx@(Ctx outerTag mOuterProp outerObj) :| outerRest) ->
-                      let newOuter = collapseCtx ctx' outerCtx
-                          newStack = newOuter :| outerRest
-                       in goMicrodata newStack ts
+                      case mProp' of
+                        Just prop ->
+                          -- The object is complete, but it was part of the context before, add it there and continue.
+
+                          let newOuterObj = KM.insert prop (toJSON obj') outerObj
+                              newOuter = Ctx outerTag mOuterProp newOuterObj
+                              newStack = newOuter :| outerRest
+                           in goMicrodata newStack ts
+                        Nothing ->
+                          let newOuter = collapseCtx ctx' outerCtx
+                              newStack = newOuter :| outerRest
+                           in goMicrodata newStack ts
                   else -- If the tag name still doesn't match after collapsing, ignore the closing tag.
                     goMicrodata stack ts
         -- Ignore any other tags

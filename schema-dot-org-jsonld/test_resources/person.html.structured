@@ -3,7 +3,7 @@
         "name": "Amanda",
         "band": {
             "name": "Jazz Band",
-            "size": 12
+            "size": "12"
         }
     }
 ]
