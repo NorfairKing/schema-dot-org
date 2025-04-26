@@ -50,7 +50,7 @@ findStructuredDataInTags = go
       (t : ts) -> case t of
         TagOpen "script" attrs | anyAttrLit ("type", "application/ld+json") attrs -> goLD id ts
         TagOpen tagName attrs
-          | anyAttrNameLit "itemscope" attrs -> goMicrodata (Ctx True tagName Nothing (typeAndIdProps attrs) :| []) ts
+          | anyAttrNameLit "itemscope" attrs -> goMicrodata (Ctx tagName Nothing (typeAndIdProps attrs) :| []) ts
         _ -> go ts
 
     goLD :: ([Tag LB.ByteString] -> [Tag LB.ByteString]) -> [Tag LB.ByteString] -> [Structured]
@@ -61,7 +61,7 @@ findStructuredDataInTags = go
         | otherwise -> goLD (acc . (t :)) ts
 
     goMicrodata :: NonEmpty Ctx -> [Tag LB.ByteString] -> [Structured]
-    goMicrodata stack@(Ctx isItem open mProp obj :| rest) = \case
+    goMicrodata stack@(Ctx open mProp obj :| rest) = \case
       [] -> []
       (t : ts) -> traceShow stack $ traceShow ("go", t) $ case t of
         TagOpen tagName attrs ->
@@ -72,19 +72,19 @@ findStructuredDataInTags = go
              in case newMProp of
                   Nothing ->
                     -- Not a property, just new open that needs to be closed later.
-                    goMicrodata (Ctx newIsItem tagName Nothing KM.empty <| stack) ts
+                    goMicrodata (Ctx tagName Nothing KM.empty <| stack) ts
                   Just propKey ->
                     -- Definitely a property
                     case lookup "itemscope" attrs of
                       Just _ ->
                         -- Its own type
-                        let newCtx = Ctx True tagName (Just propKey) (typeAndIdProps attrs)
+                        let newCtx = Ctx tagName (Just propKey) (typeAndIdProps attrs)
                             newStack = newCtx <| stack
                          in goMicrodata newStack ts
                       Nothing -> case attrsFromSingleTag propKey tagName attrs of
                         Just (k, v) ->
                           -- Data in attrs
-                          let newCtx = Ctx True tagName (Just propKey) (KM.singleton k v)
+                          let newCtx = Ctx tagName (Just propKey) (KM.singleton k v)
                               newStack = newCtx <| stack
                            in goMicrodata newStack ts
                         Nothing ->
@@ -93,7 +93,7 @@ findStructuredDataInTags = go
                           -- We just find the text and put it in the current context immediately.
                           let (text, restTags) = goTextual id [] ts
                               newObj' = KM.insert propKey (toJSON text) (typeAndIdProps attrs)
-                              newCtx' = Ctx isItem open mProp newObj'
+                              newCtx' = Ctx open mProp newObj'
                               newStack' = newCtx' :| rest
                            in goMicrodata newStack' restTags
         TagClose tagName ->
@@ -114,7 +114,7 @@ findStructuredDataInTags = go
             -- and we find a closing "span"
             --
             -- so we want to collapse the contexts upward until we find the "span" context.
-            let (ctx'@(Ctx isItem open' _ obj') :| rest') =
+            let (ctx'@(Ctx open' _ obj') :| rest') =
                   (\col -> traceShow ("Collapsed:", open, col) col) $
                     collapseUpward tagName stack
              in if open' == tagName
@@ -123,18 +123,7 @@ findStructuredDataInTags = go
                     Nothing ->
                       -- The object is complete.
                       Microdata obj' : go ts
-                    Just (outerCtx@(Ctx outerIsItem outerTag mOuterProp outerObj) :| outerRest) ->
-                      -- if isItem
-                      --   then -- The object is complete, but it was part of the context before, add it there and continue.
-
-                      --     let newOuterObj = case mOuterProp of
-                      --           Nothing -> outerObj
-                      --           Just prop -> KM.insert prop (toJSON obj') outerObj
-                      --         newOuter = Ctx outerIsItem outerTag mOuterProp newOuterObj
-                      --         newStack = newOuter :| outerRest
-                      --      in goMicrodata newStack ts
-                      --   else -- The outer was not an item, collapse the state with it
-
+                    Just (outerCtx@(Ctx outerTag mOuterProp outerObj) :| outerRest) ->
                       let newOuter = collapseCtx ctx' outerCtx
                           newStack = newOuter :| outerRest
                        in goMicrodata newStack ts
@@ -143,7 +132,7 @@ findStructuredDataInTags = go
         -- Ignore any other tags
         _ -> goMicrodata stack ts
 
-    collapseUpward expectedOpen stack@(ctx@(Ctx _ open _ _) :| rest)
+    collapseUpward expectedOpen stack@(ctx@(Ctx open _ _) :| rest)
       | expectedOpen == open = stack
       | otherwise =
           case NE.nonEmpty rest of
@@ -155,8 +144,8 @@ findStructuredDataInTags = go
                   collapsed = collapseCtx ctx ctx'
                in collapsed :| rest'
 
-    collapseCtx (Ctx isItem open mProp obj) (Ctx isItem' open' mProp' obj') =
-      Ctx (isItem' || isItem) open' (mProp' <|> mProp) (KM.union obj' obj)
+    collapseCtx (Ctx open mProp obj) (Ctx open' mProp' obj') =
+      Ctx open' (mProp' <|> mProp) (KM.union obj' obj)
 
     goTextual :: ([Tag LB.ByteString] -> [Tag LB.ByteString]) -> [LB.ByteString] -> [Tag LB.ByteString] -> (Text, [Tag LB.ByteString])
     goTextual acc tags = \case
@@ -204,9 +193,7 @@ findStructuredDataInTags = go
 
 -- Maybe make the context a json object already?
 data Ctx = Ctx
-  { -- If the context represents an 'itemscope'
-    ctxScope :: !Bool,
-    -- Name of the open tag
+  { -- Name of the open tag
     ctxOpen :: !LB.ByteString,
     -- Name of the itemprop, if there was one
     ctxProp :: !(Maybe JSON.Key),
