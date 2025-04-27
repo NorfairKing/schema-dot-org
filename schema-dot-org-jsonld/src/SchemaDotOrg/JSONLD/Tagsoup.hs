@@ -64,9 +64,15 @@ findStructuredDataInTags = go
     goLD :: ([Tag LB.ByteString] -> [Tag LB.ByteString]) -> [Tag LB.ByteString] -> [Structured]
     goLD acc = \case
       [] -> []
-      (t : ts)
-        | tagCloseNameLit "script" t -> maybeToList (JSONLD <$> JSON.decode (innerText (acc []))) ++ go ts
-        | otherwise -> goLD (acc . (t :)) ts
+      (t : ts) -> case t of
+        TagClose "script" ->
+          maybeToList
+            -- We have to double-parse here because some produces html-escape their JSON.
+            -- This is not what they should be doing but here we are.
+            (JSONLD <$> JSON.decode (innerText (parseTagsOptions parseOptionsFast (innerText (acc [])))))
+            ++ go ts
+        TagText _ -> goLD (acc . (t :)) ts
+        _ -> goLD acc ts
 
     goMicrodata :: NonEmpty Ctx -> [Tag LB.ByteString] -> [Structured]
     goMicrodata stack@(Ctx open mProp obj :| rest) = \case
