@@ -66,11 +66,9 @@ findStructuredDataInTags = go
       [] -> []
       (t : ts) -> case t of
         TagClose "script" ->
-          maybeToList
-            -- We have to double-parse here because some produces html-escape their JSON.
-            -- This is not what they should be doing but here we are.
-            (JSONLD <$> JSON.decode (innerText (parseTagsOptions parseOptionsFast (innerText (acc [])))))
-            ++ go ts
+          -- We have to double-parse here because some produces html-escape their JSON.
+          -- This is not what they should be doing but here we are.
+          maybeToList (JSONLD . htmlUnescapeValue <$> JSON.decode (innerText (acc []))) ++ go ts
         TagText _ -> goLD (acc . (t :)) ts
         _ -> goLD acc ts
 
@@ -220,6 +218,15 @@ findStructuredDataInTags = go
           [ ["@type" .= dec typ | typ <- maybeToList (lookup "itemtype" attrs)],
             ["@id" .= dec i | i <- maybeToList (lookup "itemid" attrs)]
           ]
+
+htmlUnescapeValue :: JSON.Value -> JSON.Value
+htmlUnescapeValue = go
+  where
+    go = \case
+      Object km -> Object $ go <$> km
+      Array km -> Array $ go <$> km
+      String s -> String $ innerText $ parseTagsOptions parseOptionsFast s
+      v -> v
 
 -- Maybe make the context a json object already?
 data Ctx = Ctx
