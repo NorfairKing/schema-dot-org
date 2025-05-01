@@ -31,9 +31,12 @@ module SchemaDotOrg.JSONLD.Parse
     requirePropertyInterpretation,
     requirePropertyEInterpretation,
     lookupPropertyText,
+    lookupPropertyTextLenient,
     requirePropertyText,
+    requirePropertyTextLenient,
     lookupPropertySingleValue,
     interpretText,
+    interpretTextLenient,
     interpretNumber,
     interpretSingleValue,
     interpretFirstValue,
@@ -51,7 +54,7 @@ module SchemaDotOrg.JSONLD.Parse
 where
 
 import Control.Applicative
-import Control.Arrow (left)
+import Control.Arrow (left, second)
 import Control.Monad
 import Data.Aeson hiding (Options)
 import qualified Data.Aeson.Key as Key
@@ -62,6 +65,7 @@ import Data.Foldable
 import Data.Kind
 import Data.Maybe
 import Data.Text (Text)
+import qualified Data.Text as T
 import SchemaDotOrg
 
 -- | Try to use the parser where possible.
@@ -281,6 +285,21 @@ lookupPropertyText property =
         (EmptyInterpretation (const Nothing))
     )
 
+-- | Lookup a property that may only be 'Text' using 'interpretTextLenient'.
+lookupPropertyTextLenient ::
+  Inherits classes propertyClass =>
+  (Text -> Bool) ->
+  -- | Property
+  Property propertyClass '[Text] ->
+  ParserOf classes (Maybe Text)
+lookupPropertyTextLenient languagePredicate property =
+  lookupPropertyMInterpretation
+    property
+    ( InterpretProperty
+        (forgiveError <$> interpretTextLenient languagePredicate)
+        (EmptyInterpretation (const Nothing))
+    )
+
 -- | Require a property that may only be 'Text'.
 --
 -- Interpret literal text as text, and anything else as Nothing.
@@ -294,6 +313,21 @@ requirePropertyText property =
     property
     ( InterpretProperty
         interpretText
+        (EmptyInterpretation (const (Left ["Could not parse value as Text value."])))
+    )
+
+-- | Require a property that may only be 'Text' using 'interpretTextLenient'.
+requirePropertyTextLenient ::
+  Inherits classes propertyClass =>
+  (Text -> Bool) ->
+  -- | Property
+  Property propertyClass '[Text] ->
+  ParserOf classes Text
+requirePropertyTextLenient languagePredicate property =
+  requirePropertyEInterpretation
+    property
+    ( InterpretProperty
+        (interpretTextLenient languagePredicate)
         (EmptyInterpretation (const (Left ["Could not parse value as Text value."])))
     )
 
@@ -322,14 +356,37 @@ runInterpretation v = go
       EmptyInterpretation mkDefaultValue -> [mkDefaultValue v]
       InterpretProperty (Interpret func) i ->
         let actual = case v of
-              Array a -> ActualList (map (parseEither' parseJSON) (toList a))
+              Array a ->
+                let l = toList a
+                 in case parseI18N l of
+                      Just i18n -> ActualI18N (map (second (parseEither' parseJSON)) i18n)
+                      _ -> ActualList (map (parseEither' parseJSON) l)
               _ -> ActualSingle (parseEither' parseJSON v)
          in func actual : go i
       InterpretClass parser (Interpret func) i ->
-        let actual = case v of
-              Array a -> ActualList (map (parseEither' parseJSON >=> runParserOf parser) (toList a))
-              _ -> ActualSingle ((parseEither' parseJSON >=> runParserOf parser) v)
+        let actual =
+              case v of
+                Array a ->
+                  let l = toList a
+                   in case parseI18N l of
+                        Just i18n -> ActualI18N (map (second (parseEither' parseJSON >=> runParserOf parser)) i18n)
+                        _ -> ActualList (map (parseEither' parseJSON >=> runParserOf parser) l)
+                _ -> ActualSingle ((parseEither' parseJSON >=> runParserOf parser) v)
          in func actual : go i
+
+parseI18N :: [JSON.Value] -> Maybe [(Text, JSON.Value)]
+parseI18N vs = mapM parseSingle vs
+  where
+    parseSingle :: JSON.Value -> Maybe (Text, JSON.Value)
+    parseSingle v = case v of
+      Object o -> do
+        lang <- KeyMap.lookup "@language" o
+        case lang of
+          String t -> do
+            val <- KeyMap.lookup "@value" o
+            pure (t, val)
+          _ -> Nothing
+      _ -> Nothing
 
 -- | An 'Interpretation' of a property
 --
@@ -358,6 +415,7 @@ data Interpretation (expectedTypes :: [Type]) a where
 data Actual expectedType
   = ActualSingle (Either [String] expectedType)
   | ActualList [Either [String] expectedType]
+  | ActualI18N [(Text, Either [String] expectedType)]
 
 data Interpret (expectedType :: Type) (result :: Type) = Interpret
   { interpretActual :: Actual expectedType -> result
@@ -379,6 +437,20 @@ instance Monad (Interpret expectedType) where
 interpretText :: Interpret Text (Either [String] Text)
 interpretText = interpretSingleValue
 
+-- | Interpret a single 'Text' with a lenient parser.
+-- This uses "T.unlines" on lists of text, and chooses the text in the given
+-- language matching the given predicate or the first one if no such language
+-- is found.
+interpretTextLenient :: (Text -> Bool) -> Interpret Text (Either [String] Text)
+interpretTextLenient langPredicate = Interpret $ \case
+  ActualSingle t -> t
+  ActualList ts -> T.unlines <$> sequence ts
+  ActualI18N ts -> case find (langPredicate . fst) ts of
+    Nothing -> case ts of
+      [] -> Left ["No I18N value found."]
+      ((_, t) : _) -> t
+    Just (_, t) -> t
+
 -- | Interpret a single 'Number'
 interpretNumber :: Interpret Number (Either [String] Number)
 interpretNumber = interpretSingleValue
@@ -388,12 +460,14 @@ interpretSingleValue :: Interpret a (Either [String] a)
 interpretSingleValue = Interpret $ \case
   ActualSingle ee -> ee
   ActualList _ -> Left ["Lists of values are not interpreted in interpretSingleValue."]
+  ActualI18N _ -> Left ["I18N values are not interpreted in interpretSingleValue."]
 
 -- | Intepret the first 'Right' in either a single value or a list.
 interpretFirstValue :: Interpret a (Either [String] a)
 interpretFirstValue = Interpret $ \case
   ActualSingle ee -> ee
   ActualList ees -> eitherChoices' ees
+  ActualI18N ees -> eitherChoices' $ map snd ees
 
 -- | Intepret any parseable list values
 interpretAnyListValues :: Interpret a [a]
@@ -402,6 +476,7 @@ interpretAnyListValues = Interpret $ \case
     Left _ -> []
     Right a -> [a]
   ActualList ees -> snd $ partitionEithers ees
+  ActualI18N ees -> snd $ partitionEithers $ map snd ees
 
 -- | Intepret values as a list, but only if they're all parseable.
 interpretAllListValues :: Interpret a [a]
@@ -409,6 +484,7 @@ interpretAllListValues = Interpret $ \a ->
   let errOrList = case a of
         ActualSingle ee -> (: []) <$> ee
         ActualList ees -> sequence ees
+        ActualI18N ees -> mapM snd ees
    in case errOrList of
         Left _ -> []
         Right as -> as

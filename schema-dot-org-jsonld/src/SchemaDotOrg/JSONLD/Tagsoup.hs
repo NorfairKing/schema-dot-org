@@ -22,6 +22,7 @@ import Data.List.NonEmpty (NonEmpty (..), (<|))
 import qualified Data.List.NonEmpty as NE
 import Data.Maybe
 import Data.Text (Text)
+import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Encoding.Error as EE
 import qualified Data.Text.Lazy as Lazy
@@ -225,8 +226,17 @@ htmlUnescapeValue = go
     go = \case
       Object km -> Object $ go <$> km
       Array km -> Array $ go <$> km
-      String s -> String $ innerText $ parseTagsOptions parseOptionsFast s
+      String s -> String $ innerTextWithBrs $ parseTagsOptions parseOptionsFast s
       v -> v
+    innerTextWithBrs :: [Tag Text] -> Text
+    innerTextWithBrs =
+      T.concat
+        . mapMaybe
+          ( \case
+              TagText x -> Just x
+              TagOpen "br" _ -> Just "\n"
+              _ -> Nothing
+          )
 
 -- Maybe make the context a json object already?
 data Ctx = Ctx
