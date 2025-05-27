@@ -15,7 +15,7 @@ import Data.Yaml (FromJSON, ToJSON)
 import qualified Env
 import GHC.Generics (Generic)
 import Options.Applicative as OptParse
-import qualified Options.Applicative.Help as OptParse (string)
+import qualified Options.Applicative.Help as OptParse (pretty)
 import Path
 import Path.IO
 
@@ -110,11 +110,11 @@ argParser :: OptParse.ParserInfo Arguments
 argParser =
   OptParse.info
     (OptParse.helper <*> parseArgs)
-    (OptParse.fullDesc <> OptParse.footerDoc (Just $ OptParse.string footerStr))
+    (OptParse.fullDesc <> OptParse.footerDoc (Just $ OptParse.pretty footerStr))
   where
     footerStr =
       unlines
-        [ Env.helpDoc environmentParser,
+        [ Env.helpDoc 80 environmentParser,
           "",
           "Configuration file format:",
           T.unpack (renderColouredSchemaViaCodec @Configuration)

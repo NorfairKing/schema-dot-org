@@ -53,11 +53,11 @@ class Inherits classes clazz
 
 instance {-# OVERLAPS #-} Inherits (clazz ': otherClasses) clazz
 
-instance Inherits otherClasses clazz => Inherits (otherClass ': otherClasses) clazz
+instance (Inherits otherClasses clazz) => Inherits (otherClass ': otherClasses) clazz
 
 -- Whether the given 'actualType' is in the 'expectedTypes' list.
 class IsExpectedType expectedTypes actualType
 
 instance {-# OVERLAPS #-} IsExpectedType (actualType ': otherTypes) actualType
 
-instance IsExpectedType otherTypes actualType => IsExpectedType (otherType ': otherTypes) actualType
+instance (IsExpectedType otherTypes actualType) => IsExpectedType (otherType ': otherTypes) actualType

@@ -156,7 +156,7 @@ checkContext = ParserOf $ \o -> case KeyMap.lookup "@context" o of
 
 -- | Check that the given class is mentioned in the @@type@ property
 checkClass ::
-  Inherits classes clazz =>
+  (Inherits classes clazz) =>
   Class clazz superclasses ->
   ParserOf classes ()
 checkClass clazz = ParserOf $ \o -> case KeyMap.lookup "@type" o of
@@ -216,7 +216,7 @@ requireProperty property = do
 --
 -- This forces the consumer to deal with every possible value.
 lookupPropertyInterpretation ::
-  Inherits classes propertyClass =>
+  (Inherits classes propertyClass) =>
   -- | Property
   Property propertyClass expectedTypes ->
   Interpretation expectedTypes interpretation ->
@@ -231,7 +231,7 @@ lookupPropertyInterpretation property interpretation = ParserOf $ \o ->
 --
 -- This forces the consumer to deal with every possible value.
 requirePropertyInterpretation ::
-  Inherits classes propertyClass =>
+  (Inherits classes propertyClass) =>
   -- | Property
   Property propertyClass expectedTypes ->
   Interpretation expectedTypes interpretation ->
@@ -247,8 +247,8 @@ requirePropertyInterpretation property interpretation = do
 --
 -- This forces the consumer to deal with every possible value.
 requirePropertyEInterpretation ::
-  Show interpretation =>
-  Inherits classes propertyClass =>
+  (Show interpretation) =>
+  (Inherits classes propertyClass) =>
   -- | Property
   Property propertyClass expectedTypes ->
   Interpretation expectedTypes (Either [String] interpretation) ->
@@ -262,7 +262,7 @@ requirePropertyEInterpretation property interpretation = do
 --
 -- You may want to just use 'requirePropertyEInterpretation' with 'optional' instead.
 lookupPropertyMInterpretation ::
-  Inherits classes propertyClass =>
+  (Inherits classes propertyClass) =>
   -- | Property
   Property propertyClass expectedTypes ->
   Interpretation expectedTypes (Maybe interpretation) ->
@@ -273,7 +273,7 @@ lookupPropertyMInterpretation property interpretation = (asum =<<) <$> lookupPro
 --
 -- Interpret literal text as text, and anything else as Nothing.
 lookupPropertyText ::
-  Inherits classes propertyClass =>
+  (Inherits classes propertyClass) =>
   -- | Property
   Property propertyClass '[Text] ->
   ParserOf classes (Maybe Text)
@@ -287,7 +287,7 @@ lookupPropertyText property =
 
 -- | Lookup a property that may only be 'Text' using 'interpretTextLenient'.
 lookupPropertyTextLenient ::
-  Inherits classes propertyClass =>
+  (Inherits classes propertyClass) =>
   (Text -> Bool) ->
   -- | Property
   Property propertyClass '[Text] ->
@@ -304,7 +304,7 @@ lookupPropertyTextLenient languagePredicate property =
 --
 -- Interpret literal text as text, and anything else as Nothing.
 requirePropertyText ::
-  Inherits classes propertyClass =>
+  (Inherits classes propertyClass) =>
   -- | Property
   Property propertyClass '[Text] ->
   ParserOf classes Text
@@ -318,7 +318,7 @@ requirePropertyText property =
 
 -- | Require a property that may only be 'Text' using 'interpretTextLenient'.
 requirePropertyTextLenient ::
-  Inherits classes propertyClass =>
+  (Inherits classes propertyClass) =>
   (Text -> Bool) ->
   -- | Property
   Property propertyClass '[Text] ->
@@ -335,8 +335,8 @@ requirePropertyTextLenient languagePredicate property =
 --
 -- This is for enumerations, for example.
 lookupPropertySingleValue ::
-  FromJSON a =>
-  Inherits classes propertyClass =>
+  (FromJSON a) =>
+  (Inherits classes propertyClass) =>
   Property propertyClass '[a] ->
   ParserOf classes (Maybe a)
 lookupPropertySingleValue property =
@@ -397,7 +397,7 @@ data Interpretation (expectedTypes :: [Type]) a where
   EmptyInterpretation :: (JSON.Value -> a) -> Interpretation '[] a
   -- | An interpretation of a property that has a given 'expectedType' that has a 'FromJSON' instance.
   InterpretProperty ::
-    FromJSON expectedType =>
+    (FromJSON expectedType) =>
     Interpret expectedType a ->
     Interpretation otherExpectedTypes a ->
     Interpretation (expectedType ': otherExpectedTypes) a
@@ -499,7 +499,7 @@ interpretLeft e = pure (Left e)
 
 -- | Lookup a property in a 'Class', that is itself a class.
 lookupPropertyClass ::
-  Inherits classes propertyClass =>
+  (Inherits classes propertyClass) =>
   -- | Property
   Property propertyClass expectedTypes ->
   -- | Property class
@@ -516,7 +516,7 @@ lookupPropertyClass property clazz classParserFunc = ParserOf $ \o -> do
 --
 -- All properties are optional, so you may want to use 'lookupPropertyClass' instead.
 requirePropertyClass ::
-  Inherits classes propertyClass =>
+  (Inherits classes propertyClass) =>
   -- | Property
   Property propertyClass expectedTypes ->
   -- | Property class

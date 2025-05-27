@@ -168,10 +168,10 @@ instance HasCodec Schema where
 data Comment
   = CommentText Text
   | CommentTextInLang
+      -- | Lang
       Text
-      -- ^ Lang
+      -- | Value
       Text
-      -- ^ Value
   deriving stock (Show, Eq, Ord, Generic)
 
 instance HasCodec Comment where

@@ -45,7 +45,7 @@ newtype RenderOf (classes :: [Type]) = RenderOf {unRenderOf :: JSON.Object}
 
 -- | Render a class using a given renderer for that class.
 renderClass ::
-  Foldable f =>
+  (Foldable f) =>
   Class clazz superClasses ->
   -- | Renderers
   --
