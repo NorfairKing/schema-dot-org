@@ -132,23 +132,23 @@ findStructuredDataInTags = go
                   collapseUpward tagName stack
              in if open' == tagName
                   then -- Current context is closed.
-                  case NE.nonEmpty rest' of
-                    Nothing ->
-                      -- The object is complete.
-                      Microdata obj' : go ts
-                    Just (outerCtx@(Ctx outerTag mOuterProp outerObj) :| outerRest) ->
-                      case mProp' of
-                        Just prop ->
-                          -- The object is complete, but it was part of the context before, add it there and continue.
+                    case NE.nonEmpty rest' of
+                      Nothing ->
+                        -- The object is complete.
+                        Microdata obj' : go ts
+                      Just (outerCtx@(Ctx outerTag mOuterProp outerObj) :| outerRest) ->
+                        case mProp' of
+                          Just prop ->
+                            -- The object is complete, but it was part of the context before, add it there and continue.
 
-                          let newOuterObj = KM.insertWith combineValue prop (toJSON obj') outerObj
-                              newOuter = Ctx outerTag mOuterProp newOuterObj
-                              newStack = newOuter :| outerRest
-                           in goMicrodata newStack ts
-                        Nothing ->
-                          let newOuter = collapseCtx ctx' outerCtx
-                              newStack = newOuter :| outerRest
-                           in goMicrodata newStack ts
+                            let newOuterObj = KM.insertWith combineValue prop (toJSON obj') outerObj
+                                newOuter = Ctx outerTag mOuterProp newOuterObj
+                                newStack = newOuter :| outerRest
+                             in goMicrodata newStack ts
+                          Nothing ->
+                            let newOuter = collapseCtx ctx' outerCtx
+                                newStack = newOuter :| outerRest
+                             in goMicrodata newStack ts
                   else -- If the tag name still doesn't match after collapsing, ignore the closing tag.
                     goMicrodata stack ts
           -- Ignore any other tags
