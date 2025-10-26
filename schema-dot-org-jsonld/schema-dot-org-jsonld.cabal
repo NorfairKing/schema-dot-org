@@ -11,6 +11,43 @@ bug-reports:    https://github.com/NorfairKing/schema-dot-org/issues
 author:         Tom Sydney Kerckhove
 maintainer:     Tom Sydney Kerckhove
 build-type:     Simple
+extra-source-files:
+    test_resources/bachataspain.html
+    test_resources/bachataspain.html.structured
+    test_resources/birthday.html
+    test_resources/birthday.html.structured
+    test_resources/castles.html
+    test_resources/castles.html.structured
+    test_resources/contact.html
+    test_resources/contact.html.structured
+    test_resources/entities-in-script.html
+    test_resources/entities-in-script.html.structured
+    test_resources/equivalent-names.html
+    test_resources/equivalent-names.html.structured
+    test_resources/icecream.html
+    test_resources/icecream.html.structured
+    test_resources/image.html
+    test_resources/image.html.structured
+    test_resources/jsonld.html
+    test_resources/jsonld.html.structured
+    test_resources/matinee.html
+    test_resources/matinee.html.structured
+    test_resources/meter.html
+    test_resources/meter.html.structured
+    test_resources/name.html
+    test_resources/name.html.structured
+    test_resources/names.html
+    test_resources/names.html.structured
+    test_resources/person.html
+    test_resources/person.html.structured
+    test_resources/prodid.html
+    test_resources/prodid.html.structured
+    test_resources/three-properties.html
+    test_resources/three-properties.html.structured
+    test_resources/vcard-long.html
+    test_resources/vcard-long.html.structured
+    test_resources/vcard.html
+    test_resources/vcard.html.structured
 
 source-repository head
   type: git
