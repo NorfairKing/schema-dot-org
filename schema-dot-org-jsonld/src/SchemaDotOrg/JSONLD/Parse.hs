@@ -173,7 +173,19 @@ checkClass clazz = ParserOf $ \o -> case KeyMap.lookup "@type" o of
                 show (className clazz)
               ]
           ]
-  Just _ -> Left ["Key '@type' found but was not a String"]
+  Just (Array arr) ->
+    if any (\v -> v == String (className clazz)) arr
+      then pure ()
+      else
+        Left
+          [ unwords
+              [ "Type mismatch; actual:",
+                show (toList arr),
+                ", expected: ",
+                show (className clazz)
+              ]
+          ]
+  Just _ -> Left ["Key '@type' found but was not a String or Array"]
 
 -- | Lookup a property in a 'Class'.
 --
