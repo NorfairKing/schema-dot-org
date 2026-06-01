@@ -1,5 +1,7 @@
 # Schema.org in Haskell
 
+[![NixCI](https://staging.nix-ci.com/badge/gh:NorfairKing:schema-dot-org)](https://staging.nix-ci.com/gh:NorfairKing:schema-dot-org)
+
 This is a library to deal with data in the form of the schemas from [schema.org](https://schema.org).
 
 ## Library design
