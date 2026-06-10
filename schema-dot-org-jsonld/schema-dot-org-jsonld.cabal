@@ -44,6 +44,8 @@ extra-source-files:
     test_resources/prodid.html.structured
     test_resources/three-properties.html
     test_resources/three-properties.html.structured
+    test_resources/unescaped-control-characters.html
+    test_resources/unescaped-control-characters.html.structured
     test_resources/vcard-long.html
     test_resources/vcard-long.html.structured
     test_resources/vcard.html

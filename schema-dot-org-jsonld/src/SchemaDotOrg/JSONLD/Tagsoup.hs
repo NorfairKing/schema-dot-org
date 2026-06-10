@@ -17,6 +17,7 @@ import Data.Aeson as JSON
 import qualified Data.Aeson.Key as Key
 import qualified Data.Aeson.KeyMap as KM
 import qualified Data.Aeson.Types as JSON
+import qualified Data.ByteString.Builder as BB
 import qualified Data.ByteString.Lazy as LB
 import Data.List.NonEmpty (NonEmpty (..), (<|))
 import qualified Data.List.NonEmpty as NE
@@ -28,6 +29,7 @@ import qualified Data.Text.Encoding.Error as EE
 import qualified Data.Text.Lazy as Lazy
 import qualified Data.Text.Lazy.Encoding as LTE
 import qualified Data.Vector as Vector
+import Data.Word (Word8)
 import Text.HTML.TagSoup as TagSoup
 import Text.HTML.TagSoup.Match as TagSoup
 
@@ -69,7 +71,14 @@ findStructuredDataInTags = go
         TagClose "script" ->
           -- We have to double-parse here because some produces html-escape their JSON.
           -- This is not what they should be doing but here we are.
-          maybeToList (JSONLD . htmlUnescapeValue <$> JSON.decode (innerText (acc []))) ++ go ts
+          --
+          -- We also try again with control characters escaped, because some
+          -- sites emit literal newlines (and other control characters) inside
+          -- JSON string values, which is invalid JSON that 'JSON.decode'
+          -- rejects. This is not what they should be doing but here we are.
+          let rawText = innerText (acc [])
+              decoded = JSON.decode rawText <|> JSON.decode (escapeJSONControlCharacters rawText)
+           in maybeToList (JSONLD . htmlUnescapeValue <$> decoded) ++ go ts
         TagText _ -> goLD (acc . (t :)) ts
         _ -> goLD acc ts
 
@@ -219,6 +228,57 @@ findStructuredDataInTags = go
           [ ["@type" .= dec typ | typ <- maybeToList (lookup "itemtype" attrs)],
             ["@id" .= dec i | i <- maybeToList (lookup "itemid" attrs)]
           ]
+
+-- | Escape raw control characters (U+0000 through U+001F) that appear inside
+-- JSON string literals.
+--
+-- The JSON grammar requires these characters to be escaped, but some sites
+-- emit them literally (e.g. a multi-line @description@ with real newlines),
+-- which makes 'JSON.decode' reject the whole document. Escaping them is a pure
+-- repair: well-formed JSON never contains raw control characters inside a
+-- string, so this is a no-op on valid input and only ever rescues otherwise
+-- unparseable input.
+--
+-- This works at the byte level, which is safe because every control character
+-- and every JSON structural character is a single ASCII byte and UTF-8
+-- continuation bytes are all >= 0x80.
+escapeJSONControlCharacters :: LB.ByteString -> LB.ByteString
+escapeJSONControlCharacters = BB.toLazyByteString . go False False
+  where
+    -- 'inString' tracks whether we are inside a "..." string literal.
+    -- 'escaped' tracks whether the previous byte was an unconsumed backslash.
+    go :: Bool -> Bool -> LB.ByteString -> BB.Builder
+    go inString escaped bs = case LB.uncons bs of
+      Nothing -> mempty
+      Just (w, rest)
+        | not inString ->
+            -- 0x22 is '"', which opens a string literal.
+            BB.word8 w <> go (w == 0x22) False rest
+        | escaped ->
+            -- This byte is escaped by a preceding backslash; pass it through.
+            BB.word8 w <> go True False rest
+        | otherwise -> case w of
+            -- 0x5C is '\', which escapes the next byte.
+            0x5C -> BB.word8 w <> go True True rest
+            -- 0x22 is '"', which closes the string literal.
+            0x22 -> BB.word8 w <> go False False rest
+            _
+              | w < 0x20 -> escapeControlByte w <> go True False rest
+              | otherwise -> BB.word8 w <> go True False rest
+
+    escapeControlByte :: Word8 -> BB.Builder
+    escapeControlByte = \case
+      0x08 -> BB.string7 "\\b"
+      0x09 -> BB.string7 "\\t"
+      0x0A -> BB.string7 "\\n"
+      0x0C -> BB.string7 "\\f"
+      0x0D -> BB.string7 "\\r"
+      w -> BB.string7 "\\u00" <> hexDigit (w `div` 16) <> hexDigit (w `mod` 16)
+
+    hexDigit :: Word8 -> BB.Builder
+    hexDigit w
+      | w < 10 = BB.word8 (0x30 + w)
+      | otherwise = BB.word8 (0x61 + w - 10)
 
 htmlUnescapeValue :: JSON.Value -> JSON.Value
 htmlUnescapeValue = go
