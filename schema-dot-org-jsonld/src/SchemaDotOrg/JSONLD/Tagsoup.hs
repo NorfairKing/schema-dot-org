@@ -59,13 +59,16 @@ findStructuredDataInTags = go
     go = \case
       [] -> []
       (t : ts) -> case t of
-        TagOpen "script" attrs | anyAttrLit ("type", "application/ld+json") attrs -> goLD id ts
+        TagOpen "script" attrs | anyAttrLit ("type", "application/ld+json") attrs -> goLD go id ts
         TagOpen tagName attrs
           | anyAttrNameLit "itemscope" attrs -> goMicrodata (Ctx tagName Nothing (typeAndIdProps attrs) :| []) ts
         _ -> go ts
 
-    goLD :: ([Tag LB.ByteString] -> [Tag LB.ByteString]) -> [Tag LB.ByteString] -> [Structured]
-    goLD acc = \case
+    -- Extract one ld+json script, then continue with @cont@ on the remaining
+    -- tags. @cont@ lets us resume either the top-level scan or an enclosing
+    -- microdata item (so ld+json nested inside an itemscope is still extracted).
+    goLD :: ([Tag LB.ByteString] -> [Structured]) -> ([Tag LB.ByteString] -> [Tag LB.ByteString]) -> [Tag LB.ByteString] -> [Structured]
+    goLD cont acc = \case
       [] -> []
       (t : ts) -> case t of
         TagClose "script" ->
@@ -78,15 +81,20 @@ findStructuredDataInTags = go
           -- rejects. This is not what they should be doing but here we are.
           let rawText = innerText (acc [])
               decoded = JSON.decode rawText <|> JSON.decode (escapeJSONControlCharacters rawText)
-           in maybeToList (JSONLD . htmlUnescapeValue <$> decoded) ++ go ts
-        TagText _ -> goLD (acc . (t :)) ts
-        _ -> goLD acc ts
+           in maybeToList (JSONLD . htmlUnescapeValue <$> decoded) ++ cont ts
+        TagText _ -> goLD cont (acc . (t :)) ts
+        _ -> goLD cont acc ts
 
     goMicrodata :: NonEmpty Ctx -> [Tag LB.ByteString] -> [Structured]
     goMicrodata stack@(Ctx open mProp obj :| rest) = \case
       [] -> []
       (t : ts) ->
         case t of
+          TagOpen "script" attrs
+            | anyAttrLit ("type", "application/ld+json") attrs ->
+                -- An ld+json script nested inside a microdata item: extract it
+                -- separately, then resume this microdata item after it.
+                goLD (goMicrodata stack) id ts
           TagOpen tagName attrs ->
             -- Open tag, definitely push a new context onto the stack.
             let newMProp = Key.fromText . dec <$> lookup "itemprop" attrs
