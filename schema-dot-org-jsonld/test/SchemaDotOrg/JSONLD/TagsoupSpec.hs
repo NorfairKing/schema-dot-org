@@ -7,7 +7,7 @@ import Control.Monad
 import Data.Aeson as JSON
 import qualified Data.ByteString as SB
 import qualified Data.ByteString.Lazy as LB
-import Path (fileExtension, fromRelFile, reldir)
+import Path (fileExtension, fromRelFile, reldir, (</>))
 import SchemaDotOrg.JSONLD.Tagsoup
 import Test.Syd
 import Test.Syd.Aeson
@@ -29,10 +29,11 @@ spec = do
               ]
       length (findStructuredDataValues html) `shouldBe` 2
 
+  let resourcesDir = [reldir|test_resources|]
   describe "findStructuredData" $
-    scenarioDir [reldir|test_resources|] $ \file ->
+    scenarioDir resourcesDir $ \file ->
       when (fileExtension file == Just ".html") $ do
-        let fp = fromRelFile file
+        let fp = fromRelFile (resourcesDir </> file)
         it (unwords ["can parse the structured data in", show fp]) $ do
           goldenJSONFile (fp <> ".structured") $ do
             contents <- SB.readFile fp
