@@ -91,7 +91,6 @@ test-suite schema-dot-org-jsonld-test
       aeson
     , base >=4.7 && <5
     , bytestring
-    , path
     , schema-dot-org-jsonld
     , sydtest
     , sydtest-aeson

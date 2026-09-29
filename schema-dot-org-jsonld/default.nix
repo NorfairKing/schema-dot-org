@@ -1,4 +1,4 @@
-{ mkDerivation, aeson, base, bytestring, lib, path, schema-dot-org
+{ mkDerivation, aeson, base, bytestring, lib, schema-dot-org
 , sydtest, sydtest-aeson, sydtest-discover, tagsoup, text, vector
 }:
 mkDerivation {
@@ -9,7 +9,7 @@ mkDerivation {
     aeson base bytestring schema-dot-org tagsoup text vector
   ];
   testHaskellDepends = [
-    aeson base bytestring path sydtest sydtest-aeson
+    aeson base bytestring sydtest sydtest-aeson
   ];
   testToolDepends = [ sydtest-discover ];
   homepage = "https://github.com/NorfairKing/schema-dot-org#readme";
