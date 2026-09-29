@@ -140,12 +140,28 @@ toPascalCase = \case
   (c : cs) -> toUpper c : cs
 
 isPrimitiveType :: Schema -> Bool
-isPrimitiveType s =
-  let types = schemaType s
-   in or
-        [ "schema:DataType" `elem` types,
-          schemaLabelString s `elem` ["Integer", "Float"]
-        ]
+isPrimitiveType s = schemaLabelString s `elem` primitiveTypeNames
+
+-- | The schema.org types that already have a Haskell type, so that generating
+-- one for them would clash.
+--
+-- schema.org's own @schema:DataType@ marking cannot stand in for this list: it
+-- also marks @Quantity@, which has no Haskell counterpart and is a superclass
+-- of @Distance@, @Duration@, @Energy@ and @Mass@, so suppressing it leaves
+-- those referring to a type nothing declares.
+--
+-- [ref:PrimitiveTypes]
+primitiveTypeNames :: [String]
+primitiveTypeNames =
+  [ "Boolean",
+    "Date",
+    "DateTime",
+    "Float",
+    "Integer",
+    "Number",
+    "Text",
+    "Time"
+  ]
 
 isPrimitiveTypeValueSchema :: Map Text Schema -> Schema -> Bool
 isPrimitiveTypeValueSchema schemaMap schema =

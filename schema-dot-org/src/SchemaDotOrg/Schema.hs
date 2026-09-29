@@ -26,6 +26,11 @@ import Data.Scientific (Scientific)
 import Data.Text (Text)
 import Data.Time as Time
 
+-- [tag:PrimitiveTypes] The generator must not generate a type for any
+-- schema.org type that already has a Haskell one, so it carries its own list of
+-- their schema.org names.  The ones below are here; @Text@ comes from
+-- "Data.Text" and @Integer@ and @Float@ from the Prelude.  Adding or dropping
+-- one of them means changing that list too.
 type Boolean = Bool
 
 type Date = Time.Day -- TODO

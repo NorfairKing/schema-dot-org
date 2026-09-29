@@ -265,10 +265,10 @@ data AmpStory
 classAmpStory ::
   Class
     AmpStory
-    '[ MediaObject,
-       CreativeWork,
-       CreativeWork,
+    '[ CreativeWork,
+       MediaObject,
        Thing,
+       CreativeWork,
        Thing
      ]
 classAmpStory = Class "AmpStory"
@@ -496,15 +496,21 @@ data Audiobook
 classAudiobook ::
   Class
     Audiobook
-    '[ Book,
-       AudioObject,
+    '[ AudioObject,
+       Book,
+       MediaObject,
        CreativeWork,
        Thing,
-       MediaObject,
        CreativeWork,
        Thing
      ]
 classAudiobook = Class "Audiobook"
+
+data AuthenticateAction
+
+classAuthenticateAction ::
+  Class AuthenticateAction '[ControlAction, Action, Thing]
+classAuthenticateAction = Class "AuthenticateAction"
 
 data AuthorizeAction
 
@@ -938,6 +944,7 @@ data BookFormatType
   | BookFormatTypeEBook
   | BookFormatTypeGraphicNovel
   | BookFormatTypeHardcover
+  | BookFormatTypePamphlet
   | BookFormatTypePaperback
   deriving (Show, Eq, Ord, Generic)
 
@@ -952,6 +959,7 @@ instance FromJSON BookFormatType where
           "https://schema.org/GraphicNovel" ->
             pure BookFormatTypeGraphicNovel
           "https://schema.org/Hardcover" -> pure BookFormatTypeHardcover
+          "https://schema.org/Pamphlet" -> pure BookFormatTypePamphlet
           "https://schema.org/Paperback" -> pure BookFormatTypePaperback
           t -> fail ("Failed to parse BookFormatType: " <> show t)
       )
@@ -965,6 +973,7 @@ instance ToJSON BookFormatType where
             BookFormatTypeEBook -> "https://schema.org/EBook"
             BookFormatTypeGraphicNovel -> "https://schema.org/GraphicNovel"
             BookFormatTypeHardcover -> "https://schema.org/Hardcover"
+            BookFormatTypePamphlet -> "https://schema.org/Pamphlet"
             BookFormatTypePaperback -> "https://schema.org/Paperback"
         )
 
@@ -1601,6 +1610,11 @@ classComputerStore ::
      ]
 classComputerStore = Class "ComputerStore"
 
+data ConferenceEvent
+
+classConferenceEvent :: Class ConferenceEvent '[Event, Thing]
+classConferenceEvent = Class "ConferenceEvent"
+
 data ConfirmAction
 
 classConfirmAction ::
@@ -1726,10 +1740,10 @@ data Course
 classCourse ::
   Class
     Course
-    '[ LearningResource,
-       CreativeWork,
-       CreativeWork,
+    '[ CreativeWork,
+       LearningResource,
        Thing,
+       CreativeWork,
        Thing
      ]
 classCourse = Class "Course"
@@ -1763,14 +1777,14 @@ classCovidTestingFacility ::
   Class
     CovidTestingFacility
     '[ MedicalClinic,
-       MedicalOrganization,
        MedicalBusiness,
-       Organization,
-       Thing,
+       MedicalOrganization,
        LocalBusiness,
        Organization,
        Place,
        Thing,
+       Thing,
+       Organization,
        Thing
      ]
 classCovidTestingFacility = Class "CovidTestingFacility"
@@ -1804,22 +1818,27 @@ classCreativeWorkSeries ::
      ]
 classCreativeWorkSeries = Class "CreativeWorkSeries"
 
+data Credential
+
+classCredential :: Class Credential '[CreativeWork, Thing]
+classCredential = Class "Credential"
+
 data CreditCard
 
 classCreditCard ::
   Class
     CreditCard
-    '[ PaymentCard,
-       LoanOrCredit,
+    '[ LoanOrCredit,
+       PaymentCard,
+       FinancialProduct,
+       Service,
+       Intangible,
+       Thing,
+       FinancialProduct,
        PaymentMethod,
-       FinancialProduct,
-       Intangible,
-       Thing,
        Service,
        Intangible,
        Thing,
-       FinancialProduct,
-       Service,
        Intangible,
        Thing
      ]
@@ -1856,6 +1875,58 @@ data DDxElement
 classDDxElement ::
   Class DDxElement '[MedicalIntangible, MedicalEntity, Thing]
 classDDxElement = Class "DDxElement"
+
+data DENonprofitType
+  = DENonprofitTypeDECooperativeCharity
+  | DENonprofitTypeDEFoundationCharity
+  | DENonprofitTypeDEJointStockCompanyCharity
+  | DENonprofitTypeDELimitedLiabilityCharity
+  | DENonprofitTypeDENotRegisteredAssociationCharity
+  | DENonprofitTypeDEPublicCharity
+  | DENonprofitTypeDERegisteredAssociationCharity
+  deriving (Show, Eq, Ord, Generic)
+
+instance FromJSON DENonprofitType where
+  parseJSON =
+    withText
+      "DENonprofitType"
+      ( \case
+          "https://schema.org/DECooperativeCharity" ->
+            pure DENonprofitTypeDECooperativeCharity
+          "https://schema.org/DEFoundationCharity" ->
+            pure DENonprofitTypeDEFoundationCharity
+          "https://schema.org/DEJointStockCompanyCharity" ->
+            pure DENonprofitTypeDEJointStockCompanyCharity
+          "https://schema.org/DELimitedLiabilityCharity" ->
+            pure DENonprofitTypeDELimitedLiabilityCharity
+          "https://schema.org/DENotRegisteredAssociationCharity" ->
+            pure DENonprofitTypeDENotRegisteredAssociationCharity
+          "https://schema.org/DEPublicCharity" ->
+            pure DENonprofitTypeDEPublicCharity
+          "https://schema.org/DERegisteredAssociationCharity" ->
+            pure DENonprofitTypeDERegisteredAssociationCharity
+          t -> fail ("Failed to parse DENonprofitType: " <> show t)
+      )
+
+instance ToJSON DENonprofitType where
+  toJSON =
+    (toJSON :: Text -> Value)
+      . ( \case
+            DENonprofitTypeDECooperativeCharity ->
+              "https://schema.org/DECooperativeCharity"
+            DENonprofitTypeDEFoundationCharity ->
+              "https://schema.org/DEFoundationCharity"
+            DENonprofitTypeDEJointStockCompanyCharity ->
+              "https://schema.org/DEJointStockCompanyCharity"
+            DENonprofitTypeDELimitedLiabilityCharity ->
+              "https://schema.org/DELimitedLiabilityCharity"
+            DENonprofitTypeDENotRegisteredAssociationCharity ->
+              "https://schema.org/DENotRegisteredAssociationCharity"
+            DENonprofitTypeDEPublicCharity ->
+              "https://schema.org/DEPublicCharity"
+            DENonprofitTypeDERegisteredAssociationCharity ->
+              "https://schema.org/DERegisteredAssociationCharity"
+        )
 
 data DanceEvent
 
@@ -1966,6 +2037,12 @@ classDeactivateAction ::
   Class DeactivateAction '[ControlAction, Action, Thing]
 classDeactivateAction = Class "DeactivateAction"
 
+data DeclarationOfConformity
+
+classDeclarationOfConformity ::
+  Class DeclarationOfConformity '[Certification, CreativeWork, Thing]
+classDeclarationOfConformity = Class "DeclarationOfConformity"
+
 data DefenceEstablishment
 
 classDefenceEstablishment ::
@@ -1981,7 +2058,14 @@ classDefenceEstablishment = Class "DefenceEstablishment"
 data DefinedRegion
 
 classDefinedRegion ::
-  Class DefinedRegion '[StructuredValue, Intangible, Thing]
+  Class
+    DefinedRegion
+    '[ Place,
+       StructuredValue,
+       Thing,
+       Intangible,
+       Thing
+     ]
 classDefinedRegion = Class "DefinedRegion"
 
 data DefinedTerm
@@ -2047,6 +2131,12 @@ instance ToJSON DeliveryMethod where
             DeliveryMethodParcelService -> "https://schema.org/ParcelService"
         )
 
+data DeliveryTimeSettings
+
+classDeliveryTimeSettings ::
+  Class DeliveryTimeSettings '[StructuredValue, Intangible, Thing]
+classDeliveryTimeSettings = Class "DeliveryTimeSettings"
+
 data Demand
 
 classDemand :: Class Demand '[Intangible, Thing]
@@ -2057,11 +2147,9 @@ data Dentist
 classDentist ::
   Class
     Dentist
-    '[ MedicalOrganization,
-       LocalBusiness,
+    '[ LocalBusiness,
        MedicalBusiness,
-       Organization,
-       Thing,
+       MedicalOrganization,
        Organization,
        Place,
        Thing,
@@ -2070,6 +2158,8 @@ classDentist ::
        Organization,
        Place,
        Thing,
+       Thing,
+       Organization,
        Thing
      ]
 classDentist = Class "Dentist"
@@ -2142,10 +2232,10 @@ data DietarySupplement
 classDietarySupplement ::
   Class
     DietarySupplement
-    '[ Substance,
-       Product,
-       MedicalEntity,
+    '[ Product,
+       Substance,
        Thing,
+       MedicalEntity,
        Thing
      ]
 classDietarySupplement = Class "DietarySupplement"
@@ -2240,6 +2330,12 @@ instance ToJSON DigitalPlatformEnumeration where
               "https://schema.org/MobileWebPlatform"
         )
 
+data DigitalProductPassport
+
+classDigitalProductPassport ::
+  Class DigitalProductPassport '[Certification, CreativeWork, Thing]
+classDigitalProductPassport = Class "DigitalProductPassport"
+
 data DisagreeAction
 
 classDisagreeAction ::
@@ -2272,7 +2368,7 @@ classDislikeAction = Class "DislikeAction"
 
 data Distance
 
-classDistance :: Class Distance '[Quantity, Intangible, Thing]
+classDistance :: Class Distance '[Quantity]
 classDistance = Class "Distance"
 
 data Distillery
@@ -2505,7 +2601,7 @@ classDryCleaningOrLaundry = Class "DryCleaningOrLaundry"
 
 data Duration
 
-classDuration :: Class Duration '[Quantity, Intangible, Thing]
+classDuration :: Class Duration '[Quantity]
 classDuration = Class "Duration"
 
 data EUEnergyEfficiencyEnumeration
@@ -2599,7 +2695,12 @@ classEducationalAudience = Class "EducationalAudience"
 data EducationalOccupationalCredential
 
 classEducationalOccupationalCredential ::
-  Class EducationalOccupationalCredential '[CreativeWork, Thing]
+  Class
+    EducationalOccupationalCredential
+    '[ Credential,
+       CreativeWork,
+       Thing
+     ]
 classEducationalOccupationalCredential =
   Class "EducationalOccupationalCredential"
 
@@ -2741,7 +2842,7 @@ classEndorsementRating = Class "EndorsementRating"
 
 data Energy
 
-classEnergy :: Class Energy '[Quantity, Intangible, Thing]
+classEnergy :: Class Energy '[Quantity]
 classEnergy = Class "Energy"
 
 data EnergyConsumptionDetails
@@ -2807,10 +2908,34 @@ data Enumeration
 classEnumeration :: Class Enumeration '[Intangible, Thing]
 classEnumeration = Class "Enumeration"
 
+data EnvironmentalProductDeclaration
+
+classEnvironmentalProductDeclaration ::
+  Class
+    EnvironmentalProductDeclaration
+    '[ Certification,
+       CreativeWork,
+       Thing
+     ]
+classEnvironmentalProductDeclaration =
+  Class "EnvironmentalProductDeclaration"
+
 data Episode
 
 classEpisode :: Class Episode '[CreativeWork, Thing]
 classEpisode = Class "Episode"
+
+data Error
+
+classError ::
+  Class
+    Error
+    '[ InstantaneousEvent,
+       StructuredValue,
+       Intangible,
+       Thing
+     ]
+classError = Class "Error"
 
 data Event
 
@@ -2860,7 +2985,7 @@ classEventReservation = Class "EventReservation"
 data EventSeries
 
 classEventSeries ::
-  Class EventSeries '[Series, Event, Intangible, Thing, Thing]
+  Class EventSeries '[Event, Series, Thing, Intangible, Thing]
 classEventSeries = Class "EventSeries"
 
 data EventStatusType
@@ -2946,11 +3071,11 @@ data ExercisePlan
 classExercisePlan ::
   Class
     ExercisePlan
-    '[ PhysicalActivity,
-       CreativeWork,
+    '[ CreativeWork,
+       PhysicalActivity,
+       Thing,
        LifestyleModification,
        MedicalEntity,
-       Thing,
        Thing
      ]
 classExercisePlan = Class "ExercisePlan"
@@ -3862,17 +3987,17 @@ data Hospital
 classHospital ::
   Class
     Hospital
-    '[ EmergencyService,
+    '[ CivicStructure,
+       EmergencyService,
        MedicalOrganization,
-       CivicStructure,
+       Place,
+       Thing,
        LocalBusiness,
        Organization,
        Place,
        Thing,
        Thing,
        Organization,
-       Thing,
-       Place,
        Thing
      ]
 classHospital = Class "Hospital"
@@ -3940,10 +4065,10 @@ data HowToDirection
 classHowToDirection ::
   Class
     HowToDirection
-    '[ ListItem,
-       CreativeWork,
-       Intangible,
+    '[ CreativeWork,
+       ListItem,
        Thing,
+       Intangible,
        Thing
      ]
 classHowToDirection = Class "HowToDirection"
@@ -3959,8 +4084,8 @@ classHowToSection ::
   Class
     HowToSection
     '[ CreativeWork,
-       ListItem,
        ItemList,
+       ListItem,
        Thing,
        Intangible,
        Thing,
@@ -3974,11 +4099,11 @@ data HowToStep
 classHowToStep ::
   Class
     HowToStep
-    '[ ListItem,
-       CreativeWork,
+    '[ CreativeWork,
        ItemList,
-       Intangible,
+       ListItem,
        Thing,
+       Intangible,
        Thing,
        Intangible,
        Thing
@@ -4119,6 +4244,83 @@ instance ToJSON IPTCDigitalSourceEnumeration where
               "https://schema.org/TrainedAlgorithmicMediaDigitalSource"
             IPTCDigitalSourceEnumerationVirtualRecordingDigitalSource ->
               "https://schema.org/VirtualRecordingDigitalSource"
+        )
+
+data ITNonprofitType
+  = ITNonprofitTypeITAmateurSportsClubCharity
+  | ITNonprofitTypeITAssociativeNetworkCharity
+  | ITNonprofitTypeITCooperativeCharity
+  | ITNonprofitTypeITMutualAidCharity
+  | ITNonprofitTypeITOtherThirdSectorEntityCharity
+  | ITNonprofitTypeITPhilanthropicEntityCharity
+  | ITNonprofitTypeITSocialCompanyCharity
+  | ITNonprofitTypeITSocialCooperativeCharity
+  | ITNonprofitTypeITSocialEnterpriseCharity
+  | ITNonprofitTypeITSocialPromotionCharity
+  | ITNonprofitTypeITSportCompanyCharity
+  | ITNonprofitTypeITVolunteerAssociationCharity
+  deriving (Show, Eq, Ord, Generic)
+
+instance FromJSON ITNonprofitType where
+  parseJSON =
+    withText
+      "ITNonprofitType"
+      ( \case
+          "https://schema.org/ITAmateurSportsClubCharity" ->
+            pure ITNonprofitTypeITAmateurSportsClubCharity
+          "https://schema.org/ITAssociativeNetworkCharity" ->
+            pure ITNonprofitTypeITAssociativeNetworkCharity
+          "https://schema.org/ITCooperativeCharity" ->
+            pure ITNonprofitTypeITCooperativeCharity
+          "https://schema.org/ITMutualAidCharity" ->
+            pure ITNonprofitTypeITMutualAidCharity
+          "https://schema.org/ITOtherThirdSectorEntityCharity" ->
+            pure ITNonprofitTypeITOtherThirdSectorEntityCharity
+          "https://schema.org/ITPhilanthropicEntityCharity" ->
+            pure ITNonprofitTypeITPhilanthropicEntityCharity
+          "https://schema.org/ITSocialCompanyCharity" ->
+            pure ITNonprofitTypeITSocialCompanyCharity
+          "https://schema.org/ITSocialCooperativeCharity" ->
+            pure ITNonprofitTypeITSocialCooperativeCharity
+          "https://schema.org/ITSocialEnterpriseCharity" ->
+            pure ITNonprofitTypeITSocialEnterpriseCharity
+          "https://schema.org/ITSocialPromotionCharity" ->
+            pure ITNonprofitTypeITSocialPromotionCharity
+          "https://schema.org/ITSportCompanyCharity" ->
+            pure ITNonprofitTypeITSportCompanyCharity
+          "https://schema.org/ITVolunteerAssociationCharity" ->
+            pure ITNonprofitTypeITVolunteerAssociationCharity
+          t -> fail ("Failed to parse ITNonprofitType: " <> show t)
+      )
+
+instance ToJSON ITNonprofitType where
+  toJSON =
+    (toJSON :: Text -> Value)
+      . ( \case
+            ITNonprofitTypeITAmateurSportsClubCharity ->
+              "https://schema.org/ITAmateurSportsClubCharity"
+            ITNonprofitTypeITAssociativeNetworkCharity ->
+              "https://schema.org/ITAssociativeNetworkCharity"
+            ITNonprofitTypeITCooperativeCharity ->
+              "https://schema.org/ITCooperativeCharity"
+            ITNonprofitTypeITMutualAidCharity ->
+              "https://schema.org/ITMutualAidCharity"
+            ITNonprofitTypeITOtherThirdSectorEntityCharity ->
+              "https://schema.org/ITOtherThirdSectorEntityCharity"
+            ITNonprofitTypeITPhilanthropicEntityCharity ->
+              "https://schema.org/ITPhilanthropicEntityCharity"
+            ITNonprofitTypeITSocialCompanyCharity ->
+              "https://schema.org/ITSocialCompanyCharity"
+            ITNonprofitTypeITSocialCooperativeCharity ->
+              "https://schema.org/ITSocialCooperativeCharity"
+            ITNonprofitTypeITSocialEnterpriseCharity ->
+              "https://schema.org/ITSocialEnterpriseCharity"
+            ITNonprofitTypeITSocialPromotionCharity ->
+              "https://schema.org/ITSocialPromotionCharity"
+            ITNonprofitTypeITSportCompanyCharity ->
+              "https://schema.org/ITSportCompanyCharity"
+            ITNonprofitTypeITVolunteerAssociationCharity ->
+              "https://schema.org/ITVolunteerAssociationCharity"
         )
 
 data IceCreamShop
@@ -4389,6 +4591,12 @@ data InstallAction
 classInstallAction ::
   Class InstallAction '[ConsumeAction, Action, Thing]
 classInstallAction = Class "InstallAction"
+
+data InstantaneousEvent
+
+classInstantaneousEvent ::
+  Class InstantaneousEvent '[StructuredValue, Intangible, Thing]
+classInstantaneousEvent = Class "InstantaneousEvent"
 
 data InsuranceAgency
 
@@ -4891,6 +5099,12 @@ classLodgingReservation ::
   Class LodgingReservation '[Reservation, Intangible, Thing]
 classLodgingReservation = Class "LodgingReservation"
 
+data LoginAction
+
+classLoginAction ::
+  Class LoginAction '[ControlAction, Action, Thing]
+classLoginAction = Class "LoginAction"
+
 data LoseAction
 
 classLoseAction :: Class LoseAction '[AchieveAction, Action, Thing]
@@ -4955,7 +5169,7 @@ classMarryAction = Class "MarryAction"
 
 data Mass
 
-classMass :: Class Mass '[Quantity, Intangible, Thing]
+classMass :: Class Mass '[Quantity]
 classMass = Class "Mass"
 
 data MathSolver
@@ -5084,11 +5298,11 @@ data MedicalAudience
 classMedicalAudience ::
   Class
     MedicalAudience
-    '[ PeopleAudience,
-       Audience,
-       Audience,
+    '[ Audience,
+       PeopleAudience,
        Intangible,
        Thing,
+       Audience,
        Intangible,
        Thing
      ]
@@ -5142,14 +5356,14 @@ data MedicalClinic
 classMedicalClinic ::
   Class
     MedicalClinic
-    '[ MedicalOrganization,
-       MedicalBusiness,
-       Organization,
-       Thing,
+    '[ MedicalBusiness,
+       MedicalOrganization,
        LocalBusiness,
        Organization,
        Place,
        Thing,
+       Thing,
+       Organization,
        Thing
      ]
 classMedicalClinic = Class "MedicalClinic"
@@ -5159,12 +5373,12 @@ data MedicalCode
 classMedicalCode ::
   Class
     MedicalCode
-    '[ MedicalIntangible,
-       CategoryCode,
-       MedicalEntity,
-       Thing,
+    '[ CategoryCode,
+       MedicalIntangible,
        DefinedTerm,
        Intangible,
+       Thing,
+       MedicalEntity,
        Thing
      ]
 classMedicalCode = Class "MedicalCode"
@@ -5513,6 +5727,7 @@ classMedicalSignOrSymptom = Class "MedicalSignOrSymptom"
 
 data MedicalSpecialty
   = MedicalSpecialtyAnesthesia
+  | MedicalSpecialtyAudiology
   | MedicalSpecialtyCardiovascular
   | MedicalSpecialtyCommunityHealth
   | MedicalSpecialtyDentistry
@@ -5534,6 +5749,7 @@ data MedicalSpecialty
   | MedicalSpecialtyNursing
   | MedicalSpecialtyObstetric
   | MedicalSpecialtyOncologic
+  | MedicalSpecialtyOphthalmology
   | MedicalSpecialtyOptometric
   | MedicalSpecialtyOtolaryngologic
   | MedicalSpecialtyPathology
@@ -5562,6 +5778,7 @@ instance FromJSON MedicalSpecialty where
       "MedicalSpecialty"
       ( \case
           "https://schema.org/Anesthesia" -> pure MedicalSpecialtyAnesthesia
+          "https://schema.org/Audiology" -> pure MedicalSpecialtyAudiology
           "https://schema.org/Cardiovascular" ->
             pure MedicalSpecialtyCardiovascular
           "https://schema.org/CommunityHealth" ->
@@ -5593,6 +5810,8 @@ instance FromJSON MedicalSpecialty where
           "https://schema.org/Nursing" -> pure MedicalSpecialtyNursing
           "https://schema.org/Obstetric" -> pure MedicalSpecialtyObstetric
           "https://schema.org/Oncologic" -> pure MedicalSpecialtyOncologic
+          "https://schema.org/Ophthalmology" ->
+            pure MedicalSpecialtyOphthalmology
           "https://schema.org/Optometric" -> pure MedicalSpecialtyOptometric
           "https://schema.org/Otolaryngologic" ->
             pure MedicalSpecialtyOtolaryngologic
@@ -5633,6 +5852,7 @@ instance ToJSON MedicalSpecialty where
     (toJSON :: Text -> Value)
       . ( \case
             MedicalSpecialtyAnesthesia -> "https://schema.org/Anesthesia"
+            MedicalSpecialtyAudiology -> "https://schema.org/Audiology"
             MedicalSpecialtyCardiovascular ->
               "https://schema.org/Cardiovascular"
             MedicalSpecialtyCommunityHealth ->
@@ -5659,6 +5879,7 @@ instance ToJSON MedicalSpecialty where
             MedicalSpecialtyNursing -> "https://schema.org/Nursing"
             MedicalSpecialtyObstetric -> "https://schema.org/Obstetric"
             MedicalSpecialtyOncologic -> "https://schema.org/Oncologic"
+            MedicalSpecialtyOphthalmology -> "https://schema.org/Ophthalmology"
             MedicalSpecialtyOptometric -> "https://schema.org/Optometric"
             MedicalSpecialtyOtolaryngologic ->
               "https://schema.org/Otolaryngologic"
@@ -6697,6 +6918,18 @@ data OnlineBusiness
 classOnlineBusiness :: Class OnlineBusiness '[Organization, Thing]
 classOnlineBusiness = Class "OnlineBusiness"
 
+data OnlineMarketplace
+
+classOnlineMarketplace ::
+  Class
+    OnlineMarketplace
+    '[ OnlineStore,
+       OnlineBusiness,
+       Organization,
+       Thing
+     ]
+classOnlineMarketplace = Class "OnlineMarketplace"
+
 data OnlineStore
 
 classOnlineStore ::
@@ -6713,6 +6946,12 @@ classOpeningHoursSpecification ::
        Thing
      ]
 classOpeningHoursSpecification = Class "OpeningHoursSpecification"
+
+data OperatingSystem
+
+classOperatingSystem ::
+  Class OperatingSystem '[SoftwareApplication, CreativeWork, Thing]
+classOperatingSystem = Class "OperatingSystem"
 
 data OpinionNewsArticle
 
@@ -6752,7 +6991,8 @@ classOrderAction = Class "OrderAction"
 
 data OrderItem
 
-classOrderItem :: Class OrderItem '[Intangible, Thing]
+classOrderItem ::
+  Class OrderItem '[StructuredValue, Intangible, Thing]
 classOrderItem = Class "OrderItem"
 
 data OrderStatus
@@ -6901,11 +7141,11 @@ classPatient ::
     Patient
     '[ MedicalAudience,
        Person,
+       Audience,
        PeopleAudience,
-       Audience,
-       Audience,
        Intangible,
        Thing,
+       Audience,
        Intangible,
        Thing,
        Thing
@@ -6936,11 +7176,11 @@ data PaymentCard
 classPaymentCard ::
   Class
     PaymentCard
-    '[ PaymentMethod,
-       FinancialProduct,
+    '[ FinancialProduct,
+       PaymentMethod,
+       Service,
        Intangible,
        Thing,
-       Service,
        Intangible,
        Thing
      ]
@@ -7019,11 +7259,11 @@ data PaymentService
 classPaymentService ::
   Class
     PaymentService
-    '[ PaymentMethod,
-       FinancialProduct,
+    '[ FinancialProduct,
+       PaymentMethod,
+       Service,
        Intangible,
        Thing,
-       Service,
        Intangible,
        Thing
      ]
@@ -7087,6 +7327,12 @@ classPerformanceRole ::
   Class PerformanceRole '[Role, Intangible, Thing]
 classPerformanceRole = Class "PerformanceRole"
 
+data PerformingArtsEvent
+
+classPerformingArtsEvent ::
+  Class PerformingArtsEvent '[Event, Thing]
+classPerformingArtsEvent = Class "PerformingArtsEvent"
+
 data PerformingArtsTheater
 
 classPerformingArtsTheater ::
@@ -7142,14 +7388,14 @@ data Pharmacy
 classPharmacy ::
   Class
     Pharmacy
-    '[ MedicalOrganization,
-       MedicalBusiness,
-       Organization,
-       Thing,
+    '[ MedicalBusiness,
+       MedicalOrganization,
        LocalBusiness,
        Organization,
        Place,
        Thing,
+       Thing,
+       Organization,
        Thing
      ]
 classPharmacy = Class "Pharmacy"
@@ -7602,6 +7848,7 @@ data PriceTypeEnumeration
   = PriceTypeEnumerationInvoicePrice
   | PriceTypeEnumerationListPrice
   | PriceTypeEnumerationMSRP
+  | PriceTypeEnumerationMaximumRetailPrice
   | PriceTypeEnumerationMinimumAdvertisedPrice
   | PriceTypeEnumerationRegularPrice
   | PriceTypeEnumerationSRP
@@ -7619,6 +7866,8 @@ instance FromJSON PriceTypeEnumeration where
           "https://schema.org/ListPrice" ->
             pure PriceTypeEnumerationListPrice
           "https://schema.org/MSRP" -> pure PriceTypeEnumerationMSRP
+          "https://schema.org/MaximumRetailPrice" ->
+            pure PriceTypeEnumerationMaximumRetailPrice
           "https://schema.org/MinimumAdvertisedPrice" ->
             pure PriceTypeEnumerationMinimumAdvertisedPrice
           "https://schema.org/RegularPrice" ->
@@ -7639,6 +7888,8 @@ instance ToJSON PriceTypeEnumeration where
               "https://schema.org/InvoicePrice"
             PriceTypeEnumerationListPrice -> "https://schema.org/ListPrice"
             PriceTypeEnumerationMSRP -> "https://schema.org/MSRP"
+            PriceTypeEnumerationMaximumRetailPrice ->
+              "https://schema.org/MaximumRetailPrice"
             PriceTypeEnumerationMinimumAdvertisedPrice ->
               "https://schema.org/MinimumAdvertisedPrice"
             PriceTypeEnumerationRegularPrice ->
@@ -7659,10 +7910,10 @@ data ProductCollection
 classProductCollection ::
   Class
     ProductCollection
-    '[ Product,
-       Collection,
-       Thing,
+    '[ Collection,
+       Product,
        CreativeWork,
+       Thing,
        Thing
      ]
 classProductCollection = Class "ProductCollection"
@@ -7676,6 +7927,49 @@ data ProductModel
 
 classProductModel :: Class ProductModel '[Product, Thing]
 classProductModel = Class "ProductModel"
+
+data ProductReturnEnumeration
+  = ProductReturnEnumerationProductReturnFiniteReturnWindow
+  | ProductReturnEnumerationProductReturnNotPermitted
+  | ProductReturnEnumerationProductReturnUnlimitedWindow
+  | ProductReturnEnumerationProductReturnUnspecified
+  deriving (Show, Eq, Ord, Generic)
+
+instance FromJSON ProductReturnEnumeration where
+  parseJSON =
+    withText
+      "ProductReturnEnumeration"
+      ( \case
+          "https://schema.org/ProductReturnFiniteReturnWindow" ->
+            pure ProductReturnEnumerationProductReturnFiniteReturnWindow
+          "https://schema.org/ProductReturnNotPermitted" ->
+            pure ProductReturnEnumerationProductReturnNotPermitted
+          "https://schema.org/ProductReturnUnlimitedWindow" ->
+            pure ProductReturnEnumerationProductReturnUnlimitedWindow
+          "https://schema.org/ProductReturnUnspecified" ->
+            pure ProductReturnEnumerationProductReturnUnspecified
+          t -> fail ("Failed to parse ProductReturnEnumeration: " <> show t)
+      )
+
+instance ToJSON ProductReturnEnumeration where
+  toJSON =
+    (toJSON :: Text -> Value)
+      . ( \case
+            ProductReturnEnumerationProductReturnFiniteReturnWindow ->
+              "https://schema.org/ProductReturnFiniteReturnWindow"
+            ProductReturnEnumerationProductReturnNotPermitted ->
+              "https://schema.org/ProductReturnNotPermitted"
+            ProductReturnEnumerationProductReturnUnlimitedWindow ->
+              "https://schema.org/ProductReturnUnlimitedWindow"
+            ProductReturnEnumerationProductReturnUnspecified ->
+              "https://schema.org/ProductReturnUnspecified"
+        )
+
+data ProductReturnPolicy
+
+classProductReturnPolicy ::
+  Class ProductReturnPolicy '[Intangible, Thing]
+classProductReturnPolicy = Class "ProductReturnPolicy"
 
 data ProfessionalService
 
@@ -7845,7 +8139,7 @@ classQuantitativeValueDistribution =
 
 data Quantity
 
-classQuantity :: Class Quantity '[Intangible, Thing]
+classQuantity :: Class Quantity '[]
 classQuantity = Class "Quantity"
 
 data Question
@@ -8209,6 +8503,12 @@ classReservoir ::
   Class Reservoir '[BodyOfWater, Landform, Place, Thing]
 classReservoir = Class "Reservoir"
 
+data ResetPasswordAction
+
+classResetPasswordAction ::
+  Class ResetPasswordAction '[ControlAction, Action, Thing]
+classResetPasswordAction = Class "ResetPasswordAction"
+
 data Residence
 
 classResidence :: Class Residence '[Place, Thing]
@@ -8439,12 +8739,12 @@ data ReviewNewsArticle
 classReviewNewsArticle ::
   Class
     ReviewNewsArticle
-    '[ NewsArticle,
-       CriticReview,
-       Article,
+    '[ CriticReview,
+       NewsArticle,
+       Review,
        CreativeWork,
        Thing,
-       Review,
+       Article,
        CreativeWork,
        Thing
      ]
@@ -8524,6 +8824,12 @@ instance ToJSON RsvpResponseType where
             RsvpResponseTypeRsvpResponseYes ->
               "https://schema.org/RsvpResponseYes"
         )
+
+data RuntimePlatform
+
+classRuntimePlatform ::
+  Class RuntimePlatform '[SoftwareApplication, CreativeWork, Thing]
+classRuntimePlatform = Class "RuntimePlatform"
 
 data SaleEvent
 
@@ -8644,6 +8950,20 @@ data SendAction
 classSendAction ::
   Class SendAction '[TransferAction, Action, Thing]
 classSendAction = Class "SendAction"
+
+data SequentialArt
+
+classSequentialArt ::
+  Class
+    SequentialArt
+    '[ Book,
+       VisualArtwork,
+       CreativeWork,
+       Thing,
+       CreativeWork,
+       Thing
+     ]
+classSequentialArt = Class "SequentialArt"
 
 data Series
 
@@ -8925,14 +9245,14 @@ data StadiumOrArena
 classStadiumOrArena ::
   Class
     StadiumOrArena
-    '[ SportsActivityLocation,
-       CivicStructure,
+    '[ CivicStructure,
+       SportsActivityLocation,
+       Place,
+       Thing,
        LocalBusiness,
        Organization,
        Place,
        Thing,
-       Thing,
-       Place,
        Thing
      ]
 classStadiumOrArena = Class "StadiumOrArena"
@@ -9079,13 +9399,13 @@ data TVSeries
 classTVSeries ::
   Class
     TVSeries
-    '[ CreativeWorkSeries,
-       CreativeWork,
+    '[ CreativeWork,
+       CreativeWorkSeries,
+       Thing,
        CreativeWork,
        Series,
        Thing,
        Intangible,
-       Thing,
        Thing
      ]
 classTVSeries = Class "TVSeries"
@@ -10290,18 +10610,24 @@ data Zoo
 classZoo :: Class Zoo '[CivicStructure, Place, Thing]
 classZoo = Class "Zoo"
 
+propertyCertificationAbout :: Property Certification '[Thing]
+propertyCertificationAbout = Property "about"
+
 propertyCommunicateActionAbout ::
   Property CommunicateAction '[Thing]
 propertyCommunicateActionAbout = Property "about"
 
-propertyEventAbout :: Property Event '[Thing]
-propertyEventAbout = Property "about"
-
 propertyCreativeWorkAbout :: Property CreativeWork '[Thing]
 propertyCreativeWorkAbout = Property "about"
 
-propertyCertificationAbout :: Property Certification '[Thing]
-propertyCertificationAbout = Property "about"
+propertyDefinedTermAbout :: Property DefinedTerm '[Thing]
+propertyDefinedTermAbout = Property "about"
+
+propertyDefinedTermSetAbout :: Property DefinedTermSet '[Thing]
+propertyDefinedTermSetAbout = Property "about"
+
+propertyEventAbout :: Property Event '[Thing]
+propertyEventAbout = Property "about"
 
 propertyBookAbridged :: Property Book '[Boolean]
 propertyBookAbridged = Property "abridged"
@@ -10314,25 +10640,25 @@ propertyVehicleAccelerationTime ::
 propertyVehicleAccelerationTime = Property "accelerationTime"
 
 propertyQuestionAcceptedAnswer ::
-  Property Question '[ItemList, Answer]
+  Property Question '[Answer, ItemList]
 propertyQuestionAcceptedAnswer = Property "acceptedAnswer"
 
 propertyOrderAcceptedOffer :: Property Order '[Offer]
 propertyOrderAcceptedOffer = Property "acceptedOffer"
 
 propertyDemandAcceptedPaymentMethod ::
-  Property Demand '[LoanOrCredit, Text, PaymentMethod]
+  Property Demand '[LoanOrCredit, PaymentMethod, Text]
 propertyDemandAcceptedPaymentMethod =
   Property "acceptedPaymentMethod"
 
-propertyOrganizationAcceptedPaymentMethod ::
-  Property Organization '[LoanOrCredit, Text, PaymentMethod]
-propertyOrganizationAcceptedPaymentMethod =
+propertyOfferAcceptedPaymentMethod ::
+  Property Offer '[LoanOrCredit, PaymentMethod, Text]
+propertyOfferAcceptedPaymentMethod =
   Property "acceptedPaymentMethod"
 
-propertyOfferAcceptedPaymentMethod ::
-  Property Offer '[LoanOrCredit, Text, PaymentMethod]
-propertyOfferAcceptedPaymentMethod =
+propertyOrganizationAcceptedPaymentMethod ::
+  Property Organization '[LoanOrCredit, PaymentMethod, Text]
+propertyOrganizationAcceptedPaymentMethod =
   Property "acceptedPaymentMethod"
 
 propertyFoodEstablishmentAcceptsReservations ::
@@ -10409,19 +10735,19 @@ propertyCreativeWorkAccountablePerson =
   Property "accountablePerson"
 
 propertyCreativeWorkAcquireLicensePage ::
-  Property CreativeWork '[URL, CreativeWork]
+  Property CreativeWork '[CreativeWork, URL]
 propertyCreativeWorkAcquireLicensePage =
   Property "acquireLicensePage"
 
 propertyOwnershipInfoAcquiredFrom ::
-  Property OwnershipInfo '[Person, Organization]
+  Property OwnershipInfo '[Organization, Person]
 propertyOwnershipInfoAcquiredFrom = Property "acquiredFrom"
-
-propertyCarAcrissCode :: Property Car '[Text]
-propertyCarAcrissCode = Property "acrissCode"
 
 propertyBusOrCoachAcrissCode :: Property BusOrCoach '[Text]
 propertyBusOrCoachAcrissCode = Property "acrissCode"
+
+propertyCarAcrissCode :: Property Car '[Text]
+propertyCarAcrissCode = Property "acrissCode"
 
 propertyConsumeActionActionAccessibilityRequirement ::
   Property ConsumeAction '[ActionAccessSpecification]
@@ -10433,11 +10759,11 @@ propertyEntryPointActionApplication ::
 propertyEntryPointActionApplication = Property "actionApplication"
 
 propertyChooseActionActionOption ::
-  Property ChooseAction '[Thing, Text]
+  Property ChooseAction '[Text, Thing]
 propertyChooseActionActionOption = Property "actionOption"
 
 propertyEntryPointActionPlatform ::
-  Property EntryPoint '[Text, URL, DigitalPlatformEnumeration]
+  Property EntryPoint '[DigitalPlatformEnumeration, Text, URL]
 propertyEntryPointActionPlatform = Property "actionPlatform"
 
 propertyActionActionProcess :: Property Action '[HowTo]
@@ -10446,14 +10772,14 @@ propertyActionActionProcess = Property "actionProcess"
 propertyActionActionStatus :: Property Action '[ActionStatusType]
 propertyActionActionStatus = Property "actionStatus"
 
-propertyOrganizationActionableFeedbackPolicy ::
-  Property Organization '[CreativeWork, URL]
-propertyOrganizationActionableFeedbackPolicy =
-  Property "actionableFeedbackPolicy"
-
 propertyNewsMediaOrganizationActionableFeedbackPolicy ::
   Property NewsMediaOrganization '[CreativeWork, URL]
 propertyNewsMediaOrganizationActionableFeedbackPolicy =
+  Property "actionableFeedbackPolicy"
+
+propertyOrganizationActionableFeedbackPolicy ::
+  Property Organization '[CreativeWork, URL]
+propertyOrganizationActionableFeedbackPolicy =
   Property "actionableFeedbackPolicy"
 
 propertyDietarySupplementActiveIngredient ::
@@ -10461,18 +10787,18 @@ propertyDietarySupplementActiveIngredient ::
 propertyDietarySupplementActiveIngredient =
   Property "activeIngredient"
 
+propertyDrugActiveIngredient :: Property Drug '[Text]
+propertyDrugActiveIngredient = Property "activeIngredient"
+
 propertyDrugStrengthActiveIngredient ::
   Property DrugStrength '[Text]
 propertyDrugStrengthActiveIngredient = Property "activeIngredient"
-
-propertyDrugActiveIngredient :: Property Drug '[Text]
-propertyDrugActiveIngredient = Property "activeIngredient"
 
 propertySubstanceActiveIngredient :: Property Substance '[Text]
 propertySubstanceActiveIngredient = Property "activeIngredient"
 
 propertyExercisePlanActivityDuration ::
-  Property ExercisePlan '[QuantitativeValue, Duration]
+  Property ExercisePlan '[Duration, QuantitativeValue]
 propertyExercisePlanActivityDuration = Property "activityDuration"
 
 propertyExercisePlanActivityFrequency ::
@@ -10480,37 +10806,33 @@ propertyExercisePlanActivityFrequency ::
 propertyExercisePlanActivityFrequency =
   Property "activityFrequency"
 
-propertyEventActor :: Property Event '[PerformingGroup, Person]
-propertyEventActor = Property "actor"
-
 propertyClipActor :: Property Clip '[PerformingGroup, Person]
 propertyClipActor = Property "actor"
-
-propertyVideoGameSeriesActor ::
-  Property VideoGameSeries '[PerformingGroup, Person]
-propertyVideoGameSeriesActor = Property "actor"
-
-propertyRadioSeriesActor ::
-  Property RadioSeries '[PerformingGroup, Person]
-propertyRadioSeriesActor = Property "actor"
-
-propertyEpisodeActor :: Property Episode '[PerformingGroup, Person]
-propertyEpisodeActor = Property "actor"
-
-propertyVideoObjectActor ::
-  Property VideoObject '[PerformingGroup, Person]
-propertyVideoObjectActor = Property "actor"
 
 propertyCreativeWorkSeasonActor ::
   Property CreativeWorkSeason '[PerformingGroup, Person]
 propertyCreativeWorkSeasonActor = Property "actor"
 
+propertyEpisodeActor :: Property Episode '[PerformingGroup, Person]
+propertyEpisodeActor = Property "actor"
+
+propertyEventActor :: Property Event '[PerformingGroup, Person]
+propertyEventActor = Property "actor"
+
+propertyMovieActor :: Property Movie '[PerformingGroup, Person]
+propertyMovieActor = Property "actor"
+
 propertyMovieSeriesActor ::
   Property MovieSeries '[PerformingGroup, Person]
 propertyMovieSeriesActor = Property "actor"
 
-propertyMovieActor :: Property Movie '[PerformingGroup, Person]
-propertyMovieActor = Property "actor"
+propertyPodcastSeriesActor ::
+  Property PodcastSeries '[PerformingGroup, Person]
+propertyPodcastSeriesActor = Property "actor"
+
+propertyRadioSeriesActor ::
+  Property RadioSeries '[PerformingGroup, Person]
+propertyRadioSeriesActor = Property "actor"
 
 propertyTVSeriesActor ::
   Property TVSeries '[PerformingGroup, Person]
@@ -10520,27 +10842,28 @@ propertyVideoGameActor ::
   Property VideoGame '[PerformingGroup, Person]
 propertyVideoGameActor = Property "actor"
 
-propertyPodcastSeriesActor ::
-  Property PodcastSeries '[PerformingGroup, Person]
-propertyPodcastSeriesActor = Property "actor"
+propertyVideoGameSeriesActor ::
+  Property VideoGameSeries '[PerformingGroup, Person]
+propertyVideoGameSeriesActor = Property "actor"
+
+propertyVideoObjectActor ::
+  Property VideoObject '[PerformingGroup, Person]
+propertyVideoObjectActor = Property "actor"
 
 propertyClipActors :: Property Clip '[Person]
 propertyClipActors = Property "actors"
 
-propertyVideoGameSeriesActors :: Property VideoGameSeries '[Person]
-propertyVideoGameSeriesActors = Property "actors"
-
-propertyRadioSeriesActors :: Property RadioSeries '[Person]
-propertyRadioSeriesActors = Property "actors"
-
 propertyEpisodeActors :: Property Episode '[Person]
 propertyEpisodeActors = Property "actors"
 
-propertyVideoObjectActors :: Property VideoObject '[Person]
-propertyVideoObjectActors = Property "actors"
+propertyMovieActors :: Property Movie '[Person]
+propertyMovieActors = Property "actors"
 
 propertyMovieSeriesActors :: Property MovieSeries '[Person]
 propertyMovieSeriesActors = Property "actors"
+
+propertyRadioSeriesActors :: Property RadioSeries '[Person]
+propertyRadioSeriesActors = Property "actors"
 
 propertyTVSeriesActors :: Property TVSeries '[Person]
 propertyTVSeriesActors = Property "actors"
@@ -10548,8 +10871,11 @@ propertyTVSeriesActors = Property "actors"
 propertyVideoGameActors :: Property VideoGame '[Person]
 propertyVideoGameActors = Property "actors"
 
-propertyMovieActors :: Property Movie '[Person]
-propertyMovieActors = Property "actors"
+propertyVideoGameSeriesActors :: Property VideoGameSeries '[Person]
+propertyVideoGameSeriesActors = Property "actors"
+
+propertyVideoObjectActors :: Property VideoObject '[Person]
+propertyVideoObjectActors = Property "actors"
 
 propertyOfferAddOn :: Property Offer '[Offer]
 propertyOfferAddOn = Property "addOn"
@@ -10562,6 +10888,11 @@ propertyRsvpActionAdditionalNumberOfGuests ::
 propertyRsvpActionAdditionalNumberOfGuests =
   Property "additionalNumberOfGuests"
 
+propertyMerchantReturnPolicyAdditionalProperty ::
+  Property MerchantReturnPolicy '[PropertyValue]
+propertyMerchantReturnPolicyAdditionalProperty =
+  Property "additionalProperty"
+
 propertyOfferAdditionalProperty :: Property Offer '[PropertyValue]
 propertyOfferAdditionalProperty = Property "additionalProperty"
 
@@ -10572,19 +10903,14 @@ propertyProductAdditionalProperty ::
   Property Product '[PropertyValue]
 propertyProductAdditionalProperty = Property "additionalProperty"
 
-propertyQuantitativeValueAdditionalProperty ::
-  Property QuantitativeValue '[PropertyValue]
-propertyQuantitativeValueAdditionalProperty =
-  Property "additionalProperty"
-
-propertyMerchantReturnPolicyAdditionalProperty ::
-  Property MerchantReturnPolicy '[PropertyValue]
-propertyMerchantReturnPolicyAdditionalProperty =
-  Property "additionalProperty"
-
 propertyQualitativeValueAdditionalProperty ::
   Property QualitativeValue '[PropertyValue]
 propertyQualitativeValueAdditionalProperty =
+  Property "additionalProperty"
+
+propertyQuantitativeValueAdditionalProperty ::
+  Property QuantitativeValue '[PropertyValue]
+propertyQuantitativeValueAdditionalProperty =
   Property "additionalProperty"
 
 propertyThingAdditionalType :: Property Thing '[Text, URL]
@@ -10596,61 +10922,61 @@ propertyExercisePlanAdditionalVariable =
   Property "additionalVariable"
 
 propertyGeoCoordinatesAddress ::
-  Property GeoCoordinates '[Text, PostalAddress]
+  Property GeoCoordinates '[PostalAddress, Text]
 propertyGeoCoordinatesAddress = Property "address"
 
-propertyPlaceAddress :: Property Place '[Text, PostalAddress]
-propertyPlaceAddress = Property "address"
-
-propertyPersonAddress :: Property Person '[Text, PostalAddress]
-propertyPersonAddress = Property "address"
-
-propertyGeoShapeAddress :: Property GeoShape '[Text, PostalAddress]
+propertyGeoShapeAddress :: Property GeoShape '[PostalAddress, Text]
 propertyGeoShapeAddress = Property "address"
 
 propertyOrganizationAddress ::
-  Property Organization '[Text, PostalAddress]
+  Property Organization '[PostalAddress, Text]
 propertyOrganizationAddress = Property "address"
 
-propertyGeoShapeAddressCountry ::
-  Property GeoShape '[Text, Country]
-propertyGeoShapeAddressCountry = Property "addressCountry"
+propertyPersonAddress :: Property Person '[PostalAddress, Text]
+propertyPersonAddress = Property "address"
 
-propertyGeoCoordinatesAddressCountry ::
-  Property GeoCoordinates '[Text, Country]
-propertyGeoCoordinatesAddressCountry = Property "addressCountry"
-
-propertyPostalAddressAddressCountry ::
-  Property PostalAddress '[Text, Country]
-propertyPostalAddressAddressCountry = Property "addressCountry"
+propertyPlaceAddress :: Property Place '[PostalAddress, Text]
+propertyPlaceAddress = Property "address"
 
 propertyDefinedRegionAddressCountry ::
-  Property DefinedRegion '[Text, Country]
+  Property DefinedRegion '[Country, Text]
 propertyDefinedRegionAddressCountry = Property "addressCountry"
+
+propertyGeoCoordinatesAddressCountry ::
+  Property GeoCoordinates '[Country, Text]
+propertyGeoCoordinatesAddressCountry = Property "addressCountry"
+
+propertyGeoShapeAddressCountry ::
+  Property GeoShape '[Country, Text]
+propertyGeoShapeAddressCountry = Property "addressCountry"
+
+propertyPostalAddressAddressCountry ::
+  Property PostalAddress '[Country, Text]
+propertyPostalAddressAddressCountry = Property "addressCountry"
 
 propertyPostalAddressAddressLocality ::
   Property PostalAddress '[Text]
 propertyPostalAddressAddressLocality = Property "addressLocality"
 
 propertyDefinedRegionAddressRegion ::
-  Property DefinedRegion '[Text]
+  Property DefinedRegion '[AdministrativeArea, Text]
 propertyDefinedRegionAddressRegion = Property "addressRegion"
 
 propertyPostalAddressAddressRegion ::
-  Property PostalAddress '[Text]
+  Property PostalAddress '[AdministrativeArea, Text]
 propertyPostalAddressAddressRegion = Property "addressRegion"
 
 propertyDrugAdministrationRoute :: Property Drug '[Text]
 propertyDrugAdministrationRoute = Property "administrationRoute"
 
-propertyOfferAdvanceBookingRequirement ::
-  Property Offer '[QuantitativeValue]
-propertyOfferAdvanceBookingRequirement =
-  Property "advanceBookingRequirement"
-
 propertyDemandAdvanceBookingRequirement ::
   Property Demand '[QuantitativeValue]
 propertyDemandAdvanceBookingRequirement =
+  Property "advanceBookingRequirement"
+
+propertyOfferAdvanceBookingRequirement ::
+  Property Offer '[QuantitativeValue]
+propertyOfferAdvanceBookingRequirement =
   Property "advanceBookingRequirement"
 
 propertyMedicalDeviceAdverseOutcome ::
@@ -10688,35 +11014,35 @@ propertyPersonAgentInteractionStatistic =
 propertyItemListAggregateElement :: Property ItemList '[Thing]
 propertyItemListAggregateElement = Property "aggregateElement"
 
-propertyOrganizationAggregateRating ::
-  Property Organization '[AggregateRating]
-propertyOrganizationAggregateRating = Property "aggregateRating"
-
-propertyOfferAggregateRating :: Property Offer '[AggregateRating]
-propertyOfferAggregateRating = Property "aggregateRating"
-
-propertyServiceAggregateRating ::
-  Property Service '[AggregateRating]
-propertyServiceAggregateRating = Property "aggregateRating"
-
-propertyEventAggregateRating :: Property Event '[AggregateRating]
-propertyEventAggregateRating = Property "aggregateRating"
-
-propertyPlaceAggregateRating :: Property Place '[AggregateRating]
-propertyPlaceAggregateRating = Property "aggregateRating"
+propertyBrandAggregateRating :: Property Brand '[AggregateRating]
+propertyBrandAggregateRating = Property "aggregateRating"
 
 propertyCreativeWorkAggregateRating ::
   Property CreativeWork '[AggregateRating]
 propertyCreativeWorkAggregateRating = Property "aggregateRating"
 
+propertyEventAggregateRating :: Property Event '[AggregateRating]
+propertyEventAggregateRating = Property "aggregateRating"
+
+propertyOfferAggregateRating :: Property Offer '[AggregateRating]
+propertyOfferAggregateRating = Property "aggregateRating"
+
+propertyOrganizationAggregateRating ::
+  Property Organization '[AggregateRating]
+propertyOrganizationAggregateRating = Property "aggregateRating"
+
+propertyPlaceAggregateRating :: Property Place '[AggregateRating]
+propertyPlaceAggregateRating = Property "aggregateRating"
+
 propertyProductAggregateRating ::
   Property Product '[AggregateRating]
 propertyProductAggregateRating = Property "aggregateRating"
 
-propertyBrandAggregateRating :: Property Brand '[AggregateRating]
-propertyBrandAggregateRating = Property "aggregateRating"
+propertyServiceAggregateRating ::
+  Property Service '[AggregateRating]
+propertyServiceAggregateRating = Property "aggregateRating"
 
-propertyFlightAircraft :: Property Flight '[Vehicle, Text]
+propertyFlightAircraft :: Property Flight '[Text, Vehicle]
 propertyFlightAircraft = Property "aircraft"
 
 propertyMusicGroupAlbum :: Property MusicGroup '[MusicAlbum]
@@ -10771,41 +11097,41 @@ propertyPersonAlumniOf ::
   Property Person '[EducationalOrganization, Organization]
 propertyPersonAlumniOf = Property "alumniOf"
 
-propertyLodgingBusinessAmenityFeature ::
-  Property LodgingBusiness '[LocationFeatureSpecification]
-propertyLodgingBusinessAmenityFeature = Property "amenityFeature"
-
 propertyAccommodationAmenityFeature ::
   Property Accommodation '[LocationFeatureSpecification]
 propertyAccommodationAmenityFeature = Property "amenityFeature"
-
-propertyPlaceAmenityFeature ::
-  Property Place '[LocationFeatureSpecification]
-propertyPlaceAmenityFeature = Property "amenityFeature"
 
 propertyFloorPlanAmenityFeature ::
   Property FloorPlan '[LocationFeatureSpecification]
 propertyFloorPlanAmenityFeature = Property "amenityFeature"
 
-propertyLoanOrCreditAmount ::
-  Property LoanOrCredit '[Number, MonetaryAmount]
-propertyLoanOrCreditAmount = Property "amount"
+propertyLodgingBusinessAmenityFeature ::
+  Property LodgingBusiness '[LocationFeatureSpecification]
+propertyLodgingBusinessAmenityFeature = Property "amenityFeature"
 
-propertyInvestmentOrDepositAmount ::
-  Property InvestmentOrDeposit '[Number, MonetaryAmount]
-propertyInvestmentOrDepositAmount = Property "amount"
+propertyPlaceAmenityFeature ::
+  Property Place '[LocationFeatureSpecification]
+propertyPlaceAmenityFeature = Property "amenityFeature"
 
 propertyDatedMoneySpecificationAmount ::
-  Property DatedMoneySpecification '[Number, MonetaryAmount]
+  Property DatedMoneySpecification '[MonetaryAmount, Number]
 propertyDatedMoneySpecificationAmount = Property "amount"
 
-propertyMoneyTransferAmount ::
-  Property MoneyTransfer '[Number, MonetaryAmount]
-propertyMoneyTransferAmount = Property "amount"
+propertyInvestmentOrDepositAmount ::
+  Property InvestmentOrDeposit '[MonetaryAmount, Number]
+propertyInvestmentOrDepositAmount = Property "amount"
+
+propertyLoanOrCreditAmount ::
+  Property LoanOrCredit '[MonetaryAmount, Number]
+propertyLoanOrCreditAmount = Property "amount"
 
 propertyMonetaryGrantAmount ::
-  Property MonetaryGrant '[Number, MonetaryAmount]
+  Property MonetaryGrant '[MonetaryAmount, Number]
 propertyMonetaryGrantAmount = Property "amount"
+
+propertyMoneyTransferAmount ::
+  Property MoneyTransfer '[MonetaryAmount, Number]
+propertyMoneyTransferAmount = Property "amount"
 
 propertyTypeAndQuantityNodeAmountOfThisGood ::
   Property TypeAndQuantityNode '[Number]
@@ -10813,7 +11139,7 @@ propertyTypeAndQuantityNodeAmountOfThisGood =
   Property "amountOfThisGood"
 
 propertySpecialAnnouncementAnnouncementLocation ::
-  Property SpecialAnnouncement '[LocalBusiness, CivicStructure]
+  Property SpecialAnnouncement '[CivicStructure, LocalBusiness]
 propertySpecialAnnouncementAnnouncementLocation =
   Property "announcementLocation"
 
@@ -10826,7 +11152,7 @@ propertyQuestionAnswerCount :: Property Question '[Integer]
 propertyQuestionAnswerCount = Property "answerCount"
 
 propertyAnswerAnswerExplanation ::
-  Property Answer '[WebContent, Comment]
+  Property Answer '[Comment, WebContent]
 propertyAnswerAnswerExplanation = Property "answerExplanation"
 
 propertyMuscleAntagonist :: Property Muscle '[Muscle]
@@ -10836,7 +11162,7 @@ propertyClaimAppearance :: Property Claim '[CreativeWork]
 propertyClaimAppearance = Property "appearance"
 
 propertyMerchantReturnPolicyApplicableCountry ::
-  Property MerchantReturnPolicy '[Text, Country]
+  Property MerchantReturnPolicy '[Country, Text]
 propertyMerchantReturnPolicyApplicableCountry =
   Property "applicableCountry"
 
@@ -10859,7 +11185,7 @@ propertyEntryPointApplication ::
 propertyEntryPointApplication = Property "application"
 
 propertySoftwareApplicationApplicationCategory ::
-  Property SoftwareApplication '[URL, Text]
+  Property SoftwareApplication '[Text, URL]
 propertySoftwareApplicationApplicationCategory =
   Property "applicationCategory"
 
@@ -10908,52 +11234,52 @@ propertyArchiveOrganizationArchiveHeld ::
 propertyArchiveOrganizationArchiveHeld = Property "archiveHeld"
 
 propertyCreativeWorkArchivedAt ::
-  Property CreativeWork '[WebPage, URL]
+  Property CreativeWork '[URL, WebPage]
 propertyCreativeWorkArchivedAt = Property "archivedAt"
 
 propertyBroadcastServiceArea :: Property BroadcastService '[Place]
 propertyBroadcastServiceArea = Property "area"
 
-propertyOrganizationAreaServed ::
-  Property Organization '[AdministrativeArea, Place, GeoShape, Text]
-propertyOrganizationAreaServed = Property "areaServed"
-
-propertyOfferAreaServed ::
-  Property Offer '[AdministrativeArea, Place, GeoShape, Text]
-propertyOfferAreaServed = Property "areaServed"
-
-propertyServiceAreaServed ::
-  Property Service '[AdministrativeArea, Place, GeoShape, Text]
-propertyServiceAreaServed = Property "areaServed"
-
-propertyFinancialIncentiveAreaServed ::
-  Property
-    FinancialIncentive
-    '[ AdministrativeArea,
-       Place,
-       GeoShape,
-       Text
-     ]
-propertyFinancialIncentiveAreaServed = Property "areaServed"
-
 propertyContactPointAreaServed ::
-  Property ContactPoint '[AdministrativeArea, Place, GeoShape, Text]
+  Property ContactPoint '[AdministrativeArea, GeoShape, Place, Text]
 propertyContactPointAreaServed = Property "areaServed"
 
 propertyDeliveryChargeSpecificationAreaServed ::
   Property
     DeliveryChargeSpecification
     '[ AdministrativeArea,
-       Place,
        GeoShape,
+       Place,
        Text
      ]
 propertyDeliveryChargeSpecificationAreaServed =
   Property "areaServed"
 
 propertyDemandAreaServed ::
-  Property Demand '[AdministrativeArea, Place, GeoShape, Text]
+  Property Demand '[AdministrativeArea, GeoShape, Place, Text]
 propertyDemandAreaServed = Property "areaServed"
+
+propertyFinancialIncentiveAreaServed ::
+  Property
+    FinancialIncentive
+    '[ AdministrativeArea,
+       GeoShape,
+       Place,
+       Text
+     ]
+propertyFinancialIncentiveAreaServed = Property "areaServed"
+
+propertyOfferAreaServed ::
+  Property Offer '[AdministrativeArea, GeoShape, Place, Text]
+propertyOfferAreaServed = Property "areaServed"
+
+propertyOrganizationAreaServed ::
+  Property Organization '[AdministrativeArea, GeoShape, Place, Text]
+propertyOrganizationAreaServed = Property "areaServed"
+
+propertyServiceAreaServed ::
+  Property Service '[AdministrativeArea, GeoShape, Place, Text]
+propertyServiceAreaServed = Property "areaServed"
 
 propertyFlightArrivalAirport :: Property Flight '[Airport]
 propertyFlightArrivalAirport = Property "arrivalAirport"
@@ -10964,7 +11290,7 @@ propertyBoatTripArrivalBoatTerminal =
   Property "arrivalBoatTerminal"
 
 propertyBusTripArrivalBusStop ::
-  Property BusTrip '[BusStop, BusStation]
+  Property BusTrip '[BusStation, BusStop]
 propertyBusTripArrivalBusStop = Property "arrivalBusStop"
 
 propertyFlightArrivalGate :: Property Flight '[Text]
@@ -10980,7 +11306,7 @@ propertyTrainTripArrivalStation = Property "arrivalStation"
 propertyFlightArrivalTerminal :: Property Flight '[Text]
 propertyFlightArrivalTerminal = Property "arrivalTerminal"
 
-propertyTripArrivalTime :: Property Trip '[Time, DateTime]
+propertyTripArrivalTime :: Property Trip '[DateTime, Time]
 propertyTripArrivalTime = Property "arrivalTime"
 
 propertyVisualArtworkArtEdition ::
@@ -11007,24 +11333,24 @@ propertyArticleArticleSection = Property "articleSection"
 propertyComicIssueArtist :: Property ComicIssue '[Person]
 propertyComicIssueArtist = Property "artist"
 
-propertyVisualArtworkArtist :: Property VisualArtwork '[Person]
-propertyVisualArtworkArtist = Property "artist"
-
 propertyComicStoryArtist :: Property ComicStory '[Person]
 propertyComicStoryArtist = Property "artist"
 
-propertyVisualArtworkArtworkSurface ::
-  Property VisualArtwork '[URL, Text]
-propertyVisualArtworkArtworkSurface = Property "artworkSurface"
+propertyVisualArtworkArtist :: Property VisualArtwork '[Person]
+propertyVisualArtworkArtist = Property "artist"
 
-propertyProductAsin :: Property Product '[Text, URL]
-propertyProductAsin = Property "asin"
+propertyVisualArtworkArtworkSurface ::
+  Property VisualArtwork '[Text, URL]
+propertyVisualArtworkArtworkSurface = Property "artworkSurface"
 
 propertyDemandAsin :: Property Demand '[Text, URL]
 propertyDemandAsin = Property "asin"
 
 propertyOfferAsin :: Property Offer '[Text, URL]
 propertyOfferAsin = Property "asin"
+
+propertyProductAsin :: Property Product '[Text, URL]
+propertyProductAsin = Property "asin"
 
 propertyMedicalWebPageAspect :: Property MedicalWebPage '[Text]
 propertyMedicalWebPageAspect = Property "aspect"
@@ -11037,35 +11363,35 @@ propertyAPIReferenceAssemblyVersion ::
 propertyAPIReferenceAssemblyVersion = Property "assemblyVersion"
 
 propertyCreativeWorkAssesses ::
-  Property CreativeWork '[Text, DefinedTerm]
+  Property CreativeWork '[DefinedTerm, Text]
 propertyCreativeWorkAssesses = Property "assesses"
 
 propertyEducationEventAssesses ::
-  Property EducationEvent '[Text, DefinedTerm]
+  Property EducationEvent '[DefinedTerm, Text]
 propertyEducationEventAssesses = Property "assesses"
 
 propertyLearningResourceAssesses ::
-  Property LearningResource '[Text, DefinedTerm]
+  Property LearningResource '[DefinedTerm, Text]
 propertyLearningResourceAssesses = Property "assesses"
-
-propertyPhysicalActivityAssociatedAnatomy ::
-  Property
-    PhysicalActivity
-    '[ AnatomicalStructure,
-       SuperficialAnatomy,
-       AnatomicalSystem
-     ]
-propertyPhysicalActivityAssociatedAnatomy =
-  Property "associatedAnatomy"
 
 propertyMedicalConditionAssociatedAnatomy ::
   Property
     MedicalCondition
     '[ AnatomicalStructure,
-       SuperficialAnatomy,
-       AnatomicalSystem
+       AnatomicalSystem,
+       SuperficialAnatomy
      ]
 propertyMedicalConditionAssociatedAnatomy =
+  Property "associatedAnatomy"
+
+propertyPhysicalActivityAssociatedAnatomy ::
+  Property
+    PhysicalActivity
+    '[ AnatomicalStructure,
+       AnatomicalSystem,
+       SuperficialAnatomy
+     ]
+propertyPhysicalActivityAssociatedAnatomy =
   Property "associatedAnatomy"
 
 propertyMediaObjectAssociatedArticle ::
@@ -11077,20 +11403,20 @@ propertyReviewAssociatedClaimReview =
   Property "associatedClaimReview"
 
 propertyBioChemEntityAssociatedDisease ::
-  Property BioChemEntity '[URL, PropertyValue, MedicalCondition]
+  Property BioChemEntity '[MedicalCondition, PropertyValue, URL]
 propertyBioChemEntityAssociatedDisease =
   Property "associatedDisease"
-
-propertyHyperTocEntryAssociatedMedia ::
-  Property HyperTocEntry '[MediaObject]
-propertyHyperTocEntryAssociatedMedia = Property "associatedMedia"
-
-propertyHyperTocAssociatedMedia :: Property HyperToc '[MediaObject]
-propertyHyperTocAssociatedMedia = Property "associatedMedia"
 
 propertyCreativeWorkAssociatedMedia ::
   Property CreativeWork '[MediaObject]
 propertyCreativeWorkAssociatedMedia = Property "associatedMedia"
+
+propertyHyperTocAssociatedMedia :: Property HyperToc '[MediaObject]
+propertyHyperTocAssociatedMedia = Property "associatedMedia"
+
+propertyHyperTocEntryAssociatedMedia ::
+  Property HyperTocEntry '[MediaObject]
+propertyHyperTocEntryAssociatedMedia = Property "associatedMedia"
 
 propertyReviewAssociatedMediaReview :: Property Review '[Review]
 propertyReviewAssociatedMediaReview =
@@ -11101,14 +11427,14 @@ propertyAnatomicalStructureAssociatedPathophysiology ::
 propertyAnatomicalStructureAssociatedPathophysiology =
   Property "associatedPathophysiology"
 
-propertySuperficialAnatomyAssociatedPathophysiology ::
-  Property SuperficialAnatomy '[Text]
-propertySuperficialAnatomyAssociatedPathophysiology =
-  Property "associatedPathophysiology"
-
 propertyAnatomicalSystemAssociatedPathophysiology ::
   Property AnatomicalSystem '[Text]
 propertyAnatomicalSystemAssociatedPathophysiology =
+  Property "associatedPathophysiology"
+
+propertySuperficialAnatomyAssociatedPathophysiology ::
+  Property SuperficialAnatomy '[Text]
+propertySuperficialAnatomyAssociatedPathophysiology =
   Property "associatedPathophysiology"
 
 propertyReviewAssociatedReview :: Property Review '[Review]
@@ -11123,30 +11449,30 @@ propertyEventAttendee = Property "attendee"
 propertyEventAttendees :: Property Event '[Organization, Person]
 propertyEventAttendees = Property "attendees"
 
-propertyLodgingBusinessAudience ::
-  Property LodgingBusiness '[Audience]
-propertyLodgingBusinessAudience = Property "audience"
-
-propertyServiceAudience :: Property Service '[Audience]
-propertyServiceAudience = Property "audience"
-
-propertyPlayActionAudience :: Property PlayAction '[Audience]
-propertyPlayActionAudience = Property "audience"
+propertyCreativeWorkAudience :: Property CreativeWork '[Audience]
+propertyCreativeWorkAudience = Property "audience"
 
 propertyEventAudience :: Property Event '[Audience]
 propertyEventAudience = Property "audience"
 
-propertyCreativeWorkAudience :: Property CreativeWork '[Audience]
-propertyCreativeWorkAudience = Property "audience"
+propertyLodgingBusinessAudience ::
+  Property LodgingBusiness '[Audience]
+propertyLodgingBusinessAudience = Property "audience"
+
+propertyPlayActionAudience :: Property PlayAction '[Audience]
+propertyPlayActionAudience = Property "audience"
 
 propertyProductAudience :: Property Product '[Audience]
 propertyProductAudience = Property "audience"
+
+propertyServiceAudience :: Property Service '[Audience]
+propertyServiceAudience = Property "audience"
 
 propertyAudienceAudienceType :: Property Audience '[Text]
 propertyAudienceAudienceType = Property "audienceType"
 
 propertyCreativeWorkAudio ::
-  Property CreativeWork '[MusicRecording, AudioObject, Clip]
+  Property CreativeWork '[AudioObject, Clip, MusicRecording]
 propertyCreativeWorkAudio = Property "audio"
 
 propertyCertificationAuditDate ::
@@ -11164,15 +11490,21 @@ propertyCreativeWorkAuthor = Property "author"
 propertyRatingAuthor :: Property Rating '[Organization, Person]
 propertyRatingAuthor = Property "author"
 
+propertyOrganizationAuthorizedRepresentative ::
+  Property Organization '[Organization, Person]
+propertyOrganizationAuthorizedRepresentative =
+  Property "authorizedRepresentative"
+
+propertyProductAuthorizedRepresentative ::
+  Property Product '[Organization, Person]
+propertyProductAuthorizedRepresentative =
+  Property "authorizedRepresentative"
+
 propertyDemandAvailability :: Property Demand '[ItemAvailability]
 propertyDemandAvailability = Property "availability"
 
 propertyOfferAvailability :: Property Offer '[ItemAvailability]
 propertyOfferAvailability = Property "availability"
-
-propertyOfferAvailabilityEnds ::
-  Property Offer '[Date, DateTime, Time]
-propertyOfferAvailabilityEnds = Property "availabilityEnds"
 
 propertyActionAccessSpecificationAvailabilityEnds ::
   Property ActionAccessSpecification '[Date, DateTime, Time]
@@ -11183,17 +11515,21 @@ propertyDemandAvailabilityEnds ::
   Property Demand '[Date, DateTime, Time]
 propertyDemandAvailabilityEnds = Property "availabilityEnds"
 
+propertyOfferAvailabilityEnds ::
+  Property Offer '[Date, DateTime, Time]
+propertyOfferAvailabilityEnds = Property "availabilityEnds"
+
 propertyActionAccessSpecificationAvailabilityStarts ::
-  Property ActionAccessSpecification '[Date, Time, DateTime]
+  Property ActionAccessSpecification '[Date, DateTime, Time]
 propertyActionAccessSpecificationAvailabilityStarts =
   Property "availabilityStarts"
 
 propertyDemandAvailabilityStarts ::
-  Property Demand '[Date, Time, DateTime]
+  Property Demand '[Date, DateTime, Time]
 propertyDemandAvailabilityStarts = Property "availabilityStarts"
 
 propertyOfferAvailabilityStarts ::
-  Property Offer '[Date, Time, DateTime]
+  Property Offer '[Date, DateTime, Time]
 propertyOfferAvailabilityStarts = Property "availabilityStarts"
 
 propertyDemandAvailableAtOrFrom :: Property Demand '[Place]
@@ -11224,27 +11560,27 @@ propertyDrugStrengthAvailableIn ::
   Property DrugStrength '[AdministrativeArea]
 propertyDrugStrengthAvailableIn = Property "availableIn"
 
-propertyLodgingBusinessAvailableLanguage ::
-  Property LodgingBusiness '[Text, Language]
-propertyLodgingBusinessAvailableLanguage =
-  Property "availableLanguage"
-
 propertyContactPointAvailableLanguage ::
-  Property ContactPoint '[Text, Language]
+  Property ContactPoint '[Language, Text]
 propertyContactPointAvailableLanguage =
   Property "availableLanguage"
 
 propertyCourseAvailableLanguage ::
-  Property Course '[Text, Language]
+  Property Course '[Language, Text]
 propertyCourseAvailableLanguage = Property "availableLanguage"
 
+propertyLodgingBusinessAvailableLanguage ::
+  Property LodgingBusiness '[Language, Text]
+propertyLodgingBusinessAvailableLanguage =
+  Property "availableLanguage"
+
 propertyServiceChannelAvailableLanguage ::
-  Property ServiceChannel '[Text, Language]
+  Property ServiceChannel '[Language, Text]
 propertyServiceChannelAvailableLanguage =
   Property "availableLanguage"
 
 propertyTouristAttractionAvailableLanguage ::
-  Property TouristAttraction '[Text, Language]
+  Property TouristAttraction '[Language, Text]
 propertyTouristAttractionAvailableLanguage =
   Property "availableLanguage"
 
@@ -11252,10 +11588,6 @@ propertySoftwareApplicationAvailableOnDevice ::
   Property SoftwareApplication '[Text]
 propertySoftwareApplicationAvailableOnDevice =
   Property "availableOnDevice"
-
-propertyPhysicianAvailableService ::
-  Property Physician '[MedicalProcedure, MedicalTest, MedicalTherapy]
-propertyPhysicianAvailableService = Property "availableService"
 
 propertyHospitalAvailableService ::
   Property Hospital '[MedicalProcedure, MedicalTest, MedicalTherapy]
@@ -11270,6 +11602,10 @@ propertyMedicalClinicAvailableService ::
      ]
 propertyMedicalClinicAvailableService = Property "availableService"
 
+propertyPhysicianAvailableService ::
+  Property Physician '[MedicalProcedure, MedicalTest, MedicalTherapy]
+propertyPhysicianAvailableService = Property "availableService"
+
 propertyDrugAvailableStrength :: Property Drug '[DrugStrength]
 propertyDrugAvailableStrength = Property "availableStrength"
 
@@ -11281,11 +11617,11 @@ propertyDeliveryEventAvailableThrough ::
   Property DeliveryEvent '[DateTime]
 propertyDeliveryEventAvailableThrough = Property "availableThrough"
 
-propertyOrganizationAward :: Property Organization '[Text]
-propertyOrganizationAward = Property "award"
-
 propertyCreativeWorkAward :: Property CreativeWork '[Text]
 propertyCreativeWorkAward = Property "award"
+
+propertyOrganizationAward :: Property Organization '[Text]
+propertyOrganizationAward = Property "award"
 
 propertyPersonAward :: Property Person '[Text]
 propertyPersonAward = Property "award"
@@ -11296,23 +11632,23 @@ propertyProductAward = Property "award"
 propertyServiceAward :: Property Service '[Text]
 propertyServiceAward = Property "award"
 
-propertyProductAwards :: Property Product '[Text]
-propertyProductAwards = Property "awards"
-
-propertyPersonAwards :: Property Person '[Text]
-propertyPersonAwards = Property "awards"
+propertyCreativeWorkAwards :: Property CreativeWork '[Text]
+propertyCreativeWorkAwards = Property "awards"
 
 propertyOrganizationAwards :: Property Organization '[Text]
 propertyOrganizationAwards = Property "awards"
 
-propertyCreativeWorkAwards :: Property CreativeWork '[Text]
-propertyCreativeWorkAwards = Property "awards"
+propertyPersonAwards :: Property Person '[Text]
+propertyPersonAwards = Property "awards"
+
+propertyProductAwards :: Property Product '[Text]
+propertyProductAwards = Property "awards"
 
 propertySportsEventAwayTeam ::
   Property SportsEvent '[Person, SportsTeam]
 propertySportsEventAwayTeam = Property "awayTeam"
 
-propertyArticleBackstory :: Property Article '[Text, CreativeWork]
+propertyArticleBackstory :: Property Article '[CreativeWork, Text]
 propertyArticleBackstory = Property "backstory"
 
 propertyBankAccountBankAccountType ::
@@ -11320,34 +11656,34 @@ propertyBankAccountBankAccountType ::
 propertyBankAccountBankAccountType = Property "bankAccountType"
 
 propertyEmployeeRoleBaseSalary ::
-  Property EmployeeRole '[PriceSpecification, MonetaryAmount, Number]
+  Property EmployeeRole '[MonetaryAmount, Number, PriceSpecification]
 propertyEmployeeRoleBaseSalary = Property "baseSalary"
 
 propertyJobPostingBaseSalary ::
-  Property JobPosting '[PriceSpecification, MonetaryAmount, Number]
+  Property JobPosting '[MonetaryAmount, Number, PriceSpecification]
 propertyJobPostingBaseSalary = Property "baseSalary"
 
 propertyMessageBccRecipient ::
-  Property Message '[Organization, ContactPoint, Person]
+  Property Message '[ContactPoint, Organization, Person]
 propertyMessageBccRecipient = Property "bccRecipient"
 
-propertySuiteBed :: Property Suite '[Text, BedDetails, BedType]
-propertySuiteBed = Property "bed"
+propertyAccommodationBed ::
+  Property Accommodation '[BedDetails, BedType, Text]
+propertyAccommodationBed = Property "bed"
 
 propertyHotelRoomBed ::
-  Property HotelRoom '[Text, BedDetails, BedType]
+  Property HotelRoom '[BedDetails, BedType, Text]
 propertyHotelRoomBed = Property "bed"
 
-propertyAccommodationBed ::
-  Property Accommodation '[Text, BedDetails, BedType]
-propertyAccommodationBed = Property "bed"
+propertySuiteBed :: Property Suite '[BedDetails, BedType, Text]
+propertySuiteBed = Property "bed"
 
 propertyHowToDirectionBeforeMedia ::
   Property HowToDirection '[MediaObject, URL]
 propertyHowToDirectionBeforeMedia = Property "beforeMedia"
 
 propertyMoneyTransferBeneficiaryBank ::
-  Property MoneyTransfer '[Text, BankOrCreditUnion]
+  Property MoneyTransfer '[BankOrCreditUnion, Text]
 propertyMoneyTransferBeneficiaryBank = Property "beneficiaryBank"
 
 propertyJobPostingBenefits :: Property JobPosting '[Text]
@@ -11475,18 +11811,18 @@ propertyLocalBusinessBranchOf ::
   Property LocalBusiness '[Organization]
 propertyLocalBusinessBranchOf = Property "branchOf"
 
-propertyServiceBrand :: Property Service '[Brand, Organization]
-propertyServiceBrand = Property "brand"
-
-propertyProductBrand :: Property Product '[Brand, Organization]
-propertyProductBrand = Property "brand"
+propertyOrganizationBrand ::
+  Property Organization '[Brand, Organization]
+propertyOrganizationBrand = Property "brand"
 
 propertyPersonBrand :: Property Person '[Brand, Organization]
 propertyPersonBrand = Property "brand"
 
-propertyOrganizationBrand ::
-  Property Organization '[Brand, Organization]
-propertyOrganizationBrand = Property "brand"
+propertyProductBrand :: Property Product '[Brand, Organization]
+propertyProductBrand = Property "brand"
+
+propertyServiceBrand :: Property Service '[Brand, Organization]
+propertyServiceBrand = Property "brand"
 
 propertyWebPageBreadcrumb ::
   Property WebPage '[BreadcrumbList, Text]
@@ -11510,21 +11846,21 @@ propertyBroadcastServiceBroadcastDisplayName ::
 propertyBroadcastServiceBroadcastDisplayName =
   Property "broadcastDisplayName"
 
-propertyBroadcastServiceBroadcastFrequency ::
-  Property BroadcastService '[BroadcastFrequencySpecification, Text]
-propertyBroadcastServiceBroadcastFrequency =
-  Property "broadcastFrequency"
-
 propertyBroadcastChannelBroadcastFrequency ::
   Property BroadcastChannel '[BroadcastFrequencySpecification, Text]
 propertyBroadcastChannelBroadcastFrequency =
   Property "broadcastFrequency"
 
+propertyBroadcastServiceBroadcastFrequency ::
+  Property BroadcastService '[BroadcastFrequencySpecification, Text]
+propertyBroadcastServiceBroadcastFrequency =
+  Property "broadcastFrequency"
+
 propertyBroadcastFrequencySpecificationBroadcastFrequencyValue ::
   Property
     BroadcastFrequencySpecification
-    '[ QuantitativeValue,
-       Number
+    '[ Number,
+       QuantitativeValue
      ]
 propertyBroadcastFrequencySpecificationBroadcastFrequencyValue =
   Property "broadcastFrequencyValue"
@@ -11558,15 +11894,15 @@ propertyBroadcastServiceBroadcaster ::
   Property BroadcastService '[Organization]
 propertyBroadcastServiceBroadcaster = Property "broadcaster"
 
+propertyInvoiceBroker :: Property Invoice '[Organization, Person]
+propertyInvoiceBroker = Property "broker"
+
 propertyOrderBroker :: Property Order '[Organization, Person]
 propertyOrderBroker = Property "broker"
 
 propertyReservationBroker ::
   Property Reservation '[Organization, Person]
 propertyReservationBroker = Property "broker"
-
-propertyInvoiceBroker :: Property Invoice '[Organization, Person]
-propertyInvoiceBroker = Property "broker"
 
 propertyServiceBroker :: Property Service '[Organization, Person]
 propertyServiceBroker = Property "broker"
@@ -11598,25 +11934,25 @@ propertyDemandBusinessFunction ::
   Property Demand '[BusinessFunction]
 propertyDemandBusinessFunction = Property "businessFunction"
 
+propertyOfferBusinessFunction :: Property Offer '[BusinessFunction]
+propertyOfferBusinessFunction = Property "businessFunction"
+
 propertyTypeAndQuantityNodeBusinessFunction ::
   Property TypeAndQuantityNode '[BusinessFunction]
 propertyTypeAndQuantityNodeBusinessFunction =
   Property "businessFunction"
 
-propertyOfferBusinessFunction :: Property Offer '[BusinessFunction]
-propertyOfferBusinessFunction = Property "businessFunction"
-
 propertySellActionBuyer ::
   Property SellAction '[Organization, Person]
 propertySellActionBuyer = Property "buyer"
 
-propertyMusicRecordingByArtist ::
-  Property MusicRecording '[MusicGroup, Person]
-propertyMusicRecordingByArtist = Property "byArtist"
-
 propertyMusicAlbumByArtist ::
   Property MusicAlbum '[MusicGroup, Person]
 propertyMusicAlbumByArtist = Property "byArtist"
+
+propertyMusicRecordingByArtist ::
+  Property MusicRecording '[MusicGroup, Person]
+propertyMusicRecordingByArtist = Property "byArtist"
 
 propertyScheduleByDay :: Property Schedule '[DayOfWeek, Text]
 propertyScheduleByDay = Property "byDay"
@@ -11667,12 +12003,12 @@ propertyNutritionInformationCarbohydrateContent =
 propertyVehicleCargoVolume :: Property Vehicle '[QuantitativeValue]
 propertyVehicleCargoVolume = Property "cargoVolume"
 
+propertyFlightCarrier :: Property Flight '[Organization]
+propertyFlightCarrier = Property "carrier"
+
 propertyParcelDeliveryCarrier ::
   Property ParcelDelivery '[Organization]
 propertyParcelDeliveryCarrier = Property "carrier"
-
-propertyFlightCarrier :: Property Flight '[Organization]
-propertyFlightCarrier = Property "carrier"
 
 propertyMobileApplicationCarrierRequirements ::
   Property MobileApplication '[Text]
@@ -11680,7 +12016,7 @@ propertyMobileApplicationCarrierRequirements =
   Property "carrierRequirements"
 
 propertyPaymentCardCashBack ::
-  Property PaymentCard '[Number, Boolean]
+  Property PaymentCard '[Boolean, Number]
 propertyPaymentCardCashBack = Property "cashBack"
 
 propertyDatasetCatalog :: Property Dataset '[DataCatalog]
@@ -11689,104 +12025,119 @@ propertyDatasetCatalog = Property "catalog"
 propertyMusicReleaseCatalogNumber :: Property MusicRelease '[Text]
 propertyMusicReleaseCatalogNumber = Property "catalogNumber"
 
-propertySpecialAnnouncementCategory ::
+propertyActionAccessSpecificationCategory ::
   Property
-    SpecialAnnouncement
-    '[ Thing,
+    ActionAccessSpecification
+    '[ CategoryCode,
        PhysicalActivityCategory,
        Text,
-       URL,
-       CategoryCode
+       Thing,
+       URL
      ]
-propertySpecialAnnouncementCategory = Property "category"
+propertyActionAccessSpecificationCategory = Property "category"
 
-propertyPhysicalActivityCategory ::
+propertyGuideCategory ::
   Property
-    PhysicalActivity
-    '[ Thing,
+    Guide
+    '[ CategoryCode,
        PhysicalActivityCategory,
        Text,
-       URL,
-       CategoryCode
+       Thing,
+       URL
      ]
-propertyPhysicalActivityCategory = Property "category"
-
-propertyOfferCategory ::
-  Property
-    Offer
-    '[ Thing,
-       PhysicalActivityCategory,
-       Text,
-       URL,
-       CategoryCode
-     ]
-propertyOfferCategory = Property "category"
+propertyGuideCategory = Property "category"
 
 propertyInvoiceCategory ::
   Property
     Invoice
-    '[ Thing,
+    '[ CategoryCode,
        PhysicalActivityCategory,
        Text,
-       URL,
-       CategoryCode
+       Thing,
+       URL
      ]
 propertyInvoiceCategory = Property "category"
 
-propertyServiceCategory ::
+propertyOfferCategory ::
   Property
-    Service
-    '[ Thing,
+    Offer
+    '[ CategoryCode,
        PhysicalActivityCategory,
        Text,
-       URL,
-       CategoryCode
+       Thing,
+       URL
      ]
-propertyServiceCategory = Property "category"
+propertyOfferCategory = Property "category"
 
-propertyRecommendationCategory ::
+propertyPhysicalActivityCategory ::
   Property
-    Recommendation
-    '[ Thing,
+    PhysicalActivity
+    '[ CategoryCode,
        PhysicalActivityCategory,
        Text,
-       URL,
-       CategoryCode
+       Thing,
+       URL
      ]
-propertyRecommendationCategory = Property "category"
+propertyPhysicalActivityCategory = Property "category"
 
 propertyProductCategory ::
   Property
     Product
-    '[ Thing,
+    '[ CategoryCode,
        PhysicalActivityCategory,
        Text,
-       URL,
-       CategoryCode
+       Thing,
+       URL
      ]
 propertyProductCategory = Property "category"
 
-propertyActionAccessSpecificationCategory ::
+propertyRecommendationCategory ::
   Property
-    ActionAccessSpecification
-    '[ Thing,
+    Recommendation
+    '[ CategoryCode,
        PhysicalActivityCategory,
        Text,
-       URL,
-       CategoryCode
+       Thing,
+       URL
      ]
-propertyActionAccessSpecificationCategory = Property "category"
+propertyRecommendationCategory = Property "category"
+
+propertyServiceCategory ::
+  Property
+    Service
+    '[ CategoryCode,
+       PhysicalActivityCategory,
+       Text,
+       Thing,
+       URL
+     ]
+propertyServiceCategory = Property "category"
+
+propertySpecialAnnouncementCategory ::
+  Property
+    SpecialAnnouncement
+    '[ CategoryCode,
+       PhysicalActivityCategory,
+       Text,
+       Thing,
+       URL
+     ]
+propertySpecialAnnouncementCategory = Property "category"
+
+propertyMedicalConditionCause ::
+  Property MedicalCondition '[MedicalCause]
+propertyMedicalConditionCause = Property "cause"
 
 propertyMedicalCauseCauseOf ::
   Property MedicalCause '[MedicalEntity]
 propertyMedicalCauseCauseOf = Property "causeOf"
 
 propertyMessageCcRecipient ::
-  Property Message '[Organization, ContactPoint, Person]
+  Property Message '[ContactPoint, Organization, Person]
 propertyMessageCcRecipient = Property "ccRecipient"
 
 propertyCertificationCertificationIdentification ::
-  Property Certification '[Text, DefinedTerm]
+  Property Certification '[DefinedTerm, Text]
 propertyCertificationCertificationIdentification =
   Property "certificationIdentification"
 
@@ -11803,13 +12154,13 @@ propertyCertificationCertificationStatus =
 propertyCreativeWorkCharacter :: Property CreativeWork '[Person]
 propertyCreativeWorkCharacter = Property "character"
 
+propertyGameCharacterAttribute :: Property Game '[Thing]
+propertyGameCharacterAttribute = Property "characterAttribute"
+
 propertyVideoGameSeriesCharacterAttribute ::
   Property VideoGameSeries '[Thing]
 propertyVideoGameSeriesCharacterAttribute =
   Property "characterAttribute"
-
-propertyGameCharacterAttribute :: Property Game '[Thing]
-propertyGameCharacterAttribute = Property "characterAttribute"
 
 propertyPerformanceRoleCharacterName ::
   Property PerformanceRole '[Text]
@@ -11822,25 +12173,25 @@ propertyVideoGameSeriesCheatCode ::
   Property VideoGameSeries '[CreativeWork]
 propertyVideoGameSeriesCheatCode = Property "cheatCode"
 
-propertyLodgingReservationCheckinTime ::
-  Property LodgingReservation '[DateTime, Time]
-propertyLodgingReservationCheckinTime = Property "checkinTime"
-
 propertyLodgingBusinessCheckinTime ::
   Property LodgingBusiness '[DateTime, Time]
 propertyLodgingBusinessCheckinTime = Property "checkinTime"
+
+propertyLodgingReservationCheckinTime ::
+  Property LodgingReservation '[DateTime, Time]
+propertyLodgingReservationCheckinTime = Property "checkinTime"
 
 propertyOfferCheckoutPageURLTemplate :: Property Offer '[Text]
 propertyOfferCheckoutPageURLTemplate =
   Property "checkoutPageURLTemplate"
 
-propertyLodgingReservationCheckoutTime ::
-  Property LodgingReservation '[DateTime, Time]
-propertyLodgingReservationCheckoutTime = Property "checkoutTime"
-
 propertyLodgingBusinessCheckoutTime ::
   Property LodgingBusiness '[DateTime, Time]
 propertyLodgingBusinessCheckoutTime = Property "checkoutTime"
+
+propertyLodgingReservationCheckoutTime ::
+  Property LodgingReservation '[DateTime, Time]
+propertyLodgingReservationCheckoutTime = Property "checkoutTime"
 
 propertyChemicalSubstanceChemicalComposition ::
   Property ChemicalSubstance '[Text]
@@ -11894,7 +12245,7 @@ propertyDrugClincalPharmacology = Property "clincalPharmacology"
 propertyDrugClinicalPharmacology :: Property Drug '[Text]
 propertyDrugClinicalPharmacology = Property "clinicalPharmacology"
 
-propertyClipClipNumber :: Property Clip '[Text, Integer]
+propertyClipClipNumber :: Property Clip '[Integer, Text]
 propertyClipClipNumber = Property "clipNumber"
 
 propertyOpeningHoursSpecificationCloses ::
@@ -11917,11 +12268,11 @@ propertySoftwareSourceCodeCodeSampleType ::
 propertySoftwareSourceCodeCodeSampleType =
   Property "codeSampleType"
 
-propertyMedicalCodeCodeValue :: Property MedicalCode '[Text]
-propertyMedicalCodeCodeValue = Property "codeValue"
-
 propertyCategoryCodeCodeValue :: Property CategoryCode '[Text]
 propertyCategoryCodeCodeValue = Property "codeValue"
+
+propertyMedicalCodeCodeValue :: Property MedicalCode '[Text]
+propertyMedicalCodeCodeValue = Property "codeValue"
 
 propertyMedicalCodeCodingSystem :: Property MedicalCode '[Text]
 propertyMedicalCodeCodingSystem = Property "codingSystem"
@@ -11941,17 +12292,17 @@ propertyCollectionCollectionSize = Property "collectionSize"
 propertyProductColor :: Property Product '[Text]
 propertyProductColor = Property "color"
 
-propertyProductColorSwatch :: Property Product '[URL, ImageObject]
+propertyProductColorSwatch :: Property Product '[ImageObject, URL]
 propertyProductColorSwatch = Property "colorSwatch"
 
-propertyVisualArtworkColorist :: Property VisualArtwork '[Person]
-propertyVisualArtworkColorist = Property "colorist"
+propertyComicIssueColorist :: Property ComicIssue '[Person]
+propertyComicIssueColorist = Property "colorist"
 
 propertyComicStoryColorist :: Property ComicStory '[Person]
 propertyComicStoryColorist = Property "colorist"
 
-propertyComicIssueColorist :: Property ComicIssue '[Person]
-propertyComicIssueColorist = Property "colorist"
+propertyVisualArtworkColorist :: Property VisualArtwork '[Person]
+propertyVisualArtworkColorist = Property "colorist"
 
 propertyCreativeWorkComment :: Property CreativeWork '[Comment]
 propertyCreativeWorkComment = Property "comment"
@@ -11967,7 +12318,7 @@ propertyUserCommentsCommentText :: Property UserComments '[Text]
 propertyUserCommentsCommentText = Property "commentText"
 
 propertyUserCommentsCommentTime ::
-  Property UserComments '[DateTime, Date]
+  Property UserComments '[Date, DateTime]
 propertyUserCommentsCommentTime = Property "commentTime"
 
 propertyOrganizationCompanyRegistration ::
@@ -11975,19 +12326,19 @@ propertyOrganizationCompanyRegistration ::
 propertyOrganizationCompanyRegistration =
   Property "companyRegistration"
 
-propertyLearningResourceCompetencyRequired ::
-  Property LearningResource '[URL, Text, DefinedTerm]
-propertyLearningResourceCompetencyRequired =
-  Property "competencyRequired"
-
 propertyEducationalOccupationalCredentialCompetencyRequired ::
   Property
     EducationalOccupationalCredential
-    '[ URL,
+    '[ DefinedTerm,
        Text,
-       DefinedTerm
+       URL
      ]
 propertyEducationalOccupationalCredentialCompetencyRequired =
+  Property "competencyRequired"
+
+propertyLearningResourceCompetencyRequired ::
+  Property LearningResource '[DefinedTerm, Text, URL]
+propertyLearningResourceCompetencyRequired =
   Property "competencyRequired"
 
 propertySportsEventCompetitor ::
@@ -12025,9 +12376,17 @@ propertyConstraintNodeConstraintProperty ::
 propertyConstraintNodeConstraintProperty =
   Property "constraintProperty"
 
+propertyProductConsumerNotice ::
+  Property Product '[Text, TextObject, URL, WebContent]
+propertyProductConsumerNotice = Property "consumerNotice"
+
 propertyContactPointContactOption ::
   Property ContactPoint '[ContactPointOption]
 propertyContactPointContactOption = Property "contactOption"
+
+propertyHealthInsurancePlanContactPoint ::
+  Property HealthInsurancePlan '[ContactPoint]
+propertyHealthInsurancePlanContactPoint = Property "contactPoint"
 
 propertyOrganizationContactPoint ::
   Property Organization '[ContactPoint]
@@ -12036,16 +12395,12 @@ propertyOrganizationContactPoint = Property "contactPoint"
 propertyPersonContactPoint :: Property Person '[ContactPoint]
 propertyPersonContactPoint = Property "contactPoint"
 
-propertyHealthInsurancePlanContactPoint ::
-  Property HealthInsurancePlan '[ContactPoint]
-propertyHealthInsurancePlanContactPoint = Property "contactPoint"
-
-propertyPersonContactPoints :: Property Person '[ContactPoint]
-propertyPersonContactPoints = Property "contactPoints"
-
 propertyOrganizationContactPoints ::
   Property Organization '[ContactPoint]
 propertyOrganizationContactPoints = Property "contactPoints"
+
+propertyPersonContactPoints :: Property Person '[ContactPoint]
+propertyPersonContactPoints = Property "contactPoints"
 
 propertyContactPointContactType :: Property ContactPoint '[Text]
 propertyContactPointContactType = Property "contactType"
@@ -12064,10 +12419,6 @@ propertyPlaceContainedInPlace = Property "containedInPlace"
 propertyPlaceContainsPlace :: Property Place '[Place]
 propertyPlaceContainsPlace = Property "containsPlace"
 
-propertyVideoGameSeriesContainsSeason ::
-  Property VideoGameSeries '[CreativeWorkSeason]
-propertyVideoGameSeriesContainsSeason = Property "containsSeason"
-
 propertyRadioSeriesContainsSeason ::
   Property RadioSeries '[CreativeWorkSeason]
 propertyRadioSeriesContainsSeason = Property "containsSeason"
@@ -12075,6 +12426,10 @@ propertyRadioSeriesContainsSeason = Property "containsSeason"
 propertyTVSeriesContainsSeason ::
   Property TVSeries '[CreativeWorkSeason]
 propertyTVSeriesContainsSeason = Property "containsSeason"
+
+propertyVideoGameSeriesContainsSeason ::
+  Property VideoGameSeries '[CreativeWorkSeason]
+propertyVideoGameSeriesContainsSeason = Property "containsSeason"
 
 propertyCreativeWorkContentLocation ::
   Property CreativeWork '[Place]
@@ -12098,21 +12453,21 @@ propertyEntryPointContentType = Property "contentType"
 propertyMediaObjectContentUrl :: Property MediaObject '[URL]
 propertyMediaObjectContentUrl = Property "contentUrl"
 
-propertyMedicalTherapyContraindication ::
-  Property MedicalTherapy '[Text, MedicalContraindication]
-propertyMedicalTherapyContraindication =
-  Property "contraindication"
-
 propertyMedicalDeviceContraindication ::
-  Property MedicalDevice '[Text, MedicalContraindication]
+  Property MedicalDevice '[MedicalContraindication, Text]
 propertyMedicalDeviceContraindication = Property "contraindication"
 
-propertyEventContributor :: Property Event '[Organization, Person]
-propertyEventContributor = Property "contributor"
+propertyMedicalTherapyContraindication ::
+  Property MedicalTherapy '[MedicalContraindication, Text]
+propertyMedicalTherapyContraindication =
+  Property "contraindication"
 
 propertyCreativeWorkContributor ::
   Property CreativeWork '[Organization, Person]
 propertyCreativeWorkContributor = Property "contributor"
+
+propertyEventContributor :: Property Event '[Organization, Person]
+propertyEventContributor = Property "contributor"
 
 propertyRecipeCookTime :: Property Recipe '[Duration]
 propertyRecipeCookTime = Property "cookTime"
@@ -12133,16 +12488,16 @@ propertyCreativeWorkCopyrightYear ::
 propertyCreativeWorkCopyrightYear = Property "copyrightYear"
 
 propertyCreativeWorkCorrection ::
-  Property CreativeWork '[URL, Text, CorrectionComment]
+  Property CreativeWork '[CorrectionComment, Text, URL]
 propertyCreativeWorkCorrection = Property "correction"
 
 propertyNewsMediaOrganizationCorrectionsPolicy ::
-  Property NewsMediaOrganization '[URL, CreativeWork]
+  Property NewsMediaOrganization '[CreativeWork, URL]
 propertyNewsMediaOrganizationCorrectionsPolicy =
   Property "correctionsPolicy"
 
 propertyOrganizationCorrectionsPolicy ::
-  Property Organization '[URL, CreativeWork]
+  Property Organization '[CreativeWork, URL]
 propertyOrganizationCorrectionsPolicy =
   Property "correctionsPolicy"
 
@@ -12177,21 +12532,21 @@ propertyProductCountryOfLastProcessing :: Property Product '[Text]
 propertyProductCountryOfLastProcessing =
   Property "countryOfLastProcessing"
 
-propertyTVEpisodeCountryOfOrigin :: Property TVEpisode '[Country]
-propertyTVEpisodeCountryOfOrigin = Property "countryOfOrigin"
-
 propertyCreativeWorkCountryOfOrigin ::
   Property CreativeWork '[Country]
 propertyCreativeWorkCountryOfOrigin = Property "countryOfOrigin"
 
-propertyTVSeasonCountryOfOrigin :: Property TVSeason '[Country]
-propertyTVSeasonCountryOfOrigin = Property "countryOfOrigin"
+propertyMovieCountryOfOrigin :: Property Movie '[Country]
+propertyMovieCountryOfOrigin = Property "countryOfOrigin"
 
 propertyProductCountryOfOrigin :: Property Product '[Country]
 propertyProductCountryOfOrigin = Property "countryOfOrigin"
 
-propertyMovieCountryOfOrigin :: Property Movie '[Country]
-propertyMovieCountryOfOrigin = Property "countryOfOrigin"
+propertyTVEpisodeCountryOfOrigin :: Property TVEpisode '[Country]
+propertyTVEpisodeCountryOfOrigin = Property "countryOfOrigin"
+
+propertyTVSeasonCountryOfOrigin :: Property TVSeason '[Country]
+propertyTVSeasonCountryOfOrigin = Property "countryOfOrigin"
 
 propertyTVSeriesCountryOfOrigin :: Property TVSeries '[Country]
 propertyTVSeriesCountryOfOrigin = Property "countryOfOrigin"
@@ -12228,7 +12583,7 @@ propertyLiveBlogPostingCoverageStartTime =
   Property "coverageStartTime"
 
 propertyCreativeWorkCreativeWorkStatus ::
-  Property CreativeWork '[Text, DefinedTerm]
+  Property CreativeWork '[DefinedTerm, Text]
 propertyCreativeWorkCreativeWorkStatus =
   Property "creativeWorkStatus"
 
@@ -12240,14 +12595,9 @@ propertyUserCommentsCreator ::
   Property UserComments '[Organization, Person]
 propertyUserCommentsCreator = Property "creator"
 
-propertyEducationalOccupationalCredentialCredentialCategory ::
-  Property
-    EducationalOccupationalCredential
-    '[ Text,
-       URL,
-       DefinedTerm
-     ]
-propertyEducationalOccupationalCredentialCredentialCategory =
+propertyCredentialCredentialCategory ::
+  Property Credential '[DefinedTerm, Text, URL]
+propertyCredentialCredentialCategory =
   Property "credentialCategory"
 
 propertyCreativeWorkCreditText :: Property CreativeWork '[Text]
@@ -12270,23 +12620,23 @@ propertyLocalBusinessCurrenciesAccepted ::
 propertyLocalBusinessCurrenciesAccepted =
   Property "currenciesAccepted"
 
-propertyLoanOrCreditCurrency :: Property LoanOrCredit '[Text]
-propertyLoanOrCreditCurrency = Property "currency"
-
-propertyMonetaryAmountDistributionCurrency ::
-  Property MonetaryAmountDistribution '[Text]
-propertyMonetaryAmountDistributionCurrency = Property "currency"
+propertyDatedMoneySpecificationCurrency ::
+  Property DatedMoneySpecification '[Text]
+propertyDatedMoneySpecificationCurrency = Property "currency"
 
 propertyExchangeRateSpecificationCurrency ::
   Property ExchangeRateSpecification '[Text]
 propertyExchangeRateSpecificationCurrency = Property "currency"
 
+propertyLoanOrCreditCurrency :: Property LoanOrCredit '[Text]
+propertyLoanOrCreditCurrency = Property "currency"
+
 propertyMonetaryAmountCurrency :: Property MonetaryAmount '[Text]
 propertyMonetaryAmountCurrency = Property "currency"
 
-propertyDatedMoneySpecificationCurrency ::
-  Property DatedMoneySpecification '[Text]
-propertyDatedMoneySpecificationCurrency = Property "currency"
+propertyMonetaryAmountDistributionCurrency ::
+  Property MonetaryAmountDistribution '[Text]
+propertyMonetaryAmountDistributionCurrency = Property "currency"
 
 propertyExchangeRateSpecificationCurrentExchangeRate ::
   Property ExchangeRateSpecification '[UnitPriceSpecification]
@@ -12314,15 +12664,15 @@ propertyMerchantReturnPolicyCustomerRemorseReturnShippingFeesAmount ::
 propertyMerchantReturnPolicyCustomerRemorseReturnShippingFeesAmount =
   Property "customerRemorseReturnShippingFeesAmount"
 
+propertyServicePeriodCutoffTime :: Property ServicePeriod '[Time]
+propertyServicePeriodCutoffTime = Property "cutoffTime"
+
 propertyShippingDeliveryTimeCutoffTime ::
   Property ShippingDeliveryTime '[Time]
 propertyShippingDeliveryTimeCutoffTime = Property "cutoffTime"
 
-propertyServicePeriodCutoffTime :: Property ServicePeriod '[Time]
-propertyServicePeriodCutoffTime = Property "cutoffTime"
-
 propertyCDCPMDRecordCvdCollectionDate ::
-  Property CDCPMDRecord '[Text, DateTime]
+  Property CDCPMDRecord '[DateTime, Text]
 propertyCDCPMDRecordCvdCollectionDate =
   Property "cvdCollectionDate"
 
@@ -12388,8 +12738,12 @@ propertyCDCPMDRecordCvdNumVentUse ::
   Property CDCPMDRecord '[Number]
 propertyCDCPMDRecordCvdNumVentUse = Property "cvdNumVentUse"
 
+propertyInstantaneousEventData ::
+  Property InstantaneousEvent '[Thing]
+propertyInstantaneousEventData = Property "data"
+
 propertyDataFeedDataFeedElement ::
-  Property DataFeed '[DataFeedItem, Thing, Text]
+  Property DataFeed '[DataFeedItem, Text, Thing]
 propertyDataFeedDataFeedElement = Property "dataFeedElement"
 
 propertyDataCatalogDataset :: Property DataCatalog '[Dataset]
@@ -12398,44 +12752,44 @@ propertyDataCatalogDataset = Property "dataset"
 propertyDatasetDatasetTimeInterval :: Property Dataset '[DateTime]
 propertyDatasetDatasetTimeInterval = Property "datasetTimeInterval"
 
-propertyDataFeedItemDateCreated ::
-  Property DataFeedItem '[Date, DateTime]
-propertyDataFeedItemDateCreated = Property "dateCreated"
-
 propertyCreativeWorkDateCreated ::
   Property CreativeWork '[Date, DateTime]
 propertyCreativeWorkDateCreated = Property "dateCreated"
+
+propertyDataFeedItemDateCreated ::
+  Property DataFeedItem '[Date, DateTime]
+propertyDataFeedItemDateCreated = Property "dateCreated"
 
 propertyDataFeedItemDateDeleted ::
   Property DataFeedItem '[Date, DateTime]
 propertyDataFeedItemDateDeleted = Property "dateDeleted"
 
-propertyTicketDateIssued :: Property Ticket '[DateTime, Date]
+propertyTicketDateIssued :: Property Ticket '[Date, DateTime]
 propertyTicketDateIssued = Property "dateIssued"
-
-propertyDataFeedItemDateModified ::
-  Property DataFeedItem '[Date, DateTime]
-propertyDataFeedItemDateModified = Property "dateModified"
 
 propertyCreativeWorkDateModified ::
   Property CreativeWork '[Date, DateTime]
 propertyCreativeWorkDateModified = Property "dateModified"
 
-propertyJobPostingDatePosted ::
-  Property JobPosting '[Date, DateTime]
-propertyJobPostingDatePosted = Property "datePosted"
-
-propertySpecialAnnouncementDatePosted ::
-  Property SpecialAnnouncement '[Date, DateTime]
-propertySpecialAnnouncementDatePosted = Property "datePosted"
+propertyDataFeedItemDateModified ::
+  Property DataFeedItem '[Date, DateTime]
+propertyDataFeedItemDateModified = Property "dateModified"
 
 propertyCDCPMDRecordDatePosted ::
   Property CDCPMDRecord '[Date, DateTime]
 propertyCDCPMDRecordDatePosted = Property "datePosted"
 
+propertyJobPostingDatePosted ::
+  Property JobPosting '[Date, DateTime]
+propertyJobPostingDatePosted = Property "datePosted"
+
 propertyRealEstateListingDatePosted ::
   Property RealEstateListing '[Date, DateTime]
 propertyRealEstateListingDatePosted = Property "datePosted"
+
+propertySpecialAnnouncementDatePosted ::
+  Property SpecialAnnouncement '[Date, DateTime]
+propertySpecialAnnouncementDatePosted = Property "datePosted"
 
 propertyCertificationDatePublished ::
   Property Certification '[Date, DateTime]
@@ -12445,7 +12799,7 @@ propertyCreativeWorkDatePublished ::
   Property CreativeWork '[Date, DateTime]
 propertyCreativeWorkDatePublished = Property "datePublished"
 
-propertyMessageDateRead :: Property Message '[DateTime, Date]
+propertyMessageDateRead :: Property Message '[Date, DateTime]
 propertyMessageDateRead = Property "dateRead"
 
 propertyMessageDateReceived :: Property Message '[DateTime]
@@ -12462,14 +12816,14 @@ propertyVehicleDateVehicleFirstRegistered =
 propertyNewsArticleDateline :: Property NewsArticle '[Text]
 propertyNewsArticleDateline = Property "dateline"
 
-propertyOpeningHoursSpecificationDayOfWeek ::
-  Property OpeningHoursSpecification '[DayOfWeek]
-propertyOpeningHoursSpecificationDayOfWeek = Property "dayOfWeek"
-
 propertyEducationalOccupationalProgramDayOfWeek ::
   Property EducationalOccupationalProgram '[DayOfWeek]
 propertyEducationalOccupationalProgramDayOfWeek =
   Property "dayOfWeek"
+
+propertyOpeningHoursSpecificationDayOfWeek ::
+  Property OpeningHoursSpecification '[DayOfWeek]
+propertyOpeningHoursSpecificationDayOfWeek = Property "dayOfWeek"
 
 propertyPersonDeathDate :: Property Person '[Date]
 propertyPersonDeathDate = Property "deathDate"
@@ -12478,7 +12832,7 @@ propertyPersonDeathPlace :: Property Person '[Place]
 propertyPersonDeathPlace = Property "deathPlace"
 
 propertyPropertyValueSpecificationDefaultValue ::
-  Property PropertyValueSpecification '[Thing, Text]
+  Property PropertyValueSpecification '[Text, Thing]
 propertyPropertyValueSpecificationDefaultValue =
   Property "defaultValue"
 
@@ -12498,10 +12852,6 @@ propertyOrderActionDeliveryMethod ::
   Property OrderAction '[DeliveryMethod]
 propertyOrderActionDeliveryMethod = Property "deliveryMethod"
 
-propertyTrackActionDeliveryMethod ::
-  Property TrackAction '[DeliveryMethod]
-propertyTrackActionDeliveryMethod = Property "deliveryMethod"
-
 propertyReceiveActionDeliveryMethod ::
   Property ReceiveAction '[DeliveryMethod]
 propertyReceiveActionDeliveryMethod = Property "deliveryMethod"
@@ -12510,9 +12860,17 @@ propertySendActionDeliveryMethod ::
   Property SendAction '[DeliveryMethod]
 propertySendActionDeliveryMethod = Property "deliveryMethod"
 
+propertyTrackActionDeliveryMethod ::
+  Property TrackAction '[DeliveryMethod]
+propertyTrackActionDeliveryMethod = Property "deliveryMethod"
+
 propertyParcelDeliveryDeliveryStatus ::
   Property ParcelDelivery '[DeliveryEvent]
 propertyParcelDeliveryDeliveryStatus = Property "deliveryStatus"
+
+propertyDeliveryTimeSettingsDeliveryTime ::
+  Property DeliveryTimeSettings '[ShippingDeliveryTime]
+propertyDeliveryTimeSettingsDeliveryTime = Property "deliveryTime"
 
 propertyOfferShippingDetailsDeliveryTime ::
   Property OfferShippingDetails '[ShippingDeliveryTime]
@@ -12531,7 +12889,7 @@ propertyBoatTripDepartureBoatTerminal =
   Property "departureBoatTerminal"
 
 propertyBusTripDepartureBusStop ::
-  Property BusTrip '[BusStop, BusStation]
+  Property BusTrip '[BusStation, BusStop]
 propertyBusTripDepartureBusStop = Property "departureBusStop"
 
 propertyFlightDepartureGate :: Property Flight '[Text]
@@ -12547,41 +12905,41 @@ propertyTrainTripDepartureStation = Property "departureStation"
 propertyFlightDepartureTerminal :: Property Flight '[Text]
 propertyFlightDepartureTerminal = Property "departureTerminal"
 
-propertyTripDepartureTime :: Property Trip '[Time, DateTime]
+propertyTripDepartureTime :: Property Trip '[DateTime, Time]
 propertyTripDepartureTime = Property "departureTime"
 
 propertyTechArticleDependencies :: Property TechArticle '[Text]
 propertyTechArticleDependencies = Property "dependencies"
 
 propertyOfferShippingDetailsDepth ::
-  Property OfferShippingDetails '[QuantitativeValue, Distance]
+  Property OfferShippingDetails '[Distance, QuantitativeValue]
 propertyOfferShippingDetailsDepth = Property "depth"
 
+propertyProductDepth ::
+  Property Product '[Distance, QuantitativeValue]
+propertyProductDepth = Property "depth"
+
 propertyShippingConditionsDepth ::
-  Property ShippingConditions '[QuantitativeValue, Distance]
+  Property ShippingConditions '[Distance, QuantitativeValue]
 propertyShippingConditionsDepth = Property "depth"
 
 propertyVisualArtworkDepth ::
-  Property VisualArtwork '[QuantitativeValue, Distance]
+  Property VisualArtwork '[Distance, QuantitativeValue]
 propertyVisualArtworkDepth = Property "depth"
 
-propertyProductDepth ::
-  Property Product '[QuantitativeValue, Distance]
-propertyProductDepth = Property "depth"
-
-propertyThingDescription :: Property Thing '[TextObject, Text]
+propertyThingDescription :: Property Thing '[Text, TextObject]
 propertyThingDescription = Property "description"
 
 propertySoftwareApplicationDevice ::
   Property SoftwareApplication '[Text]
 propertySoftwareApplicationDevice = Property "device"
 
-propertyPatientDiagnosis :: Property Patient '[MedicalCondition]
-propertyPatientDiagnosis = Property "diagnosis"
-
 propertyDDxElementDiagnosis ::
   Property DDxElement '[MedicalCondition]
 propertyDDxElementDiagnosis = Property "diagnosis"
+
+propertyPatientDiagnosis :: Property Patient '[MedicalCondition]
+propertyPatientDiagnosis = Property "diagnosis"
 
 propertyAnatomicalStructureDiagram ::
   Property AnatomicalStructure '[ImageObject]
@@ -12606,34 +12964,27 @@ propertyCreativeWorkDigitalSourceType =
 propertyJobPostingDirectApply :: Property JobPosting '[Boolean]
 propertyJobPostingDirectApply = Property "directApply"
 
-propertyEventDirector :: Property Event '[Person]
-propertyEventDirector = Property "director"
-
 propertyClipDirector :: Property Clip '[Person]
 propertyClipDirector = Property "director"
-
-propertyVideoGameSeriesDirector ::
-  Property VideoGameSeries '[Person]
-propertyVideoGameSeriesDirector = Property "director"
-
-propertyRadioSeriesDirector :: Property RadioSeries '[Person]
-propertyRadioSeriesDirector = Property "director"
-
-propertyEpisodeDirector :: Property Episode '[Person]
-propertyEpisodeDirector = Property "director"
-
-propertyVideoObjectDirector :: Property VideoObject '[Person]
-propertyVideoObjectDirector = Property "director"
 
 propertyCreativeWorkSeasonDirector ::
   Property CreativeWorkSeason '[Person]
 propertyCreativeWorkSeasonDirector = Property "director"
 
-propertyMovieSeriesDirector :: Property MovieSeries '[Person]
-propertyMovieSeriesDirector = Property "director"
+propertyEpisodeDirector :: Property Episode '[Person]
+propertyEpisodeDirector = Property "director"
+
+propertyEventDirector :: Property Event '[Person]
+propertyEventDirector = Property "director"
 
 propertyMovieDirector :: Property Movie '[Person]
 propertyMovieDirector = Property "director"
+
+propertyMovieSeriesDirector :: Property MovieSeries '[Person]
+propertyMovieSeriesDirector = Property "director"
+
+propertyRadioSeriesDirector :: Property RadioSeries '[Person]
+propertyRadioSeriesDirector = Property "director"
 
 propertyTVSeriesDirector :: Property TVSeries '[Person]
 propertyTVSeriesDirector = Property "director"
@@ -12641,39 +12992,46 @@ propertyTVSeriesDirector = Property "director"
 propertyVideoGameDirector :: Property VideoGame '[Person]
 propertyVideoGameDirector = Property "director"
 
-propertyVideoGameDirectors :: Property VideoGame '[Person]
-propertyVideoGameDirectors = Property "directors"
+propertyVideoGameSeriesDirector ::
+  Property VideoGameSeries '[Person]
+propertyVideoGameSeriesDirector = Property "director"
+
+propertyVideoObjectDirector :: Property VideoObject '[Person]
+propertyVideoObjectDirector = Property "director"
 
 propertyClipDirectors :: Property Clip '[Person]
 propertyClipDirectors = Property "directors"
+
+propertyEpisodeDirectors :: Property Episode '[Person]
+propertyEpisodeDirectors = Property "directors"
+
+propertyMovieDirectors :: Property Movie '[Person]
+propertyMovieDirectors = Property "directors"
+
+propertyMovieSeriesDirectors :: Property MovieSeries '[Person]
+propertyMovieSeriesDirectors = Property "directors"
+
+propertyRadioSeriesDirectors :: Property RadioSeries '[Person]
+propertyRadioSeriesDirectors = Property "directors"
+
+propertyTVSeriesDirectors :: Property TVSeries '[Person]
+propertyTVSeriesDirectors = Property "directors"
+
+propertyVideoGameDirectors :: Property VideoGame '[Person]
+propertyVideoGameDirectors = Property "directors"
 
 propertyVideoGameSeriesDirectors ::
   Property VideoGameSeries '[Person]
 propertyVideoGameSeriesDirectors = Property "directors"
 
-propertyRadioSeriesDirectors :: Property RadioSeries '[Person]
-propertyRadioSeriesDirectors = Property "directors"
-
-propertyEpisodeDirectors :: Property Episode '[Person]
-propertyEpisodeDirectors = Property "directors"
-
 propertyVideoObjectDirectors :: Property VideoObject '[Person]
 propertyVideoObjectDirectors = Property "directors"
-
-propertyTVSeriesDirectors :: Property TVSeries '[Person]
-propertyTVSeriesDirectors = Property "directors"
-
-propertyMovieSeriesDirectors :: Property MovieSeries '[Person]
-propertyMovieSeriesDirectors = Property "directors"
-
-propertyMovieDirectors :: Property Movie '[Person]
-propertyMovieDirectors = Property "directors"
 
 propertyThingDisambiguatingDescription :: Property Thing '[Text]
 propertyThingDisambiguatingDescription =
   Property "disambiguatingDescription"
 
-propertyOrderDiscount :: Property Order '[Text, Number]
+propertyOrderDiscount :: Property Order '[Number, Text]
 propertyOrderDiscount = Property "discount"
 
 propertyOrderDiscountCode :: Property Order '[Text]
@@ -12697,24 +13055,31 @@ propertySpecialAnnouncementDiseasePreventionInfo =
 propertySpecialAnnouncementDiseaseSpreadStatistics ::
   Property
     SpecialAnnouncement
-    '[ URL,
+    '[ Dataset,
        Observation,
-       Dataset,
+       URL,
        WebContent
      ]
 propertySpecialAnnouncementDiseaseSpreadStatistics =
   Property "diseaseSpreadStatistics"
 
+propertyCreativeWorkDisplayLocation ::
+  Property CreativeWork '[Place]
+propertyCreativeWorkDisplayLocation = Property "displayLocation"
+
+propertyProductDisplayLocation :: Property Product '[Place]
+propertyProductDisplayLocation = Property "displayLocation"
+
 propertyOrganizationDissolutionDate ::
   Property Organization '[Date]
 propertyOrganizationDissolutionDate = Property "dissolutionDate"
 
-propertyTravelActionDistance :: Property TravelAction '[Distance]
-propertyTravelActionDistance = Property "distance"
-
 propertyExerciseActionDistance ::
   Property ExerciseAction '[Distance]
 propertyExerciseActionDistance = Property "distance"
+
+propertyTravelActionDistance :: Property TravelAction '[Distance]
+propertyTravelActionDistance = Property "distance"
 
 propertyDDxElementDistinguishingSign ::
   Property DDxElement '[MedicalSignOrSymptom]
@@ -12724,27 +13089,31 @@ propertyDDxElementDistinguishingSign =
 propertyDatasetDistribution :: Property Dataset '[DataDownload]
 propertyDatasetDistribution = Property "distribution"
 
-propertyOrganizationDiversityPolicy ::
-  Property Organization '[URL, CreativeWork]
-propertyOrganizationDiversityPolicy = Property "diversityPolicy"
-
 propertyNewsMediaOrganizationDiversityPolicy ::
-  Property NewsMediaOrganization '[URL, CreativeWork]
+  Property NewsMediaOrganization '[CreativeWork, URL]
 propertyNewsMediaOrganizationDiversityPolicy =
   Property "diversityPolicy"
 
-propertyOrganizationDiversityStaffingReport ::
-  Property Organization '[Article, URL]
-propertyOrganizationDiversityStaffingReport =
-  Property "diversityStaffingReport"
+propertyOrganizationDiversityPolicy ::
+  Property Organization '[CreativeWork, URL]
+propertyOrganizationDiversityPolicy = Property "diversityPolicy"
 
 propertyNewsMediaOrganizationDiversityStaffingReport ::
   Property NewsMediaOrganization '[Article, URL]
 propertyNewsMediaOrganizationDiversityStaffingReport =
   Property "diversityStaffingReport"
 
-propertyWebAPIDocumentation :: Property WebAPI '[URL, CreativeWork]
+propertyOrganizationDiversityStaffingReport ::
+  Property Organization '[Article, URL]
+propertyOrganizationDiversityStaffingReport =
+  Property "diversityStaffingReport"
+
+propertyWebAPIDocumentation :: Property WebAPI '[CreativeWork, URL]
 propertyWebAPIDocumentation = Property "documentation"
+
+propertyOfferShippingDetailsDoesNotShip ::
+  Property OfferShippingDetails '[Boolean]
+propertyOfferShippingDetailsDoesNotShip = Property "doesNotShip"
 
 propertyShippingConditionsDoesNotShip ::
   Property ShippingConditions '[Boolean]
@@ -12754,37 +13123,33 @@ propertyShippingRateSettingsDoesNotShip ::
   Property ShippingRateSettings '[Boolean]
 propertyShippingRateSettingsDoesNotShip = Property "doesNotShip"
 
-propertyOfferShippingDetailsDoesNotShip ::
-  Property OfferShippingDetails '[Boolean]
-propertyOfferShippingDetailsDoesNotShip = Property "doesNotShip"
-
 propertyMortgageLoanDomiciledMortgage ::
   Property MortgageLoan '[Boolean]
 propertyMortgageLoanDomiciledMortgage =
   Property "domiciledMortgage"
 
-propertyEventDoorTime :: Property Event '[Time, DateTime]
+propertyEventDoorTime :: Property Event '[DateTime, Time]
 propertyEventDoorTime = Property "doorTime"
 
 propertyDrugDosageForm :: Property Drug '[Text]
 propertyDrugDosageForm = Property "dosageForm"
 
+propertyDrugDoseSchedule :: Property Drug '[DoseSchedule]
+propertyDrugDoseSchedule = Property "doseSchedule"
+
 propertyTherapeuticProcedureDoseSchedule ::
   Property TherapeuticProcedure '[DoseSchedule]
 propertyTherapeuticProcedureDoseSchedule = Property "doseSchedule"
-
-propertyDrugDoseSchedule :: Property Drug '[DoseSchedule]
-propertyDrugDoseSchedule = Property "doseSchedule"
 
 propertyDoseScheduleDoseUnit :: Property DoseSchedule '[Text]
 propertyDoseScheduleDoseUnit = Property "doseUnit"
 
 propertyDoseScheduleDoseValue ::
-  Property DoseSchedule '[QualitativeValue, Number]
+  Property DoseSchedule '[Number, QualitativeValue]
 propertyDoseScheduleDoseValue = Property "doseValue"
 
 propertyRepaymentSpecificationDownPayment ::
-  Property RepaymentSpecification '[Number, MonetaryAmount]
+  Property RepaymentSpecification '[MonetaryAmount, Number]
 propertyRepaymentSpecificationDownPayment = Property "downPayment"
 
 propertySoftwareApplicationDownloadUrl ::
@@ -12827,11 +13192,11 @@ propertyTherapeuticProcedureDrug = Property "drug"
 propertyDrugDrugClass :: Property Drug '[DrugClass]
 propertyDrugDrugClass = Property "drugClass"
 
-propertyDrugCostDrugUnit :: Property DrugCost '[Text]
-propertyDrugCostDrugUnit = Property "drugUnit"
-
 propertyDrugDrugUnit :: Property Drug '[Text]
 propertyDrugDrugUnit = Property "drugUnit"
+
+propertyDrugCostDrugUnit :: Property DrugCost '[Text]
+propertyDrugCostDrugUnit = Property "drugUnit"
 
 propertyOrganizationDuns :: Property Organization '[Text]
 propertyOrganizationDuns = Property "duns"
@@ -12844,49 +13209,49 @@ propertyMedicalTherapyDuplicateTherapy ::
 propertyMedicalTherapyDuplicateTherapy =
   Property "duplicateTherapy"
 
-propertyScheduleDuration ::
-  Property Schedule '[QuantitativeValue, Duration]
-propertyScheduleDuration = Property "duration"
-
-propertyMusicReleaseDuration ::
-  Property MusicRelease '[QuantitativeValue, Duration]
-propertyMusicReleaseDuration = Property "duration"
-
-propertyEventDuration ::
-  Property Event '[QuantitativeValue, Duration]
-propertyEventDuration = Property "duration"
+propertyAudiobookDuration ::
+  Property Audiobook '[Duration, QuantitativeValue]
+propertyAudiobookDuration = Property "duration"
 
 propertyEpisodeDuration ::
-  Property Episode '[QuantitativeValue, Duration]
+  Property Episode '[Duration, QuantitativeValue]
 propertyEpisodeDuration = Property "duration"
 
+propertyEventDuration ::
+  Property Event '[Duration, QuantitativeValue]
+propertyEventDuration = Property "duration"
+
 propertyMediaObjectDuration ::
-  Property MediaObject '[QuantitativeValue, Duration]
+  Property MediaObject '[Duration, QuantitativeValue]
 propertyMediaObjectDuration = Property "duration"
+
+propertyMovieDuration ::
+  Property Movie '[Duration, QuantitativeValue]
+propertyMovieDuration = Property "duration"
+
+propertyMusicRecordingDuration ::
+  Property MusicRecording '[Duration, QuantitativeValue]
+propertyMusicRecordingDuration = Property "duration"
+
+propertyMusicReleaseDuration ::
+  Property MusicRelease '[Duration, QuantitativeValue]
+propertyMusicReleaseDuration = Property "duration"
 
 propertyQuantitativeValueDistributionDuration ::
   Property
     QuantitativeValueDistribution
-    '[ QuantitativeValue,
-       Duration
+    '[ Duration,
+       QuantitativeValue
      ]
 propertyQuantitativeValueDistributionDuration = Property "duration"
 
-propertyMusicRecordingDuration ::
-  Property MusicRecording '[QuantitativeValue, Duration]
-propertyMusicRecordingDuration = Property "duration"
-
-propertyMovieDuration ::
-  Property Movie '[QuantitativeValue, Duration]
-propertyMovieDuration = Property "duration"
+propertyScheduleDuration ::
+  Property Schedule '[Duration, QuantitativeValue]
+propertyScheduleDuration = Property "duration"
 
 propertyServicePeriodDuration ::
-  Property ServicePeriod '[QuantitativeValue, Duration]
+  Property ServicePeriod '[Duration, QuantitativeValue]
 propertyServicePeriodDuration = Property "duration"
-
-propertyAudiobookDuration ::
-  Property Audiobook '[QuantitativeValue, Duration]
-propertyAudiobookDuration = Property "duration"
 
 propertyWarrantyPromiseDurationOfWarranty ::
   Property WarrantyPromise '[QuantitativeValue]
@@ -12894,7 +13259,7 @@ propertyWarrantyPromiseDurationOfWarranty =
   Property "durationOfWarranty"
 
 propertyHowToDirectionDuringMedia ::
-  Property HowToDirection '[URL, MediaObject]
+  Property HowToDirection '[MediaObject, URL]
 propertyHowToDirectionDuringMedia = Property "duringMedia"
 
 propertyRepaymentSpecificationEarlyPrepaymentPenalty ::
@@ -12915,25 +13280,30 @@ propertySolveMathActionEduQuestionType ::
   Property SolveMathAction '[Text]
 propertySolveMathActionEduQuestionType = Property "eduQuestionType"
 
+propertyJobPostingEducationRequirements ::
+  Property JobPosting '[EducationalOccupationalCredential, Text]
+propertyJobPostingEducationRequirements =
+  Property "educationRequirements"
+
 propertyOccupationEducationRequirements ::
-  Property Occupation '[Text, EducationalOccupationalCredential]
+  Property Occupation '[EducationalOccupationalCredential, Text]
 propertyOccupationEducationRequirements =
   Property "educationRequirements"
 
-propertyJobPostingEducationRequirements ::
-  Property JobPosting '[Text, EducationalOccupationalCredential]
-propertyJobPostingEducationRequirements =
-  Property "educationRequirements"
+propertyCreativeWorkEducationalAlignment ::
+  Property CreativeWork '[AlignmentObject]
+propertyCreativeWorkEducationalAlignment =
+  Property "educationalAlignment"
 
 propertyLearningResourceEducationalAlignment ::
   Property LearningResource '[AlignmentObject]
 propertyLearningResourceEducationalAlignment =
   Property "educationalAlignment"
 
-propertyCreativeWorkEducationalAlignment ::
-  Property CreativeWork '[AlignmentObject]
-propertyCreativeWorkEducationalAlignment =
-  Property "educationalAlignment"
+propertyCourseEducationalCredentialAwarded ::
+  Property Course '[EducationalOccupationalCredential, Text, URL]
+propertyCourseEducationalCredentialAwarded =
+  Property "educationalCredentialAwarded"
 
 propertyEducationalOccupationalProgramEducationalCredentialAwarded ::
   Property
@@ -12945,38 +13315,33 @@ propertyEducationalOccupationalProgramEducationalCredentialAwarded ::
 propertyEducationalOccupationalProgramEducationalCredentialAwarded =
   Property "educationalCredentialAwarded"
 
-propertyCourseEducationalCredentialAwarded ::
-  Property Course '[EducationalOccupationalCredential, Text, URL]
-propertyCourseEducationalCredentialAwarded =
-  Property "educationalCredentialAwarded"
-
 propertyAlignmentObjectEducationalFramework ::
   Property AlignmentObject '[Text]
 propertyAlignmentObjectEducationalFramework =
   Property "educationalFramework"
 
-propertyLearningResourceEducationalLevel ::
-  Property LearningResource '[URL, Text, DefinedTerm]
-propertyLearningResourceEducationalLevel =
-  Property "educationalLevel"
-
 propertyCreativeWorkEducationalLevel ::
-  Property CreativeWork '[URL, Text, DefinedTerm]
+  Property CreativeWork '[DefinedTerm, Text, URL]
 propertyCreativeWorkEducationalLevel = Property "educationalLevel"
 
 propertyEducationEventEducationalLevel ::
-  Property EducationEvent '[URL, Text, DefinedTerm]
+  Property EducationEvent '[DefinedTerm, Text, URL]
 propertyEducationEventEducationalLevel =
   Property "educationalLevel"
 
 propertyEducationalOccupationalCredentialEducationalLevel ::
   Property
     EducationalOccupationalCredential
-    '[ URL,
+    '[ DefinedTerm,
        Text,
-       DefinedTerm
+       URL
      ]
 propertyEducationalOccupationalCredentialEducationalLevel =
+  Property "educationalLevel"
+
+propertyLearningResourceEducationalLevel ::
+  Property LearningResource '[DefinedTerm, Text, URL]
+propertyLearningResourceEducationalLevel =
   Property "educationalLevel"
 
 propertyEducationalOccupationalProgramEducationalProgramMode ::
@@ -12989,19 +13354,19 @@ propertyEducationalAudienceEducationalRole ::
 propertyEducationalAudienceEducationalRole =
   Property "educationalRole"
 
-propertyLearningResourceEducationalUse ::
-  Property LearningResource '[Text, DefinedTerm]
-propertyLearningResourceEducationalUse = Property "educationalUse"
-
 propertyCreativeWorkEducationalUse ::
-  Property CreativeWork '[Text, DefinedTerm]
+  Property CreativeWork '[DefinedTerm, Text]
 propertyCreativeWorkEducationalUse = Property "educationalUse"
 
+propertyLearningResourceEducationalUse ::
+  Property LearningResource '[DefinedTerm, Text]
+propertyLearningResourceEducationalUse = Property "educationalUse"
+
 propertyGeoCoordinatesElevation ::
-  Property GeoCoordinates '[Text, Number]
+  Property GeoCoordinates '[Number, Text]
 propertyGeoCoordinatesElevation = Property "elevation"
 
-propertyGeoShapeElevation :: Property GeoShape '[Text, Number]
+propertyGeoShapeElevation :: Property GeoShape '[Number, Text]
 propertyGeoShapeElevation = Property "elevation"
 
 propertyJobPostingEligibilityToWorkRequirement ::
@@ -13009,14 +13374,14 @@ propertyJobPostingEligibilityToWorkRequirement ::
 propertyJobPostingEligibilityToWorkRequirement =
   Property "eligibilityToWorkRequirement"
 
-propertyOfferEligibleCustomerType ::
-  Property Offer '[BusinessEntityType]
-propertyOfferEligibleCustomerType = Property "eligibleCustomerType"
-
 propertyDemandEligibleCustomerType ::
   Property Demand '[BusinessEntityType]
 propertyDemandEligibleCustomerType =
   Property "eligibleCustomerType"
+
+propertyOfferEligibleCustomerType ::
+  Property Offer '[BusinessEntityType]
+propertyOfferEligibleCustomerType = Property "eligibleCustomerType"
 
 propertyDemandEligibleDuration ::
   Property Demand '[QuantitativeValue]
@@ -13025,6 +13390,10 @@ propertyDemandEligibleDuration = Property "eligibleDuration"
 propertyOfferEligibleDuration ::
   Property Offer '[QuantitativeValue]
 propertyOfferEligibleDuration = Property "eligibleDuration"
+
+propertyDemandEligibleQuantity ::
+  Property Demand '[QuantitativeValue]
+propertyDemandEligibleQuantity = Property "eligibleQuantity"
 
 propertyOfferEligibleQuantity ::
   Property Offer '[QuantitativeValue]
@@ -13035,27 +13404,23 @@ propertyPriceSpecificationEligibleQuantity ::
 propertyPriceSpecificationEligibleQuantity =
   Property "eligibleQuantity"
 
-propertyDemandEligibleQuantity ::
-  Property Demand '[QuantitativeValue]
-propertyDemandEligibleQuantity = Property "eligibleQuantity"
-
-propertyDemandEligibleRegion ::
-  Property Demand '[Place, GeoShape, Text]
-propertyDemandEligibleRegion = Property "eligibleRegion"
-
-propertyOfferEligibleRegion ::
-  Property Offer '[Place, GeoShape, Text]
-propertyOfferEligibleRegion = Property "eligibleRegion"
+propertyActionAccessSpecificationEligibleRegion ::
+  Property ActionAccessSpecification '[GeoShape, Place, Text]
+propertyActionAccessSpecificationEligibleRegion =
+  Property "eligibleRegion"
 
 propertyDeliveryChargeSpecificationEligibleRegion ::
-  Property DeliveryChargeSpecification '[Place, GeoShape, Text]
+  Property DeliveryChargeSpecification '[GeoShape, Place, Text]
 propertyDeliveryChargeSpecificationEligibleRegion =
   Property "eligibleRegion"
 
-propertyActionAccessSpecificationEligibleRegion ::
-  Property ActionAccessSpecification '[Place, GeoShape, Text]
-propertyActionAccessSpecificationEligibleRegion =
-  Property "eligibleRegion"
+propertyDemandEligibleRegion ::
+  Property Demand '[GeoShape, Place, Text]
+propertyDemandEligibleRegion = Property "eligibleRegion"
+
+propertyOfferEligibleRegion ::
+  Property Offer '[GeoShape, Place, Text]
+propertyOfferEligibleRegion = Property "eligibleRegion"
 
 propertyDemandEligibleTransactionVolume ::
   Property Demand '[PriceSpecification]
@@ -13080,11 +13445,11 @@ propertyFinancialIncentiveEligibleWithSupplier =
 propertyContactPointEmail :: Property ContactPoint '[Text]
 propertyContactPointEmail = Property "email"
 
-propertyPersonEmail :: Property Person '[Text]
-propertyPersonEmail = Property "email"
-
 propertyOrganizationEmail :: Property Organization '[Text]
 propertyOrganizationEmail = Property "email"
+
+propertyPersonEmail :: Property Person '[Text]
+propertyPersonEmail = Property "email"
 
 propertyMediaObjectEmbedUrl :: Property MediaObject '[URL]
 propertyMediaObjectEmbedUrl = Property "embedUrl"
@@ -13136,11 +13501,11 @@ propertyCreativeWorkEncoding ::
 propertyCreativeWorkEncoding = Property "encoding"
 
 propertyCreativeWorkEncodingFormat ::
-  Property CreativeWork '[URL, Text]
+  Property CreativeWork '[Text, URL]
 propertyCreativeWorkEncodingFormat = Property "encodingFormat"
 
 propertyMediaObjectEncodingFormat ::
-  Property MediaObject '[URL, Text]
+  Property MediaObject '[Text, URL]
 propertyMediaObjectEncodingFormat = Property "encodingFormat"
 
 propertyEntryPointEncodingType :: Property EntryPoint '[Text]
@@ -13150,16 +13515,9 @@ propertyCreativeWorkEncodings ::
   Property CreativeWork '[MediaObject]
 propertyCreativeWorkEncodings = Property "encodings"
 
-propertyScheduleEndDate :: Property Schedule '[Date, DateTime]
-propertyScheduleEndDate = Property "endDate"
-
-propertyMerchantReturnPolicySeasonalOverrideEndDate ::
-  Property MerchantReturnPolicySeasonalOverride '[Date, DateTime]
-propertyMerchantReturnPolicySeasonalOverrideEndDate =
-  Property "endDate"
-
-propertyEventEndDate :: Property Event '[Date, DateTime]
-propertyEventEndDate = Property "endDate"
+propertyCreativeWorkSeasonEndDate ::
+  Property CreativeWorkSeason '[Date, DateTime]
+propertyCreativeWorkSeasonEndDate = Property "endDate"
 
 propertyCreativeWorkSeriesEndDate ::
   Property CreativeWorkSeries '[Date, DateTime]
@@ -13169,37 +13527,44 @@ propertyDatedMoneySpecificationEndDate ::
   Property DatedMoneySpecification '[Date, DateTime]
 propertyDatedMoneySpecificationEndDate = Property "endDate"
 
-propertyCreativeWorkSeasonEndDate ::
-  Property CreativeWorkSeason '[Date, DateTime]
-propertyCreativeWorkSeasonEndDate = Property "endDate"
-
-propertyRoleEndDate :: Property Role '[Date, DateTime]
-propertyRoleEndDate = Property "endDate"
-
 propertyEducationalOccupationalProgramEndDate ::
   Property EducationalOccupationalProgram '[Date, DateTime]
 propertyEducationalOccupationalProgramEndDate = Property "endDate"
 
-propertyClipEndOffset :: Property Clip '[Number, HyperTocEntry]
+propertyEventEndDate :: Property Event '[Date, DateTime]
+propertyEventEndDate = Property "endDate"
+
+propertyMerchantReturnPolicySeasonalOverrideEndDate ::
+  Property MerchantReturnPolicySeasonalOverride '[Date, DateTime]
+propertyMerchantReturnPolicySeasonalOverrideEndDate =
+  Property "endDate"
+
+propertyRoleEndDate :: Property Role '[Date, DateTime]
+propertyRoleEndDate = Property "endDate"
+
+propertyScheduleEndDate :: Property Schedule '[Date, DateTime]
+propertyScheduleEndDate = Property "endDate"
+
+propertyClipEndOffset :: Property Clip '[HyperTocEntry, Number]
 propertyClipEndOffset = Property "endOffset"
 
-propertyFoodEstablishmentReservationEndTime ::
-  Property FoodEstablishmentReservation '[Time, DateTime]
-propertyFoodEstablishmentReservationEndTime = Property "endTime"
-
-propertyScheduleEndTime :: Property Schedule '[Time, DateTime]
-propertyScheduleEndTime = Property "endTime"
-
-propertyInteractionCounterEndTime ::
-  Property InteractionCounter '[Time, DateTime]
-propertyInteractionCounterEndTime = Property "endTime"
-
-propertyActionEndTime :: Property Action '[Time, DateTime]
+propertyActionEndTime :: Property Action '[DateTime, Time]
 propertyActionEndTime = Property "endTime"
 
+propertyFoodEstablishmentReservationEndTime ::
+  Property FoodEstablishmentReservation '[DateTime, Time]
+propertyFoodEstablishmentReservationEndTime = Property "endTime"
+
+propertyInteractionCounterEndTime ::
+  Property InteractionCounter '[DateTime, Time]
+propertyInteractionCounterEndTime = Property "endTime"
+
 propertyMediaObjectEndTime ::
-  Property MediaObject '[Time, DateTime]
+  Property MediaObject '[DateTime, Time]
 propertyMediaObjectEndTime = Property "endTime"
+
+propertyScheduleEndTime :: Property Schedule '[DateTime, Time]
+propertyScheduleEndTime = Property "endTime"
 
 propertyEndorseActionEndorsee ::
   Property EndorseAction '[Organization, Person]
@@ -13236,13 +13601,20 @@ propertyPerformActionEntertainmentBusiness ::
 propertyPerformActionEntertainmentBusiness =
   Property "entertainmentBusiness"
 
+propertyMedicalConditionEpidemiology ::
+  Property MedicalCondition '[Text]
+propertyMedicalConditionEpidemiology = Property "epidemiology"
+
 propertyPhysicalActivityEpidemiology ::
   Property PhysicalActivity '[Text]
 propertyPhysicalActivityEpidemiology = Property "epidemiology"
 
-propertyMedicalConditionEpidemiology ::
-  Property MedicalCondition '[Text]
-propertyMedicalConditionEpidemiology = Property "epidemiology"
+propertyCreativeWorkSeasonEpisode ::
+  Property CreativeWorkSeason '[Episode]
+propertyCreativeWorkSeasonEpisode = Property "episode"
+
+propertyRadioSeriesEpisode :: Property RadioSeries '[Episode]
+propertyRadioSeriesEpisode = Property "episode"
 
 propertyTVSeriesEpisode :: Property TVSeries '[Episode]
 propertyTVSeriesEpisode = Property "episode"
@@ -13251,15 +13623,15 @@ propertyVideoGameSeriesEpisode ::
   Property VideoGameSeries '[Episode]
 propertyVideoGameSeriesEpisode = Property "episode"
 
-propertyRadioSeriesEpisode :: Property RadioSeries '[Episode]
-propertyRadioSeriesEpisode = Property "episode"
-
-propertyCreativeWorkSeasonEpisode ::
-  Property CreativeWorkSeason '[Episode]
-propertyCreativeWorkSeasonEpisode = Property "episode"
-
-propertyEpisodeEpisodeNumber :: Property Episode '[Text, Integer]
+propertyEpisodeEpisodeNumber :: Property Episode '[Integer, Text]
 propertyEpisodeEpisodeNumber = Property "episodeNumber"
+
+propertyCreativeWorkSeasonEpisodes ::
+  Property CreativeWorkSeason '[Episode]
+propertyCreativeWorkSeasonEpisodes = Property "episodes"
+
+propertyRadioSeriesEpisodes :: Property RadioSeries '[Episode]
+propertyRadioSeriesEpisodes = Property "episodes"
 
 propertyTVSeriesEpisodes :: Property TVSeries '[Episode]
 propertyTVSeriesEpisodes = Property "episodes"
@@ -13268,13 +13640,6 @@ propertyVideoGameSeriesEpisodes ::
   Property VideoGameSeries '[Episode]
 propertyVideoGameSeriesEpisodes = Property "episodes"
 
-propertyRadioSeriesEpisodes :: Property RadioSeries '[Episode]
-propertyRadioSeriesEpisodes = Property "episodes"
-
-propertyCreativeWorkSeasonEpisodes ::
-  Property CreativeWorkSeason '[Episode]
-propertyCreativeWorkSeasonEpisodes = Property "episodes"
-
 propertyQualitativeValueEqual ::
   Property QualitativeValue '[QualitativeValue]
 propertyQualitativeValueEqual = Property "equal"
@@ -13282,27 +13647,22 @@ propertyQualitativeValueEqual = Property "equal"
 propertyActionError :: Property Action '[Thing]
 propertyActionError = Property "error"
 
-propertyHowToSupplyEstimatedCost ::
-  Property HowToSupply '[MonetaryAmount, Text]
-propertyHowToSupplyEstimatedCost = Property "estimatedCost"
+propertyErrorErrorCode ::
+  Property Error '[DefinedTerm, Integer, StatusEnumeration, Text]
+propertyErrorErrorCode = Property "errorCode"
 
 propertyHowToEstimatedCost ::
   Property HowTo '[MonetaryAmount, Text]
 propertyHowToEstimatedCost = Property "estimatedCost"
 
+propertyHowToSupplyEstimatedCost ::
+  Property HowToSupply '[MonetaryAmount, Text]
+propertyHowToSupplyEstimatedCost = Property "estimatedCost"
+
 propertyFlightEstimatedFlightDuration ::
-  Property Flight '[Text, Duration]
+  Property Flight '[Duration, Text]
 propertyFlightEstimatedFlightDuration =
   Property "estimatedFlightDuration"
-
-propertyOccupationEstimatedSalary ::
-  Property
-    Occupation
-    '[ MonetaryAmount,
-       MonetaryAmountDistribution,
-       Number
-     ]
-propertyOccupationEstimatedSalary = Property "estimatedSalary"
 
 propertyJobPostingEstimatedSalary ::
   Property
@@ -13313,39 +13673,48 @@ propertyJobPostingEstimatedSalary ::
      ]
 propertyJobPostingEstimatedSalary = Property "estimatedSalary"
 
+propertyOccupationEstimatedSalary ::
+  Property
+    Occupation
+    '[ MonetaryAmount,
+       MonetaryAmountDistribution,
+       Number
+     ]
+propertyOccupationEstimatedSalary = Property "estimatedSalary"
+
 propertyMedicalRiskEstimatorEstimatesRiskOf ::
   Property MedicalRiskEstimator '[MedicalEntity]
 propertyMedicalRiskEstimatorEstimatesRiskOf =
   Property "estimatesRiskOf"
 
-propertyOrganizationEthicsPolicy ::
-  Property Organization '[CreativeWork, URL]
-propertyOrganizationEthicsPolicy = Property "ethicsPolicy"
-
 propertyNewsMediaOrganizationEthicsPolicy ::
   Property NewsMediaOrganization '[CreativeWork, URL]
 propertyNewsMediaOrganizationEthicsPolicy = Property "ethicsPolicy"
 
-propertyPlaceEvent :: Property Place '[Event]
-propertyPlaceEvent = Property "event"
-
-propertyLeaveActionEvent :: Property LeaveAction '[Event]
-propertyLeaveActionEvent = Property "event"
+propertyOrganizationEthicsPolicy ::
+  Property Organization '[CreativeWork, URL]
+propertyOrganizationEthicsPolicy = Property "ethicsPolicy"
 
 propertyInformActionEvent :: Property InformAction '[Event]
 propertyInformActionEvent = Property "event"
 
-propertyJoinActionEvent :: Property JoinAction '[Event]
-propertyJoinActionEvent = Property "event"
-
 propertyInviteActionEvent :: Property InviteAction '[Event]
 propertyInviteActionEvent = Property "event"
 
-propertyPlayActionEvent :: Property PlayAction '[Event]
-propertyPlayActionEvent = Property "event"
+propertyJoinActionEvent :: Property JoinAction '[Event]
+propertyJoinActionEvent = Property "event"
+
+propertyLeaveActionEvent :: Property LeaveAction '[Event]
+propertyLeaveActionEvent = Property "event"
 
 propertyOrganizationEvent :: Property Organization '[Event]
 propertyOrganizationEvent = Property "event"
+
+propertyPlaceEvent :: Property Place '[Event]
+propertyPlaceEvent = Property "event"
+
+propertyPlayActionEvent :: Property PlayAction '[Event]
+propertyPlayActionEvent = Property "event"
 
 propertyEventEventAttendanceMode ::
   Property Event '[EventAttendanceModeEnumeration]
@@ -13401,12 +13770,12 @@ propertyExerciseActionExerciseRelatedDiet ::
 propertyExerciseActionExerciseRelatedDiet =
   Property "exerciseRelatedDiet"
 
-propertyExercisePlanExerciseType :: Property ExercisePlan '[Text]
-propertyExercisePlanExerciseType = Property "exerciseType"
-
 propertyExerciseActionExerciseType ::
   Property ExerciseAction '[Text]
 propertyExerciseActionExerciseType = Property "exerciseType"
+
+propertyExercisePlanExerciseType :: Property ExercisePlan '[Text]
+propertyExercisePlanExerciseType = Property "exerciseType"
 
 propertyImageObjectExifData ::
   Property ImageObject '[PropertyValue, Text]
@@ -13427,9 +13796,9 @@ propertyMedicalConditionExpectedPrognosis ::
 propertyMedicalConditionExpectedPrognosis =
   Property "expectedPrognosis"
 
-propertyMediaSubscriptionExpectsAcceptanceOf ::
-  Property MediaSubscription '[Offer]
-propertyMediaSubscriptionExpectsAcceptanceOf =
+propertyActionAccessSpecificationExpectsAcceptanceOf ::
+  Property ActionAccessSpecification '[Offer]
+propertyActionAccessSpecificationExpectsAcceptanceOf =
   Property "expectsAcceptanceOf"
 
 propertyConsumeActionExpectsAcceptanceOf ::
@@ -13437,9 +13806,9 @@ propertyConsumeActionExpectsAcceptanceOf ::
 propertyConsumeActionExpectsAcceptanceOf =
   Property "expectsAcceptanceOf"
 
-propertyActionAccessSpecificationExpectsAcceptanceOf ::
-  Property ActionAccessSpecification '[Offer]
-propertyActionAccessSpecificationExpectsAcceptanceOf =
+propertyMediaSubscriptionExpectsAcceptanceOf ::
+  Property MediaSubscription '[Offer]
+propertyMediaSubscriptionExpectsAcceptanceOf =
   Property "expectsAcceptanceOf"
 
 propertyJobPostingExperienceInPlaceOfEducation ::
@@ -13447,34 +13816,34 @@ propertyJobPostingExperienceInPlaceOfEducation ::
 propertyJobPostingExperienceInPlaceOfEducation =
   Property "experienceInPlaceOfEducation"
 
-propertyOccupationExperienceRequirements ::
-  Property Occupation '[OccupationalExperienceRequirements, Text]
-propertyOccupationExperienceRequirements =
-  Property "experienceRequirements"
-
 propertyJobPostingExperienceRequirements ::
   Property JobPosting '[OccupationalExperienceRequirements, Text]
 propertyJobPostingExperienceRequirements =
+  Property "experienceRequirements"
+
+propertyOccupationExperienceRequirements ::
+  Property Occupation '[OccupationalExperienceRequirements, Text]
+propertyOccupationExperienceRequirements =
   Property "experienceRequirements"
 
 propertyDietExpertConsiderations :: Property Diet '[Text]
 propertyDietExpertConsiderations = Property "expertConsiderations"
 
 propertyCertificationExpires ::
-  Property Certification '[DateTime, Date]
+  Property Certification '[Date, DateTime]
 propertyCertificationExpires = Property "expires"
 
 propertyCreativeWorkExpires ::
-  Property CreativeWork '[DateTime, Date]
+  Property CreativeWork '[Date, DateTime]
 propertyCreativeWorkExpires = Property "expires"
 
 propertyGeneExpressedIn ::
   Property
     Gene
     '[ AnatomicalStructure,
-       DefinedTerm,
+       AnatomicalSystem,
        BioChemEntity,
-       AnatomicalSystem
+       DefinedTerm
      ]
 propertyGeneExpressedIn = Property "expressedIn"
 
@@ -13492,17 +13861,17 @@ propertyNutritionInformationFatContent = Property "fatContent"
 propertyContactPointFaxNumber :: Property ContactPoint '[Text]
 propertyContactPointFaxNumber = Property "faxNumber"
 
-propertyPlaceFaxNumber :: Property Place '[Text]
-propertyPlaceFaxNumber = Property "faxNumber"
+propertyOrganizationFaxNumber :: Property Organization '[Text]
+propertyOrganizationFaxNumber = Property "faxNumber"
 
 propertyPersonFaxNumber :: Property Person '[Text]
 propertyPersonFaxNumber = Property "faxNumber"
 
-propertyOrganizationFaxNumber :: Property Organization '[Text]
-propertyOrganizationFaxNumber = Property "faxNumber"
+propertyPlaceFaxNumber :: Property Place '[Text]
+propertyPlaceFaxNumber = Property "faxNumber"
 
 propertySoftwareApplicationFeatureList ::
-  Property SoftwareApplication '[URL, Text]
+  Property SoftwareApplication '[Text, URL]
 propertySoftwareApplicationFeatureList = Property "featureList"
 
 propertyFinancialProductFeesAndCommissionsSpecification ::
@@ -13527,14 +13896,14 @@ propertySoftwareApplicationFileSize ::
   Property SoftwareApplication '[Text]
 propertySoftwareApplicationFileSize = Property "fileSize"
 
-propertyEducationalOccupationalProgramFinancialAidEligible ::
-  Property EducationalOccupationalProgram '[Text, DefinedTerm]
-propertyEducationalOccupationalProgramFinancialAidEligible =
+propertyCourseFinancialAidEligible ::
+  Property Course '[DefinedTerm, Text]
+propertyCourseFinancialAidEligible =
   Property "financialAidEligible"
 
-propertyCourseFinancialAidEligible ::
-  Property Course '[Text, DefinedTerm]
-propertyCourseFinancialAidEligible =
+propertyEducationalOccupationalProgramFinancialAidEligible ::
+  Property EducationalOccupationalProgram '[DefinedTerm, Text]
+propertyEducationalOccupationalProgramFinancialAidEligible =
   Property "financialAidEligible"
 
 propertyClaimFirstAppearance :: Property Claim '[CreativeWork]
@@ -13545,7 +13914,7 @@ propertyMusicCompositionFirstPerformance ::
 propertyMusicCompositionFirstPerformance =
   Property "firstPerformance"
 
-propertyFlightFlightDistance :: Property Flight '[Text, Distance]
+propertyFlightFlightDistance :: Property Flight '[Distance, Text]
 propertyFlightFlightDistance = Property "flightDistance"
 
 propertyFlightFlightNumber :: Property Flight '[Text]
@@ -13553,6 +13922,12 @@ propertyFlightFlightNumber = Property "flightNumber"
 
 propertyAccommodationFloorLevel :: Property Accommodation '[Text]
 propertyAccommodationFloorLevel = Property "floorLevel"
+
+propertyLocalBusinessFloorLevel :: Property LocalBusiness '[Text]
+propertyLocalBusinessFloorLevel = Property "floorLevel"
+
+propertyResidenceFloorLevel :: Property Residence '[Text]
+propertyResidenceFloorLevel = Property "floorLevel"
 
 propertyPaymentCardFloorLimit ::
   Property PaymentCard '[MonetaryAmount]
@@ -13567,7 +13942,7 @@ propertyFloorPlanFloorSize ::
 propertyFloorPlanFloorSize = Property "floorSize"
 
 propertyFollowActionFollowee ::
-  Property FollowAction '[Person, Organization]
+  Property FollowAction '[Organization, Person]
 propertyFollowActionFollowee = Property "followee"
 
 propertyPersonFollows :: Property Person '[Person]
@@ -13578,7 +13953,7 @@ propertyMedicalProcedureFollowup ::
 propertyMedicalProcedureFollowup = Property "followup"
 
 propertyCookActionFoodEstablishment ::
-  Property CookAction '[Place, FoodEstablishment]
+  Property CookAction '[FoodEstablishment, Place]
 propertyCookActionFoodEstablishment = Property "foodEstablishment"
 
 propertyCookActionFoodEvent :: Property CookAction '[FoodEvent]
@@ -13588,7 +13963,7 @@ propertyDrugFoodWarning :: Property Drug '[Text]
 propertyDrugFoodWarning = Property "foodWarning"
 
 propertyOrganizationFounder ::
-  Property Organization '[Person, Organization]
+  Property Organization '[Organization, Person]
 propertyOrganizationFounder = Property "founder"
 
 propertyOrganizationFounders :: Property Organization '[Person]
@@ -13617,16 +13992,16 @@ propertyShippingRateSettingsFreeShippingThreshold =
 propertyDoseScheduleFrequency :: Property DoseSchedule '[Text]
 propertyDoseScheduleFrequency = Property "frequency"
 
+propertyExerciseActionFromLocation ::
+  Property ExerciseAction '[Place]
+propertyExerciseActionFromLocation = Property "fromLocation"
+
 propertyMoveActionFromLocation :: Property MoveAction '[Place]
 propertyMoveActionFromLocation = Property "fromLocation"
 
 propertyTransferActionFromLocation ::
   Property TransferAction '[Place]
 propertyTransferActionFromLocation = Property "fromLocation"
-
-propertyExerciseActionFromLocation ::
-  Property ExerciseAction '[Place]
-propertyExerciseActionFromLocation = Property "fromLocation"
 
 propertyVehicleFuelCapacity ::
   Property Vehicle '[QuantitativeValue]
@@ -13640,38 +14015,41 @@ propertyVehicleFuelEfficiency ::
   Property Vehicle '[QuantitativeValue]
 propertyVehicleFuelEfficiency = Property "fuelEfficiency"
 
-propertyVehicleFuelType ::
-  Property Vehicle '[QualitativeValue, URL, Text]
-propertyVehicleFuelType = Property "fuelType"
-
 propertyEngineSpecificationFuelType ::
-  Property EngineSpecification '[QualitativeValue, URL, Text]
+  Property EngineSpecification '[QualitativeValue, Text, URL]
 propertyEngineSpecificationFuelType = Property "fuelType"
+
+propertyVehicleFuelType ::
+  Property Vehicle '[QualitativeValue, Text, URL]
+propertyVehicleFuelType = Property "fuelType"
 
 propertyShippingServiceFulfillmentType ::
   Property ShippingService '[FulfillmentTypeEnumeration]
 propertyShippingServiceFulfillmentType = Property "fulfillmentType"
 
 propertyJointFunctionalClass ::
-  Property Joint '[Text, MedicalEntity]
+  Property Joint '[MedicalEntity, Text]
 propertyJointFunctionalClass = Property "functionalClass"
 
 propertyGrantFundedItem ::
   Property
     Grant
-    '[ Organization,
+    '[ BioChemEntity,
        CreativeWork,
-       Person,
-       Product,
-       BioChemEntity,
+       Event,
        MedicalEntity,
-       Event
+       Organization,
+       Person,
+       Product
      ]
 propertyGrantFundedItem = Property "fundedItem"
 
 propertyCreativeWorkFunder ::
   Property CreativeWork '[Organization, Person]
 propertyCreativeWorkFunder = Property "funder"
+
+propertyEventFunder :: Property Event '[Organization, Person]
+propertyEventFunder = Property "funder"
 
 propertyGrantFunder :: Property Grant '[Organization, Person]
 propertyGrantFunder = Property "funder"
@@ -13684,65 +14062,62 @@ propertyOrganizationFunder ::
   Property Organization '[Organization, Person]
 propertyOrganizationFunder = Property "funder"
 
-propertyEventFunder :: Property Event '[Organization, Person]
-propertyEventFunder = Property "funder"
-
 propertyPersonFunder :: Property Person '[Organization, Person]
 propertyPersonFunder = Property "funder"
-
-propertyEventFunding :: Property Event '[Grant]
-propertyEventFunding = Property "funding"
-
-propertyPersonFunding :: Property Person '[Grant]
-propertyPersonFunding = Property "funding"
-
-propertyCreativeWorkFunding :: Property CreativeWork '[Grant]
-propertyCreativeWorkFunding = Property "funding"
-
-propertyProductFunding :: Property Product '[Grant]
-propertyProductFunding = Property "funding"
-
-propertyMedicalEntityFunding :: Property MedicalEntity '[Grant]
-propertyMedicalEntityFunding = Property "funding"
 
 propertyBioChemEntityFunding :: Property BioChemEntity '[Grant]
 propertyBioChemEntityFunding = Property "funding"
 
+propertyCreativeWorkFunding :: Property CreativeWork '[Grant]
+propertyCreativeWorkFunding = Property "funding"
+
+propertyEventFunding :: Property Event '[Grant]
+propertyEventFunding = Property "funding"
+
+propertyMedicalEntityFunding :: Property MedicalEntity '[Grant]
+propertyMedicalEntityFunding = Property "funding"
+
 propertyOrganizationFunding :: Property Organization '[Grant]
 propertyOrganizationFunding = Property "funding"
+
+propertyPersonFunding :: Property Person '[Grant]
+propertyPersonFunding = Property "funding"
+
+propertyProductFunding :: Property Product '[Grant]
+propertyProductFunding = Property "funding"
 
 propertyGameServerGame :: Property GameServer '[VideoGame]
 propertyGameServerGame = Property "game"
 
 propertyPlayGameActionGameAvailabilityType ::
-  Property PlayGameAction '[Text, GameAvailabilityEnumeration]
+  Property PlayGameAction '[GameAvailabilityEnumeration, Text]
 propertyPlayGameActionGameAvailabilityType =
   Property "gameAvailabilityType"
 
 propertyVideoGameGameEdition :: Property VideoGame '[Text]
 propertyVideoGameGameEdition = Property "gameEdition"
 
+propertyGameGameItem :: Property Game '[Thing]
+propertyGameGameItem = Property "gameItem"
+
 propertyVideoGameSeriesGameItem ::
   Property VideoGameSeries '[Thing]
 propertyVideoGameSeriesGameItem = Property "gameItem"
 
-propertyGameGameItem :: Property Game '[Thing]
-propertyGameGameItem = Property "gameItem"
-
-propertyVideoGameSeriesGameLocation ::
-  Property VideoGameSeries '[URL, Place, PostalAddress]
-propertyVideoGameSeriesGameLocation = Property "gameLocation"
-
 propertyGameGameLocation ::
-  Property Game '[URL, Place, PostalAddress]
+  Property Game '[Place, PostalAddress, URL]
 propertyGameGameLocation = Property "gameLocation"
 
+propertyVideoGameSeriesGameLocation ::
+  Property VideoGameSeries '[Place, PostalAddress, URL]
+propertyVideoGameSeriesGameLocation = Property "gameLocation"
+
 propertyVideoGameGamePlatform ::
-  Property VideoGame '[URL, Thing, Text]
+  Property VideoGame '[Text, Thing, URL]
 propertyVideoGameGamePlatform = Property "gamePlatform"
 
 propertyVideoGameSeriesGamePlatform ::
-  Property VideoGameSeries '[URL, Thing, Text]
+  Property VideoGameSeries '[Text, Thing, URL]
 propertyVideoGameSeriesGamePlatform = Property "gamePlatform"
 
 propertyVideoGameGameServer :: Property VideoGame '[GameServer]
@@ -13757,26 +14132,28 @@ propertyPersonGender = Property "gender"
 propertySportsTeamGender :: Property SportsTeam '[GenderType, Text]
 propertySportsTeamGender = Property "gender"
 
-propertyMusicGroupGenre :: Property MusicGroup '[Text, URL]
-propertyMusicGroupGenre = Property "genre"
-
 propertyBroadcastChannelGenre ::
-  Property BroadcastChannel '[Text, URL]
+  Property BroadcastChannel '[DefinedTerm, Text, URL]
 propertyBroadcastChannelGenre = Property "genre"
 
-propertyCreativeWorkGenre :: Property CreativeWork '[Text, URL]
+propertyCreativeWorkGenre ::
+  Property CreativeWork '[DefinedTerm, Text, URL]
 propertyCreativeWorkGenre = Property "genre"
 
-propertyPlaceGeo :: Property Place '[GeoShape, GeoCoordinates]
+propertyMusicGroupGenre ::
+  Property MusicGroup '[DefinedTerm, Text, URL]
+propertyMusicGroupGenre = Property "genre"
+
+propertyPlaceGeo :: Property Place '[GeoCoordinates, GeoShape]
 propertyPlaceGeo = Property "geo"
 
-propertyPlaceGeoContains ::
-  Property Place '[Place, GeospatialGeometry]
-propertyPlaceGeoContains = Property "geoContains"
-
 propertyGeospatialGeometryGeoContains ::
-  Property GeospatialGeometry '[Place, GeospatialGeometry]
+  Property GeospatialGeometry '[GeospatialGeometry, Place]
 propertyGeospatialGeometryGeoContains = Property "geoContains"
+
+propertyPlaceGeoContains ::
+  Property Place '[GeospatialGeometry, Place]
+propertyPlaceGeoContains = Property "geoContains"
 
 propertyGeospatialGeometryGeoCoveredBy ::
   Property GeospatialGeometry '[GeospatialGeometry, Place]
@@ -13786,45 +14163,45 @@ propertyPlaceGeoCoveredBy ::
   Property Place '[GeospatialGeometry, Place]
 propertyPlaceGeoCoveredBy = Property "geoCoveredBy"
 
-propertyPlaceGeoCovers ::
-  Property Place '[GeospatialGeometry, Place]
-propertyPlaceGeoCovers = Property "geoCovers"
-
 propertyGeospatialGeometryGeoCovers ::
   Property GeospatialGeometry '[GeospatialGeometry, Place]
 propertyGeospatialGeometryGeoCovers = Property "geoCovers"
 
-propertyPlaceGeoCrosses ::
+propertyPlaceGeoCovers ::
   Property Place '[GeospatialGeometry, Place]
-propertyPlaceGeoCrosses = Property "geoCrosses"
+propertyPlaceGeoCovers = Property "geoCovers"
 
 propertyGeospatialGeometryGeoCrosses ::
   Property GeospatialGeometry '[GeospatialGeometry, Place]
 propertyGeospatialGeometryGeoCrosses = Property "geoCrosses"
 
+propertyPlaceGeoCrosses ::
+  Property Place '[GeospatialGeometry, Place]
+propertyPlaceGeoCrosses = Property "geoCrosses"
+
 propertyGeospatialGeometryGeoDisjoint ::
-  Property GeospatialGeometry '[Place, GeospatialGeometry]
+  Property GeospatialGeometry '[GeospatialGeometry, Place]
 propertyGeospatialGeometryGeoDisjoint = Property "geoDisjoint"
 
 propertyPlaceGeoDisjoint ::
-  Property Place '[Place, GeospatialGeometry]
+  Property Place '[GeospatialGeometry, Place]
 propertyPlaceGeoDisjoint = Property "geoDisjoint"
 
 propertyGeospatialGeometryGeoEquals ::
-  Property GeospatialGeometry '[Place, GeospatialGeometry]
+  Property GeospatialGeometry '[GeospatialGeometry, Place]
 propertyGeospatialGeometryGeoEquals = Property "geoEquals"
 
 propertyPlaceGeoEquals ::
-  Property Place '[Place, GeospatialGeometry]
-propertyPlaceGeoEquals = Property "geoEquals"
-
-propertyPlaceGeoIntersects ::
   Property Place '[GeospatialGeometry, Place]
-propertyPlaceGeoIntersects = Property "geoIntersects"
+propertyPlaceGeoEquals = Property "geoEquals"
 
 propertyGeospatialGeometryGeoIntersects ::
   Property GeospatialGeometry '[GeospatialGeometry, Place]
 propertyGeospatialGeometryGeoIntersects = Property "geoIntersects"
+
+propertyPlaceGeoIntersects ::
+  Property Place '[GeospatialGeometry, Place]
+propertyPlaceGeoIntersects = Property "geoIntersects"
 
 propertyGeoCircleGeoMidpoint ::
   Property GeoCircle '[GeoCoordinates]
@@ -13839,23 +14216,23 @@ propertyPlaceGeoOverlaps ::
 propertyPlaceGeoOverlaps = Property "geoOverlaps"
 
 propertyGeoCircleGeoRadius ::
-  Property GeoCircle '[Text, Number, Distance]
+  Property GeoCircle '[Distance, Number, Text]
 propertyGeoCircleGeoRadius = Property "geoRadius"
 
 propertyGeospatialGeometryGeoTouches ::
-  Property GeospatialGeometry '[Place, GeospatialGeometry]
+  Property GeospatialGeometry '[GeospatialGeometry, Place]
 propertyGeospatialGeometryGeoTouches = Property "geoTouches"
 
 propertyPlaceGeoTouches ::
-  Property Place '[Place, GeospatialGeometry]
+  Property Place '[GeospatialGeometry, Place]
 propertyPlaceGeoTouches = Property "geoTouches"
 
 propertyGeospatialGeometryGeoWithin ::
-  Property GeospatialGeometry '[Place, GeospatialGeometry]
+  Property GeospatialGeometry '[GeospatialGeometry, Place]
 propertyGeospatialGeometryGeoWithin = Property "geoWithin"
 
 propertyPlaceGeoWithin ::
-  Property Place '[Place, GeospatialGeometry]
+  Property Place '[GeospatialGeometry, Place]
 propertyPlaceGeoWithin = Property "geoWithin"
 
 propertyAudienceGeographicArea ::
@@ -13870,17 +14247,17 @@ propertySpecialAnnouncementGettingTestedInfo =
 propertyPersonGivenName :: Property Person '[Text]
 propertyPersonGivenName = Property "givenName"
 
-propertyPlaceGlobalLocationNumber :: Property Place '[Text]
-propertyPlaceGlobalLocationNumber = Property "globalLocationNumber"
+propertyOrganizationGlobalLocationNumber ::
+  Property Organization '[Text]
+propertyOrganizationGlobalLocationNumber =
+  Property "globalLocationNumber"
 
 propertyPersonGlobalLocationNumber :: Property Person '[Text]
 propertyPersonGlobalLocationNumber =
   Property "globalLocationNumber"
 
-propertyOrganizationGlobalLocationNumber ::
-  Property Organization '[Text]
-propertyOrganizationGlobalLocationNumber =
-  Property "globalLocationNumber"
+propertyPlaceGlobalLocationNumber :: Property Place '[Text]
+propertyPlaceGlobalLocationNumber = Property "globalLocationNumber"
 
 propertySpecialAnnouncementGovernmentBenefitsInfo ::
   Property SpecialAnnouncement '[GovernmentService]
@@ -13895,8 +14272,8 @@ propertyDigitalDocumentPermissionGrantee ::
   Property
     DigitalDocumentPermission
     '[ Audience,
-       Organization,
        ContactPoint,
+       Organization,
        Person
      ]
 propertyDigitalDocumentPermissionGrantee = Property "grantee"
@@ -13927,23 +14304,23 @@ propertyOfferGtin12 = Property "gtin12"
 propertyProductGtin12 :: Property Product '[Text]
 propertyProductGtin12 = Property "gtin12"
 
-propertyProductGtin13 :: Property Product '[Text]
-propertyProductGtin13 = Property "gtin13"
-
 propertyDemandGtin13 :: Property Demand '[Text]
 propertyDemandGtin13 = Property "gtin13"
 
 propertyOfferGtin13 :: Property Offer '[Text]
 propertyOfferGtin13 = Property "gtin13"
 
+propertyProductGtin13 :: Property Product '[Text]
+propertyProductGtin13 = Property "gtin13"
+
+propertyDemandGtin14 :: Property Demand '[Text]
+propertyDemandGtin14 = Property "gtin14"
+
 propertyOfferGtin14 :: Property Offer '[Text]
 propertyOfferGtin14 = Property "gtin14"
 
 propertyProductGtin14 :: Property Product '[Text]
 propertyProductGtin14 = Property "gtin14"
-
-propertyDemandGtin14 :: Property Demand '[Text]
-propertyDemandGtin14 = Property "gtin14"
 
 propertyDemandGtin8 :: Property Demand '[Text]
 propertyDemandGtin8 = Property "gtin8"
@@ -13967,13 +14344,13 @@ propertyMedicalGuidelineGuidelineSubject ::
 propertyMedicalGuidelineGuidelineSubject =
   Property "guidelineSubject"
 
-propertyShippingServiceHandlingTime ::
-  Property ShippingService '[ServicePeriod, QuantitativeValue]
-propertyShippingServiceHandlingTime = Property "handlingTime"
-
 propertyShippingDeliveryTimeHandlingTime ::
-  Property ShippingDeliveryTime '[ServicePeriod, QuantitativeValue]
+  Property ShippingDeliveryTime '[QuantitativeValue, ServicePeriod]
 propertyShippingDeliveryTimeHandlingTime = Property "handlingTime"
+
+propertyShippingServiceHandlingTime ::
+  Property ShippingService '[QuantitativeValue, ServicePeriod]
+propertyShippingServiceHandlingTime = Property "handlingTime"
 
 propertyOfferHasAdultConsideration ::
   Property Offer '[AdultOrientedEnumeration]
@@ -14007,9 +14384,9 @@ propertyCategoryCodeSetHasCategoryCode ::
   Property CategoryCodeSet '[CategoryCode]
 propertyCategoryCodeSetHasCategoryCode = Property "hasCategoryCode"
 
-propertyServiceHasCertification ::
-  Property Service '[Certification]
-propertyServiceHasCertification = Property "hasCertification"
+propertyOrganizationHasCertification ::
+  Property Organization '[Certification]
+propertyOrganizationHasCertification = Property "hasCertification"
 
 propertyPersonHasCertification :: Property Person '[Certification]
 propertyPersonHasCertification = Property "hasCertification"
@@ -14021,9 +14398,9 @@ propertyProductHasCertification ::
   Property Product '[Certification]
 propertyProductHasCertification = Property "hasCertification"
 
-propertyOrganizationHasCertification ::
-  Property Organization '[Certification]
-propertyOrganizationHasCertification = Property "hasCertification"
+propertyServiceHasCertification ::
+  Property Service '[Certification]
+propertyServiceHasCertification = Property "hasCertification"
 
 propertyEducationalOccupationalProgramHasCourse ::
   Property EducationalOccupationalProgram '[Course]
@@ -14035,19 +14412,18 @@ propertyCourseHasCourseInstance ::
 propertyCourseHasCourseInstance = Property "hasCourseInstance"
 
 propertyOrganizationHasCredential ::
-  Property Organization '[EducationalOccupationalCredential]
+  Property Organization '[Credential]
 propertyOrganizationHasCredential = Property "hasCredential"
 
-propertyPersonHasCredential ::
-  Property Person '[EducationalOccupationalCredential]
+propertyPersonHasCredential :: Property Person '[Credential]
 propertyPersonHasCredential = Property "hasCredential"
-
-propertyTaxonHasDefinedTerm :: Property Taxon '[DefinedTerm]
-propertyTaxonHasDefinedTerm = Property "hasDefinedTerm"
 
 propertyDefinedTermSetHasDefinedTerm ::
   Property DefinedTermSet '[DefinedTerm]
 propertyDefinedTermSetHasDefinedTerm = Property "hasDefinedTerm"
+
+propertyTaxonHasDefinedTerm :: Property Taxon '[DefinedTerm]
+propertyTaxonHasDefinedTerm = Property "hasDefinedTerm"
 
 propertyDeliveryEventHasDeliveryMethod ::
   Property DeliveryEvent '[DeliveryMethod]
@@ -14064,6 +14440,16 @@ propertyDigitalDocumentHasDigitalDocumentPermission ::
 propertyDigitalDocumentHasDigitalDocumentPermission =
   Property "hasDigitalDocumentPermission"
 
+propertyOfferHasDigitalProductPassport ::
+  Property Offer '[DigitalProductPassport, URL]
+propertyOfferHasDigitalProductPassport =
+  Property "hasDigitalProductPassport"
+
+propertyProductHasDigitalProductPassport ::
+  Property Product '[DigitalProductPassport, URL]
+propertyProductHasDigitalProductPassport =
+  Property "hasDigitalProductPassport"
+
 propertyPlaceHasDriveThroughService :: Property Place '[Boolean]
 propertyPlaceHasDriveThroughService =
   Property "hasDriveThroughService"
@@ -14078,13 +14464,13 @@ propertyEnergyConsumptionDetailsHasEnergyEfficiencyCategory ::
 propertyEnergyConsumptionDetailsHasEnergyEfficiencyCategory =
   Property "hasEnergyEfficiencyCategory"
 
+propertyOfferHasGS1DigitalLink :: Property Offer '[URL]
+propertyOfferHasGS1DigitalLink = Property "hasGS1DigitalLink"
+
 propertyOrganizationHasGS1DigitalLink ::
   Property Organization '[URL]
 propertyOrganizationHasGS1DigitalLink =
   Property "hasGS1DigitalLink"
-
-propertyOfferHasGS1DigitalLink :: Property Offer '[URL]
-propertyOfferHasGS1DigitalLink = Property "hasGS1DigitalLink"
 
 propertyPlaceHasGS1DigitalLink :: Property Place '[URL]
 propertyPlaceHasGS1DigitalLink = Property "hasGS1DigitalLink"
@@ -14097,7 +14483,7 @@ propertyHealthTopicContentHasHealthAspect ::
 propertyHealthTopicContentHasHealthAspect =
   Property "hasHealthAspect"
 
-propertyPlaceHasMap :: Property Place '[URL, Map]
+propertyPlaceHasMap :: Property Place '[Map, URL]
 propertyPlaceHasMap = Property "hasMap"
 
 propertyCertificationHasMeasurement ::
@@ -14107,13 +14493,13 @@ propertyCertificationHasMeasurement = Property "hasMeasurement"
 propertyOfferHasMeasurement :: Property Offer '[QuantitativeValue]
 propertyOfferHasMeasurement = Property "hasMeasurement"
 
-propertySizeSpecificationHasMeasurement ::
-  Property SizeSpecification '[QuantitativeValue]
-propertySizeSpecificationHasMeasurement = Property "hasMeasurement"
-
 propertyProductHasMeasurement ::
   Property Product '[QuantitativeValue]
 propertyProductHasMeasurement = Property "hasMeasurement"
+
+propertySizeSpecificationHasMeasurement ::
+  Property SizeSpecification '[QuantitativeValue]
+propertySizeSpecificationHasMeasurement = Property "hasMeasurement"
 
 propertyOrganizationHasMemberProgram ::
   Property Organization '[MemberProgram]
@@ -14136,11 +14522,6 @@ propertyMenuSectionHasMenuSection ::
   Property MenuSection '[MenuSection]
 propertyMenuSectionHasMenuSection = Property "hasMenuSection"
 
-propertyProductHasMerchantReturnPolicy ::
-  Property Product '[MerchantReturnPolicy]
-propertyProductHasMerchantReturnPolicy =
-  Property "hasMerchantReturnPolicy"
-
 propertyOfferHasMerchantReturnPolicy ::
   Property Offer '[MerchantReturnPolicy]
 propertyOfferHasMerchantReturnPolicy =
@@ -14151,8 +14532,13 @@ propertyOrganizationHasMerchantReturnPolicy ::
 propertyOrganizationHasMerchantReturnPolicy =
   Property "hasMerchantReturnPolicy"
 
+propertyProductHasMerchantReturnPolicy ::
+  Property Product '[MerchantReturnPolicy]
+propertyProductHasMerchantReturnPolicy =
+  Property "hasMerchantReturnPolicy"
+
 propertyBioChemEntityHasMolecularFunction ::
-  Property BioChemEntity '[DefinedTerm, URL, PropertyValue]
+  Property BioChemEntity '[DefinedTerm, PropertyValue, URL]
 propertyBioChemEntityHasMolecularFunction =
   Property "hasMolecularFunction"
 
@@ -14163,36 +14549,57 @@ propertyOrganizationHasOfferCatalog ::
   Property Organization '[OfferCatalog]
 propertyOrganizationHasOfferCatalog = Property "hasOfferCatalog"
 
-propertyServiceHasOfferCatalog :: Property Service '[OfferCatalog]
-propertyServiceHasOfferCatalog = Property "hasOfferCatalog"
-
 propertyPersonHasOfferCatalog :: Property Person '[OfferCatalog]
 propertyPersonHasOfferCatalog = Property "hasOfferCatalog"
 
-propertyPersonHasPOS :: Property Person '[Place]
-propertyPersonHasPOS = Property "hasPOS"
+propertyServiceHasOfferCatalog :: Property Service '[OfferCatalog]
+propertyServiceHasOfferCatalog = Property "hasOfferCatalog"
 
 propertyOrganizationHasPOS :: Property Organization '[Place]
 propertyOrganizationHasPOS = Property "hasPOS"
 
+propertyPersonHasPOS :: Property Person '[Place]
+propertyPersonHasPOS = Property "hasPOS"
+
 propertyCreativeWorkHasPart ::
   Property CreativeWork '[CreativeWork]
 propertyCreativeWorkHasPart = Property "hasPart"
+
+propertyEventHasParticipationOffer :: Property Event '[Offer]
+propertyEventHasParticipationOffer =
+  Property "hasParticipationOffer"
+
+propertyOrganizationHasProductReturnPolicy ::
+  Property Organization '[ProductReturnPolicy]
+propertyOrganizationHasProductReturnPolicy =
+  Property "hasProductReturnPolicy"
+
+propertyProductHasProductReturnPolicy ::
+  Property Product '[ProductReturnPolicy]
+propertyProductHasProductReturnPolicy =
+  Property "hasProductReturnPolicy"
 
 propertyBioChemEntityHasRepresentation ::
   Property BioChemEntity '[PropertyValue, Text, URL]
 propertyBioChemEntityHasRepresentation =
   Property "hasRepresentation"
 
+propertyOfferShippingDetailsHasShippingService ::
+  Property OfferShippingDetails '[ShippingService]
+propertyOfferShippingDetailsHasShippingService =
+  Property "hasShippingService"
+
 propertyOrganizationHasShippingService ::
   Property Organization '[ShippingService]
 propertyOrganizationHasShippingService =
   Property "hasShippingService"
 
-propertyOfferShippingDetailsHasShippingService ::
-  Property OfferShippingDetails '[ShippingService]
-propertyOfferShippingDetailsHasShippingService =
-  Property "hasShippingService"
+propertyEventHasSponsorshipOffer :: Property Event '[Offer]
+propertyEventHasSponsorshipOffer = Property "hasSponsorshipOffer"
+
+propertyOnlineMarketplaceHasStore ::
+  Property OnlineMarketplace '[OnlineStore]
+propertyOnlineMarketplaceHasStore = Property "hasStore"
 
 propertyMemberProgramTierHasTierBenefit ::
   Property MemberProgramTier '[TierBenefitEnumeration]
@@ -14203,8 +14610,8 @@ propertyMemberProgramTierHasTierRequirement ::
     MemberProgramTier
     '[ CreditCard,
        MonetaryAmount,
-       UnitPriceSpecification,
-       Text
+       Text,
+       UnitPriceSpecification
      ]
 propertyMemberProgramTierHasTierRequirement =
   Property "hasTierRequirement"
@@ -14219,17 +14626,17 @@ propertyProductGroupHasVariant = Property "hasVariant"
 propertyCreativeWorkHeadline :: Property CreativeWork '[Text]
 propertyCreativeWorkHeadline = Property "headline"
 
-propertyPeopleAudienceHealthCondition ::
-  Property PeopleAudience '[MedicalCondition]
-propertyPeopleAudienceHealthCondition = Property "healthCondition"
+propertyMedicalStudyHealthCondition ::
+  Property MedicalStudy '[MedicalCondition]
+propertyMedicalStudyHealthCondition = Property "healthCondition"
 
 propertyPatientHealthCondition ::
   Property Patient '[MedicalCondition]
 propertyPatientHealthCondition = Property "healthCondition"
 
-propertyMedicalStudyHealthCondition ::
-  Property MedicalStudy '[MedicalCondition]
-propertyMedicalStudyHealthCondition = Property "healthCondition"
+propertyPeopleAudienceHealthCondition ::
+  Property PeopleAudience '[MedicalCondition]
+propertyPeopleAudienceHealthCondition = Property "healthCondition"
 
 propertyHealthPlanCostSharingSpecificationHealthPlanCoinsuranceOption ::
   Property HealthPlanCostSharingSpecification '[Text]
@@ -14251,14 +14658,22 @@ propertyHealthPlanCostSharingSpecificationHealthPlanCopayOption ::
 propertyHealthPlanCostSharingSpecificationHealthPlanCopayOption =
   Property "healthPlanCopayOption"
 
-propertyHealthPlanNetworkHealthPlanCostSharing ::
-  Property HealthPlanNetwork '[Boolean]
-propertyHealthPlanNetworkHealthPlanCostSharing =
+propertyHealthPlanFormularyHealthPlanCostSharing ::
+  Property
+    HealthPlanFormulary
+    '[ Boolean,
+       HealthPlanCostSharingSpecification
+     ]
+propertyHealthPlanFormularyHealthPlanCostSharing =
   Property "healthPlanCostSharing"
 
-propertyHealthPlanFormularyHealthPlanCostSharing ::
-  Property HealthPlanFormulary '[Boolean]
-propertyHealthPlanFormularyHealthPlanCostSharing =
+propertyHealthPlanNetworkHealthPlanCostSharing ::
+  Property
+    HealthPlanNetwork
+    '[ Boolean,
+       HealthPlanCostSharingSpecification
+     ]
+propertyHealthPlanNetworkHealthPlanCostSharing =
   Property "healthPlanCostSharing"
 
 propertyHealthInsurancePlanHealthPlanDrugOption ::
@@ -14314,13 +14729,17 @@ propertyMediaObjectHeight ::
   Property MediaObject '[Distance, QuantitativeValue]
 propertyMediaObjectHeight = Property "height"
 
-propertyProductHeight ::
-  Property Product '[Distance, QuantitativeValue]
-propertyProductHeight = Property "height"
-
 propertyOfferShippingDetailsHeight ::
   Property OfferShippingDetails '[Distance, QuantitativeValue]
 propertyOfferShippingDetailsHeight = Property "height"
+
+propertyPersonHeight ::
+  Property Person '[Distance, QuantitativeValue]
+propertyPersonHeight = Property "height"
+
+propertyProductHeight ::
+  Property Product '[Distance, QuantitativeValue]
+propertyProductHeight = Property "height"
 
 propertyShippingConditionsHeight ::
   Property ShippingConditions '[Distance, QuantitativeValue]
@@ -14330,12 +14749,8 @@ propertyVisualArtworkHeight ::
   Property VisualArtwork '[Distance, QuantitativeValue]
 propertyVisualArtworkHeight = Property "height"
 
-propertyPersonHeight ::
-  Property Person '[Distance, QuantitativeValue]
-propertyPersonHeight = Property "height"
-
 propertyAggregateOfferHighPrice ::
-  Property AggregateOffer '[Text, Number]
+  Property AggregateOffer '[Number, Text]
 propertyAggregateOfferHighPrice = Property "highPrice"
 
 propertyJobPostingHiringOrganization ::
@@ -14376,6 +14791,10 @@ propertyProgramMembershipHostingOrganization ::
 propertyProgramMembershipHostingOrganization =
   Property "hostingOrganization"
 
+propertyContactPointHoursAvailable ::
+  Property ContactPoint '[OpeningHoursSpecification]
+propertyContactPointHoursAvailable = Property "hoursAvailable"
+
 propertyLocationFeatureSpecificationHoursAvailable ::
   Property LocationFeatureSpecification '[OpeningHoursSpecification]
 propertyLocationFeatureSpecificationHoursAvailable =
@@ -14384,10 +14803,6 @@ propertyLocationFeatureSpecificationHoursAvailable =
 propertyServiceHoursAvailable ::
   Property Service '[OpeningHoursSpecification]
 propertyServiceHoursAvailable = Property "hoursAvailable"
-
-propertyContactPointHoursAvailable ::
-  Property ContactPoint '[OpeningHoursSpecification]
-propertyContactPointHoursAvailable = Property "hoursAvailable"
 
 propertyMedicalProcedureHowPerformed ::
   Property MedicalProcedure '[Text]
@@ -14406,7 +14821,7 @@ propertyAirportIcaoCode :: Property Airport '[Text]
 propertyAirportIcaoCode = Property "icaoCode"
 
 propertyThingIdentifier ::
-  Property Thing '[PropertyValue, URL, Text]
+  Property Thing '[PropertyValue, Text, URL]
 propertyThingIdentifier = Property "identifier"
 
 propertyMedicalSignIdentifyingExam ::
@@ -14427,6 +14842,9 @@ propertyImagingTestImagingTechnique ::
   Property ImagingTest '[MedicalImagingTechnique]
 propertyImagingTestImagingTechnique = Property "imagingTechnique"
 
+propertyProductImporter :: Property Product '[Organization, Person]
+propertyProductImporter = Property "importer"
+
 propertyMusicRecordingInAlbum ::
   Property MusicRecording '[MusicAlbum]
 propertyMusicRecordingInAlbum = Property "inAlbum"
@@ -14443,38 +14861,38 @@ propertyMolecularEntityInChIKey :: Property MolecularEntity '[Text]
 propertyMolecularEntityInChIKey = Property "inChIKey"
 
 propertyCategoryCodeInCodeSet ::
-  Property CategoryCode '[URL, CategoryCodeSet]
+  Property CategoryCode '[CategoryCodeSet, URL]
 propertyCategoryCodeInCodeSet = Property "inCodeSet"
 
 propertyDefinedTermInDefinedTermSet ::
   Property DefinedTerm '[DefinedTermSet, URL]
 propertyDefinedTermInDefinedTermSet = Property "inDefinedTermSet"
 
-propertyPronounceableTextInLanguage ::
-  Property PronounceableText '[Text, Language]
-propertyPronounceableTextInLanguage = Property "inLanguage"
-
 propertyBroadcastServiceInLanguage ::
-  Property BroadcastService '[Text, Language]
+  Property BroadcastService '[Language, Text]
 propertyBroadcastServiceInLanguage = Property "inLanguage"
 
-propertyLinkRoleInLanguage :: Property LinkRole '[Text, Language]
-propertyLinkRoleInLanguage = Property "inLanguage"
-
-propertyWriteActionInLanguage ::
-  Property WriteAction '[Text, Language]
-propertyWriteActionInLanguage = Property "inLanguage"
-
 propertyCommunicateActionInLanguage ::
-  Property CommunicateAction '[Text, Language]
+  Property CommunicateAction '[Language, Text]
 propertyCommunicateActionInLanguage = Property "inLanguage"
 
-propertyEventInLanguage :: Property Event '[Text, Language]
+propertyCreativeWorkInLanguage ::
+  Property CreativeWork '[Language, Text]
+propertyCreativeWorkInLanguage = Property "inLanguage"
+
+propertyEventInLanguage :: Property Event '[Language, Text]
 propertyEventInLanguage = Property "inLanguage"
 
-propertyCreativeWorkInLanguage ::
-  Property CreativeWork '[Text, Language]
-propertyCreativeWorkInLanguage = Property "inLanguage"
+propertyLinkRoleInLanguage :: Property LinkRole '[Language, Text]
+propertyLinkRoleInLanguage = Property "inLanguage"
+
+propertyPronounceableTextInLanguage ::
+  Property PronounceableText '[Language, Text]
+propertyPronounceableTextInLanguage = Property "inLanguage"
+
+propertyWriteActionInLanguage ::
+  Property WriteAction '[Language, Text]
+propertyWriteActionInLanguage = Property "inLanguage"
 
 propertyMusicRecordingInPlaylist ::
   Property MusicRecording '[MusicPlaylist]
@@ -14495,9 +14913,9 @@ propertyThesisInSupportOf = Property "inSupportOf"
 propertyFinancialIncentiveIncentiveAmount ::
   Property
     FinancialIncentive
-    '[ QuantitativeValue,
-       UnitPriceSpecification,
-       LoanOrCredit
+    '[ LoanOrCredit,
+       QuantitativeValue,
+       UnitPriceSpecification
      ]
 propertyFinancialIncentiveIncentiveAmount =
   Property "incentiveAmount"
@@ -14520,7 +14938,7 @@ propertyJobPostingIncentives :: Property JobPosting '[Text]
 propertyJobPostingIncentives = Property "incentives"
 
 propertyFinancialIncentiveIncentivizedItem ::
-  Property FinancialIncentive '[Product, DefinedTerm]
+  Property FinancialIncentive '[DefinedTerm, Product]
 propertyFinancialIncentiveIncentivizedItem =
   Property "incentivizedItem"
 
@@ -14589,26 +15007,26 @@ propertyJobPostingIndustry ::
 propertyJobPostingIndustry = Property "industry"
 
 propertyActionAccessSpecificationIneligibleRegion ::
-  Property ActionAccessSpecification '[Place, GeoShape, Text]
+  Property ActionAccessSpecification '[GeoShape, Place, Text]
 propertyActionAccessSpecificationIneligibleRegion =
   Property "ineligibleRegion"
 
-propertyDemandIneligibleRegion ::
-  Property Demand '[Place, GeoShape, Text]
-propertyDemandIneligibleRegion = Property "ineligibleRegion"
-
-propertyOfferIneligibleRegion ::
-  Property Offer '[Place, GeoShape, Text]
-propertyOfferIneligibleRegion = Property "ineligibleRegion"
-
 propertyDeliveryChargeSpecificationIneligibleRegion ::
-  Property DeliveryChargeSpecification '[Place, GeoShape, Text]
+  Property DeliveryChargeSpecification '[GeoShape, Place, Text]
 propertyDeliveryChargeSpecificationIneligibleRegion =
   Property "ineligibleRegion"
 
+propertyDemandIneligibleRegion ::
+  Property Demand '[GeoShape, Place, Text]
+propertyDemandIneligibleRegion = Property "ineligibleRegion"
+
 propertyMediaObjectIneligibleRegion ::
-  Property MediaObject '[Place, GeoShape, Text]
+  Property MediaObject '[GeoShape, Place, Text]
 propertyMediaObjectIneligibleRegion = Property "ineligibleRegion"
+
+propertyOfferIneligibleRegion ::
+  Property Offer '[GeoShape, Place, Text]
+propertyOfferIneligibleRegion = Property "ineligibleRegion"
 
 propertyInfectiousDiseaseInfectiousAgent ::
   Property InfectiousDisease '[Text]
@@ -14623,11 +15041,11 @@ propertyInfectiousDiseaseInfectiousAgentClass =
 propertyRecipeIngredients :: Property Recipe '[Text]
 propertyRecipeIngredients = Property "ingredients"
 
-propertyComicStoryInker :: Property ComicStory '[Person]
-propertyComicStoryInker = Property "inker"
-
 propertyComicIssueInker :: Property ComicIssue '[Person]
 propertyComicIssueInker = Property "inker"
+
+propertyComicStoryInker :: Property ComicStory '[Person]
+propertyComicStoryInker = Property "inker"
 
 propertyVisualArtworkInker :: Property VisualArtwork '[Person]
 propertyVisualArtworkInker = Property "inker"
@@ -14654,13 +15072,13 @@ propertyDrugInteractingDrug :: Property Drug '[Drug]
 propertyDrugInteractingDrug = Property "interactingDrug"
 
 propertyInteractionCounterInteractionService ::
-  Property InteractionCounter '[WebSite, SoftwareApplication]
+  Property InteractionCounter '[SoftwareApplication, WebSite]
 propertyInteractionCounterInteractionService =
   Property "interactionService"
 
-propertyPersonInteractionStatistic ::
-  Property Person '[InteractionCounter]
-propertyPersonInteractionStatistic =
+propertyCreativeWorkInteractionStatistic ::
+  Property CreativeWork '[InteractionCounter]
+propertyCreativeWorkInteractionStatistic =
   Property "interactionStatistic"
 
 propertyOrganizationInteractionStatistic ::
@@ -14668,9 +15086,9 @@ propertyOrganizationInteractionStatistic ::
 propertyOrganizationInteractionStatistic =
   Property "interactionStatistic"
 
-propertyCreativeWorkInteractionStatistic ::
-  Property CreativeWork '[InteractionCounter]
-propertyCreativeWorkInteractionStatistic =
+propertyPersonInteractionStatistic ::
+  Property Person '[InteractionCounter]
+propertyPersonInteractionStatistic =
   Property "interactionStatistic"
 
 propertyInteractionCounterInteractionType ::
@@ -14713,13 +15131,13 @@ propertyMedicalOrganizationIsAcceptingNewPatients ::
 propertyMedicalOrganizationIsAcceptingNewPatients =
   Property "isAcceptingNewPatients"
 
-propertyEventIsAccessibleForFree :: Property Event '[Boolean]
-propertyEventIsAccessibleForFree = Property "isAccessibleForFree"
-
 propertyCreativeWorkIsAccessibleForFree ::
   Property CreativeWork '[Boolean]
 propertyCreativeWorkIsAccessibleForFree =
   Property "isAccessibleForFree"
+
+propertyEventIsAccessibleForFree :: Property Event '[Boolean]
+propertyEventIsAccessibleForFree = Property "isAccessibleForFree"
 
 propertyPlaceIsAccessibleForFree :: Property Place '[Boolean]
 propertyPlaceIsAccessibleForFree = Property "isAccessibleForFree"
@@ -14753,17 +15171,17 @@ propertyCreativeWorkIsFamilyFriendly ::
   Property CreativeWork '[Boolean]
 propertyCreativeWorkIsFamilyFriendly = Property "isFamilyFriendly"
 
-propertyProductIsFamilyFriendly :: Property Product '[Boolean]
-propertyProductIsFamilyFriendly = Property "isFamilyFriendly"
-
 propertyOfferIsFamilyFriendly :: Property Offer '[Boolean]
 propertyOfferIsFamilyFriendly = Property "isFamilyFriendly"
+
+propertyProductIsFamilyFriendly :: Property Product '[Boolean]
+propertyProductIsFamilyFriendly = Property "isFamilyFriendly"
 
 propertyOrderIsGift :: Property Order '[Boolean]
 propertyOrderIsGift = Property "isGift"
 
 propertyBioChemEntityIsInvolvedInBiologicalProcess ::
-  Property BioChemEntity '[PropertyValue, DefinedTerm, URL]
+  Property BioChemEntity '[DefinedTerm, PropertyValue, URL]
 propertyBioChemEntityIsInvolvedInBiologicalProcess =
   Property "isInvolvedInBiologicalProcess"
 
@@ -14772,12 +15190,15 @@ propertyBroadcastEventIsLiveBroadcast ::
 propertyBroadcastEventIsLiveBroadcast = Property "isLiveBroadcast"
 
 propertyBioChemEntityIsLocatedInSubcellularLocation ::
-  Property BioChemEntity '[PropertyValue, URL, DefinedTerm]
+  Property BioChemEntity '[DefinedTerm, PropertyValue, URL]
 propertyBioChemEntityIsLocatedInSubcellularLocation =
   Property "isLocatedInSubcellularLocation"
 
+propertyProductIsOftenBoughtWith :: Property Product '[Product]
+propertyProductIsOftenBoughtWith = Property "isOftenBoughtWith"
+
 propertyCreativeWorkIsPartOf ::
-  Property CreativeWork '[URL, CreativeWork]
+  Property CreativeWork '[CreativeWork, URL]
 propertyCreativeWorkIsPartOf = Property "isPartOf"
 
 propertyBioChemEntityIsPartOfBioChemEntity ::
@@ -14789,44 +15210,53 @@ propertyFloorPlanIsPlanForApartment ::
   Property FloorPlan '[Accommodation]
 propertyFloorPlanIsPlanForApartment = Property "isPlanForApartment"
 
-propertyDrugIsProprietary :: Property Drug '[Boolean]
-propertyDrugIsProprietary = Property "isProprietary"
-
 propertyDietarySupplementIsProprietary ::
   Property DietarySupplement '[Boolean]
 propertyDietarySupplementIsProprietary = Property "isProprietary"
 
-propertyProductIsRelatedTo :: Property Product '[Service, Product]
+propertyDrugIsProprietary :: Property Drug '[Boolean]
+propertyDrugIsProprietary = Property "isProprietary"
+
+propertyProductIsRelatedTo :: Property Product '[Product, Service]
 propertyProductIsRelatedTo = Property "isRelatedTo"
 
-propertyServiceIsRelatedTo :: Property Service '[Service, Product]
+propertyServiceIsRelatedTo :: Property Service '[Product, Service]
 propertyServiceIsRelatedTo = Property "isRelatedTo"
 
 propertyDModelIsResizable :: Property DModel '[Boolean]
 propertyDModelIsResizable = Property "isResizable"
 
+propertyProductIsSimilarTo :: Property Product '[Product, Service]
+propertyProductIsSimilarTo = Property "isSimilarTo"
+
 propertyServiceIsSimilarTo :: Property Service '[Product, Service]
 propertyServiceIsSimilarTo = Property "isSimilarTo"
 
-propertyProductIsSimilarTo :: Property Product '[Product, Service]
-propertyProductIsSimilarTo = Property "isSimilarTo"
+propertyOnlineStoreIsStoreOn ::
+  Property OnlineStore '[OnlineMarketplace]
+propertyOnlineStoreIsStoreOn = Property "isStoreOn"
 
 propertyMemberProgramTierIsTierOf ::
   Property MemberProgramTier '[MemberProgram]
 propertyMemberProgramTierIsTierOf = Property "isTierOf"
+
+propertyDeliveryTimeSettingsIsUnlabelledFallback ::
+  Property DeliveryTimeSettings '[Boolean]
+propertyDeliveryTimeSettingsIsUnlabelledFallback =
+  Property "isUnlabelledFallback"
 
 propertyShippingRateSettingsIsUnlabelledFallback ::
   Property ShippingRateSettings '[Boolean]
 propertyShippingRateSettingsIsUnlabelledFallback =
   Property "isUnlabelledFallback"
 
-propertyProductModelIsVariantOf ::
-  Property ProductModel '[ProductModel, ProductGroup]
-propertyProductModelIsVariantOf = Property "isVariantOf"
-
 propertyProductIsVariantOf ::
-  Property Product '[ProductModel, ProductGroup]
+  Property Product '[ProductGroup, ProductModel]
 propertyProductIsVariantOf = Property "isVariantOf"
+
+propertyProductModelIsVariantOf ::
+  Property ProductModel '[ProductGroup, ProductModel]
+propertyProductModelIsVariantOf = Property "isVariantOf"
 
 propertyBookIsbn :: Property Book '[Text]
 propertyBookIsbn = Property "isbn"
@@ -14834,11 +15264,11 @@ propertyBookIsbn = Property "isbn"
 propertyOrganizationIsicV4 :: Property Organization '[Text]
 propertyOrganizationIsicV4 = Property "isicV4"
 
-propertyPlaceIsicV4 :: Property Place '[Text]
-propertyPlaceIsicV4 = Property "isicV4"
-
 propertyPersonIsicV4 :: Property Person '[Text]
 propertyPersonIsicV4 = Property "isicV4"
+
+propertyPlaceIsicV4 :: Property Place '[Text]
+propertyPlaceIsicV4 = Property "isicV4"
 
 propertyOrganizationIso6523Code :: Property Organization '[Text]
 propertyOrganizationIso6523Code = Property "iso6523Code"
@@ -14846,32 +15276,32 @@ propertyOrganizationIso6523Code = Property "iso6523Code"
 propertyMusicRecordingIsrcCode :: Property MusicRecording '[Text]
 propertyMusicRecordingIsrcCode = Property "isrcCode"
 
+propertyBlogIssn :: Property Blog '[Text]
+propertyBlogIssn = Property "issn"
+
+propertyCreativeWorkSeriesIssn ::
+  Property CreativeWorkSeries '[Text]
+propertyCreativeWorkSeriesIssn = Property "issn"
+
 propertyDatasetIssn :: Property Dataset '[Text]
 propertyDatasetIssn = Property "issn"
 
 propertyWebSiteIssn :: Property WebSite '[Text]
 propertyWebSiteIssn = Property "issn"
 
-propertyCreativeWorkSeriesIssn ::
-  Property CreativeWorkSeries '[Text]
-propertyCreativeWorkSeriesIssn = Property "issn"
-
-propertyBlogIssn :: Property Blog '[Text]
-propertyBlogIssn = Property "issn"
-
 propertyPublicationIssueIssueNumber ::
-  Property PublicationIssue '[Text, Integer]
+  Property PublicationIssue '[Integer, Text]
 propertyPublicationIssueIssueNumber = Property "issueNumber"
-
-propertyTicketIssuedBy :: Property Ticket '[Organization]
-propertyTicketIssuedBy = Property "issuedBy"
-
-propertyPermitIssuedBy :: Property Permit '[Organization]
-propertyPermitIssuedBy = Property "issuedBy"
 
 propertyCertificationIssuedBy ::
   Property Certification '[Organization]
 propertyCertificationIssuedBy = Property "issuedBy"
+
+propertyPermitIssuedBy :: Property Permit '[Organization]
+propertyPermitIssuedBy = Property "issuedBy"
+
+propertyTicketIssuedBy :: Property Ticket '[Organization]
+propertyTicketIssuedBy = Property "issuedBy"
 
 propertyPermitIssuedThrough :: Property Permit '[Service]
 propertyPermitIssuedThrough = Property "issuedThrough"
@@ -14886,21 +15316,21 @@ propertyDataFeedItemItem = Property "item"
 propertyListItemItem :: Property ListItem '[Thing]
 propertyListItemItem = Property "item"
 
-propertyOfferItemCondition :: Property Offer '[OfferItemCondition]
-propertyOfferItemCondition = Property "itemCondition"
+propertyDemandItemCondition ::
+  Property Demand '[OfferItemCondition]
+propertyDemandItemCondition = Property "itemCondition"
 
 propertyMerchantReturnPolicyItemCondition ::
   Property MerchantReturnPolicy '[OfferItemCondition]
 propertyMerchantReturnPolicyItemCondition =
   Property "itemCondition"
 
+propertyOfferItemCondition :: Property Offer '[OfferItemCondition]
+propertyOfferItemCondition = Property "itemCondition"
+
 propertyProductItemCondition ::
   Property Product '[OfferItemCondition]
 propertyProductItemCondition = Property "itemCondition"
-
-propertyDemandItemCondition ::
-  Property Demand '[OfferItemCondition]
-propertyDemandItemCondition = Property "itemCondition"
 
 propertyMerchantReturnPolicyItemDefectReturnFees ::
   Property MerchantReturnPolicy '[ReturnFeesEnumeration]
@@ -14918,26 +15348,26 @@ propertyMerchantReturnPolicyItemDefectReturnShippingFeesAmount =
   Property "itemDefectReturnShippingFeesAmount"
 
 propertyItemListItemListElement ::
-  Property ItemList '[ListItem, Thing, Text]
+  Property ItemList '[ListItem, Text, Thing]
 propertyItemListItemListElement = Property "itemListElement"
 
 propertyItemListItemListOrder ::
-  Property ItemList '[Text, ItemListOrderType]
+  Property ItemList '[ItemListOrderType, Text]
 propertyItemListItemListOrder = Property "itemListOrder"
 
 propertyArchiveComponentItemLocation ::
-  Property ArchiveComponent '[PostalAddress, Place, Text]
+  Property ArchiveComponent '[Place, PostalAddress, Text]
 propertyArchiveComponentItemLocation = Property "itemLocation"
 
 propertyDemandItemOffered ::
   Property
     Demand
-    '[ Service,
-       AggregateOffer,
+    '[ AggregateOffer,
        CreativeWork,
        Event,
        MenuItem,
        Product,
+       Service,
        Trip
      ]
 propertyDemandItemOffered = Property "itemOffered"
@@ -14945,22 +15375,26 @@ propertyDemandItemOffered = Property "itemOffered"
 propertyOfferItemOffered ::
   Property
     Offer
-    '[ Service,
-       AggregateOffer,
+    '[ AggregateOffer,
        CreativeWork,
        Event,
        MenuItem,
        Product,
+       Service,
        Trip
      ]
 propertyOfferItemOffered = Property "itemOffered"
 
-propertyReviewItemReviewed :: Property Review '[Thing]
-propertyReviewItemReviewed = Property "itemReviewed"
+propertyOfferItemPopularity ::
+  Property Offer '[Number, QuantitativeValue]
+propertyOfferItemPopularity = Property "itemPopularity"
 
 propertyAggregateRatingItemReviewed ::
   Property AggregateRating '[Thing]
 propertyAggregateRatingItemReviewed = Property "itemReviewed"
+
+propertyReviewItemReviewed :: Property Review '[Thing]
+propertyReviewItemReviewed = Property "itemReviewed"
 
 propertyParcelDeliveryItemShipped ::
   Property ParcelDelivery '[Product]
@@ -14976,6 +15410,10 @@ propertyMolecularEntityIupacName = Property "iupacName"
 propertyJobPostingJobBenefits :: Property JobPosting '[Text]
 propertyJobPostingJobBenefits = Property "jobBenefits"
 
+propertyJobPostingJobDuration ::
+  Property JobPosting '[Duration, QuantitativeValue]
+propertyJobPostingJobDuration = Property "jobDuration"
+
 propertyJobPostingJobImmediateStart ::
   Property JobPosting '[Boolean]
 propertyJobPostingJobImmediateStart = Property "jobImmediateStart"
@@ -14989,33 +15427,33 @@ propertyJobPostingJobLocationType = Property "jobLocationType"
 propertyJobPostingJobStartDate :: Property JobPosting '[Date, Text]
 propertyJobPostingJobStartDate = Property "jobStartDate"
 
-propertyPersonJobTitle :: Property Person '[Text, DefinedTerm]
+propertyPersonJobTitle :: Property Person '[DefinedTerm, Text]
 propertyPersonJobTitle = Property "jobTitle"
-
-propertyLegislationJurisdiction ::
-  Property Legislation '[AdministrativeArea, Text]
-propertyLegislationJurisdiction = Property "jurisdiction"
 
 propertyGovernmentServiceJurisdiction ::
   Property GovernmentService '[AdministrativeArea, Text]
 propertyGovernmentServiceJurisdiction = Property "jurisdiction"
 
-propertyOrganizationKeywords ::
-  Property Organization '[URL, Text, DefinedTerm]
-propertyOrganizationKeywords = Property "keywords"
-
-propertyEventKeywords :: Property Event '[URL, Text, DefinedTerm]
-propertyEventKeywords = Property "keywords"
-
-propertyPlaceKeywords :: Property Place '[URL, Text, DefinedTerm]
-propertyPlaceKeywords = Property "keywords"
+propertyLegislationJurisdiction ::
+  Property Legislation '[AdministrativeArea, Text]
+propertyLegislationJurisdiction = Property "jurisdiction"
 
 propertyCreativeWorkKeywords ::
-  Property CreativeWork '[URL, Text, DefinedTerm]
+  Property CreativeWork '[DefinedTerm, Text, URL]
 propertyCreativeWorkKeywords = Property "keywords"
 
+propertyEventKeywords :: Property Event '[DefinedTerm, Text, URL]
+propertyEventKeywords = Property "keywords"
+
+propertyOrganizationKeywords ::
+  Property Organization '[DefinedTerm, Text, URL]
+propertyOrganizationKeywords = Property "keywords"
+
+propertyPlaceKeywords :: Property Place '[DefinedTerm, Text, URL]
+propertyPlaceKeywords = Property "keywords"
+
 propertyProductKeywords ::
-  Property Product '[URL, Text, DefinedTerm]
+  Property Product '[DefinedTerm, Text, URL]
 propertyProductKeywords = Property "keywords"
 
 propertyVehicleKnownVehicleDamages :: Property Vehicle '[Text]
@@ -15025,17 +15463,17 @@ propertyPersonKnows :: Property Person '[Person]
 propertyPersonKnows = Property "knows"
 
 propertyOrganizationKnowsAbout ::
-  Property Organization '[URL, Text, Thing]
+  Property Organization '[Text, Thing, URL]
 propertyOrganizationKnowsAbout = Property "knowsAbout"
 
-propertyPersonKnowsAbout :: Property Person '[URL, Text, Thing]
+propertyPersonKnowsAbout :: Property Person '[Text, Thing, URL]
 propertyPersonKnowsAbout = Property "knowsAbout"
 
 propertyOrganizationKnowsLanguage ::
-  Property Organization '[Text, Language]
+  Property Organization '[Language, Text]
 propertyOrganizationKnowsLanguage = Property "knowsLanguage"
 
-propertyPersonKnowsLanguage :: Property Person '[Text, Language]
+propertyPersonKnowsLanguage :: Property Person '[Language, Text]
 propertyPersonKnowsLanguage = Property "knowsLanguage"
 
 propertyDrugLabelDetails :: Property Drug '[URL]
@@ -15056,37 +15494,37 @@ propertyWebPageLastReviewed :: Property WebPage '[Date]
 propertyWebPageLastReviewed = Property "lastReviewed"
 
 propertyGeoCoordinatesLatitude ::
-  Property GeoCoordinates '[Text, Number]
+  Property GeoCoordinates '[Number, Text]
 propertyGeoCoordinatesLatitude = Property "latitude"
 
-propertyPlaceLatitude :: Property Place '[Text, Number]
+propertyPlaceLatitude :: Property Place '[Number, Text]
 propertyPlaceLatitude = Property "latitude"
 
 propertyFloorPlanLayoutImage ::
-  Property FloorPlan '[URL, ImageObject]
+  Property FloorPlan '[ImageObject, URL]
 propertyFloorPlanLayoutImage = Property "layoutImage"
 
-propertyLearningResourceLearningResourceType ::
-  Property LearningResource '[Text, DefinedTerm]
-propertyLearningResourceLearningResourceType =
-  Property "learningResourceType"
-
 propertyCreativeWorkLearningResourceType ::
-  Property CreativeWork '[Text, DefinedTerm]
+  Property CreativeWork '[DefinedTerm, Text]
 propertyCreativeWorkLearningResourceType =
   Property "learningResourceType"
 
-propertyRealEstateListingLeaseLength ::
-  Property RealEstateListing '[Duration, QuantitativeValue]
-propertyRealEstateListingLeaseLength = Property "leaseLength"
+propertyLearningResourceLearningResourceType ::
+  Property LearningResource '[DefinedTerm, Text]
+propertyLearningResourceLearningResourceType =
+  Property "learningResourceType"
+
+propertyAccommodationLeaseLength ::
+  Property Accommodation '[Duration, QuantitativeValue]
+propertyAccommodationLeaseLength = Property "leaseLength"
 
 propertyOfferLeaseLength ::
   Property Offer '[Duration, QuantitativeValue]
 propertyOfferLeaseLength = Property "leaseLength"
 
-propertyAccommodationLeaseLength ::
-  Property Accommodation '[Duration, QuantitativeValue]
-propertyAccommodationLeaseLength = Property "leaseLength"
+propertyRealEstateListingLeaseLength ::
+  Property RealEstateListing '[Duration, QuantitativeValue]
+propertyRealEstateListingLeaseLength = Property "leaseLength"
 
 propertyOrganizationLegalAddress ::
   Property Organization '[PostalAddress]
@@ -15100,22 +15538,22 @@ propertyOrganizationLegalRepresentative ::
 propertyOrganizationLegalRepresentative =
   Property "legalRepresentative"
 
-propertyDrugLegalStatus ::
-  Property Drug '[MedicalEnumeration, DrugLegalStatus, Text]
-propertyDrugLegalStatus = Property "legalStatus"
-
-propertyMedicalEntityLegalStatus ::
-  Property MedicalEntity '[MedicalEnumeration, DrugLegalStatus, Text]
-propertyMedicalEntityLegalStatus = Property "legalStatus"
-
 propertyDietarySupplementLegalStatus ::
   Property
     DietarySupplement
-    '[ MedicalEnumeration,
-       DrugLegalStatus,
+    '[ DrugLegalStatus,
+       MedicalEnumeration,
        Text
      ]
 propertyDietarySupplementLegalStatus = Property "legalStatus"
+
+propertyDrugLegalStatus ::
+  Property Drug '[DrugLegalStatus, MedicalEnumeration, Text]
+propertyDrugLegalStatus = Property "legalStatus"
+
+propertyMedicalEntityLegalStatus ::
+  Property MedicalEntity '[DrugLegalStatus, MedicalEnumeration, Text]
+propertyMedicalEntityLegalStatus = Property "legalStatus"
 
 propertyLegislationLegislationAmends ::
   Property Legislation '[Legislation]
@@ -15170,12 +15608,12 @@ propertyLegislationLegislationEnsuresImplementationOf =
   Property "legislationEnsuresImplementationOf"
 
 propertyLegislationLegislationIdentifier ::
-  Property Legislation '[URL, Text]
+  Property Legislation '[Text, URL]
 propertyLegislationLegislationIdentifier =
   Property "legislationIdentifier"
 
 propertyLegislationLegislationJurisdiction ::
-  Property Legislation '[Text, AdministrativeArea]
+  Property Legislation '[AdministrativeArea, Text]
 propertyLegislationLegislationJurisdiction =
   Property "legislationJurisdiction"
 
@@ -15228,18 +15666,21 @@ propertyQualitativeValueLesserOrEqual ::
   Property QualitativeValue '[QualitativeValue]
 propertyQualitativeValueLesserOrEqual = Property "lesserOrEqual"
 
-propertyVisualArtworkLetterer :: Property VisualArtwork '[Person]
-propertyVisualArtworkLetterer = Property "letterer"
+propertyComicIssueLetterer :: Property ComicIssue '[Person]
+propertyComicIssueLetterer = Property "letterer"
 
 propertyComicStoryLetterer :: Property ComicStory '[Person]
 propertyComicStoryLetterer = Property "letterer"
 
-propertyComicIssueLetterer :: Property ComicIssue '[Person]
-propertyComicIssueLetterer = Property "letterer"
+propertyVisualArtworkLetterer :: Property VisualArtwork '[Person]
+propertyVisualArtworkLetterer = Property "letterer"
 
 propertyCreativeWorkLicense ::
   Property CreativeWork '[CreativeWork, URL]
 propertyCreativeWorkLicense = Property "license"
+
+propertyPersonLifeEvent :: Property Person '[Event]
+propertyPersonLifeEvent = Property "lifeEvent"
 
 propertyGeoShapeLine :: Property GeoShape '[Text]
 propertyGeoShapeLine = Property "line"
@@ -15275,36 +15716,36 @@ propertyLoanOrCreditLoanTerm ::
   Property LoanOrCredit '[QuantitativeValue]
 propertyLoanOrCreditLoanTerm = Property "loanTerm"
 
-propertyLoanOrCreditLoanType :: Property LoanOrCredit '[URL, Text]
+propertyLoanOrCreditLoanType :: Property LoanOrCredit '[Text, URL]
 propertyLoanOrCreditLoanType = Property "loanType"
+
+propertyActionLocation ::
+  Property Action '[Place, PostalAddress, Text, VirtualLocation]
+propertyActionLocation = Property "location"
+
+propertyEventLocation ::
+  Property Event '[Place, PostalAddress, Text, VirtualLocation]
+propertyEventLocation = Property "location"
 
 propertyInteractionCounterLocation ::
   Property
     InteractionCounter
-    '[ VirtualLocation,
+    '[ Place,
        PostalAddress,
-       Place,
-       Text
+       Text,
+       VirtualLocation
      ]
 propertyInteractionCounterLocation = Property "location"
-
-propertyActionLocation ::
-  Property Action '[VirtualLocation, PostalAddress, Place, Text]
-propertyActionLocation = Property "location"
 
 propertyOrganizationLocation ::
   Property
     Organization
-    '[ VirtualLocation,
+    '[ Place,
        PostalAddress,
-       Place,
-       Text
+       Text,
+       VirtualLocation
      ]
 propertyOrganizationLocation = Property "location"
-
-propertyEventLocation ::
-  Property Event '[VirtualLocation, PostalAddress, Place, Text]
-propertyEventLocation = Property "location"
 
 propertyCreativeWorkLocationCreated ::
   Property CreativeWork '[Place]
@@ -15320,38 +15761,38 @@ propertyLodgingReservationLodgingUnitType ::
 propertyLodgingReservationLodgingUnitType =
   Property "lodgingUnitType"
 
-propertyOrganizationLogo ::
-  Property Organization '[URL, ImageObject]
-propertyOrganizationLogo = Property "logo"
-
-propertyServiceLogo :: Property Service '[URL, ImageObject]
-propertyServiceLogo = Property "logo"
-
-propertyPlaceLogo :: Property Place '[URL, ImageObject]
-propertyPlaceLogo = Property "logo"
-
-propertyProductLogo :: Property Product '[URL, ImageObject]
-propertyProductLogo = Property "logo"
-
-propertyBrandLogo :: Property Brand '[URL, ImageObject]
+propertyBrandLogo :: Property Brand '[ImageObject, URL]
 propertyBrandLogo = Property "logo"
 
 propertyCertificationLogo ::
-  Property Certification '[URL, ImageObject]
+  Property Certification '[ImageObject, URL]
 propertyCertificationLogo = Property "logo"
 
+propertyOrganizationLogo ::
+  Property Organization '[ImageObject, URL]
+propertyOrganizationLogo = Property "logo"
+
+propertyPlaceLogo :: Property Place '[ImageObject, URL]
+propertyPlaceLogo = Property "logo"
+
+propertyProductLogo :: Property Product '[ImageObject, URL]
+propertyProductLogo = Property "logo"
+
+propertyServiceLogo :: Property Service '[ImageObject, URL]
+propertyServiceLogo = Property "logo"
+
 propertyGeoCoordinatesLongitude ::
-  Property GeoCoordinates '[Text, Number]
+  Property GeoCoordinates '[Number, Text]
 propertyGeoCoordinatesLongitude = Property "longitude"
 
-propertyPlaceLongitude :: Property Place '[Text, Number]
+propertyPlaceLongitude :: Property Place '[Number, Text]
 propertyPlaceLongitude = Property "longitude"
 
 propertyWinActionLoser :: Property WinAction '[Person]
 propertyWinActionLoser = Property "loser"
 
 propertyAggregateOfferLowPrice ::
-  Property AggregateOffer '[Text, Number]
+  Property AggregateOffer '[Number, Text]
 propertyAggregateOfferLowPrice = Property "lowPrice"
 
 propertyMusicCompositionLyricist ::
@@ -15370,7 +15811,7 @@ propertyCreativeWorkMainEntity :: Property CreativeWork '[Thing]
 propertyCreativeWorkMainEntity = Property "mainEntity"
 
 propertyThingMainEntityOfPage ::
-  Property Thing '[URL, CreativeWork]
+  Property Thing '[CreativeWork, URL]
 propertyThingMainEntityOfPage = Property "mainEntityOfPage"
 
 propertyCreativeWorkMaintainer ::
@@ -15422,10 +15863,6 @@ propertyPriceSpecificationMaxPrice ::
   Property PriceSpecification '[Number]
 propertyPriceSpecificationMaxPrice = Property "maxPrice"
 
-propertyQuantitativeValueMaxValue ::
-  Property QuantitativeValue '[Number]
-propertyQuantitativeValueMaxValue = Property "maxValue"
-
 propertyMonetaryAmountMaxValue :: Property MonetaryAmount '[Number]
 propertyMonetaryAmountMaxValue = Property "maxValue"
 
@@ -15436,12 +15873,16 @@ propertyPropertyValueSpecificationMaxValue ::
   Property PropertyValueSpecification '[Number]
 propertyPropertyValueSpecificationMaxValue = Property "maxValue"
 
-propertyPlaceMaximumAttendeeCapacity :: Property Place '[Integer]
-propertyPlaceMaximumAttendeeCapacity =
-  Property "maximumAttendeeCapacity"
+propertyQuantitativeValueMaxValue ::
+  Property QuantitativeValue '[Number]
+propertyQuantitativeValueMaxValue = Property "maxValue"
 
 propertyEventMaximumAttendeeCapacity :: Property Event '[Integer]
 propertyEventMaximumAttendeeCapacity =
+  Property "maximumAttendeeCapacity"
+
+propertyPlaceMaximumAttendeeCapacity :: Property Place '[Integer]
+propertyPlaceMaximumAttendeeCapacity =
   Property "maximumAttendeeCapacity"
 
 propertyEducationalOccupationalProgramMaximumEnrollment ::
@@ -15449,16 +15890,16 @@ propertyEducationalOccupationalProgramMaximumEnrollment ::
 propertyEducationalOccupationalProgramMaximumEnrollment =
   Property "maximumEnrollment"
 
+propertyDietarySupplementMaximumIntake ::
+  Property DietarySupplement '[MaximumDoseSchedule]
+propertyDietarySupplementMaximumIntake = Property "maximumIntake"
+
 propertyDrugMaximumIntake :: Property Drug '[MaximumDoseSchedule]
 propertyDrugMaximumIntake = Property "maximumIntake"
 
 propertyDrugStrengthMaximumIntake ::
   Property DrugStrength '[MaximumDoseSchedule]
 propertyDrugStrengthMaximumIntake = Property "maximumIntake"
-
-propertyDietarySupplementMaximumIntake ::
-  Property DietarySupplement '[MaximumDoseSchedule]
-propertyDietarySupplementMaximumIntake = Property "maximumIntake"
 
 propertySubstanceMaximumIntake ::
   Property Substance '[MaximumDoseSchedule]
@@ -15496,62 +15937,62 @@ propertyStatisticalVariableMeasurementDenominator ::
 propertyStatisticalVariableMeasurementDenominator =
   Property "measurementDenominator"
 
-propertyDataDownloadMeasurementMethod ::
-  Property
-    DataDownload
-    '[ DefinedTerm,
-       URL,
-       MeasurementMethodEnum,
-       Text
-     ]
-propertyDataDownloadMeasurementMethod =
-  Property "measurementMethod"
-
-propertyPropertyValueMeasurementMethod ::
-  Property
-    PropertyValue
-    '[ DefinedTerm,
-       URL,
-       MeasurementMethodEnum,
-       Text
-     ]
-propertyPropertyValueMeasurementMethod =
-  Property "measurementMethod"
-
 propertyDataCatalogMeasurementMethod ::
   Property
     DataCatalog
     '[ DefinedTerm,
-       URL,
        MeasurementMethodEnum,
-       Text
+       Text,
+       URL
      ]
 propertyDataCatalogMeasurementMethod = Property "measurementMethod"
+
+propertyDataDownloadMeasurementMethod ::
+  Property
+    DataDownload
+    '[ DefinedTerm,
+       MeasurementMethodEnum,
+       Text,
+       URL
+     ]
+propertyDataDownloadMeasurementMethod =
+  Property "measurementMethod"
+
+propertyDatasetMeasurementMethod ::
+  Property Dataset '[DefinedTerm, MeasurementMethodEnum, Text, URL]
+propertyDatasetMeasurementMethod = Property "measurementMethod"
 
 propertyObservationMeasurementMethod ::
   Property
     Observation
     '[ DefinedTerm,
-       URL,
        MeasurementMethodEnum,
-       Text
+       Text,
+       URL
      ]
 propertyObservationMeasurementMethod = Property "measurementMethod"
+
+propertyPropertyValueMeasurementMethod ::
+  Property
+    PropertyValue
+    '[ DefinedTerm,
+       MeasurementMethodEnum,
+       Text,
+       URL
+     ]
+propertyPropertyValueMeasurementMethod =
+  Property "measurementMethod"
 
 propertyStatisticalVariableMeasurementMethod ::
   Property
     StatisticalVariable
     '[ DefinedTerm,
-       URL,
        MeasurementMethodEnum,
-       Text
+       Text,
+       URL
      ]
 propertyStatisticalVariableMeasurementMethod =
   Property "measurementMethod"
-
-propertyDatasetMeasurementMethod ::
-  Property Dataset '[DefinedTerm, URL, MeasurementMethodEnum, Text]
-propertyDatasetMeasurementMethod = Property "measurementMethod"
 
 propertyObservationMeasurementQualifier ::
   Property Observation '[Enumeration]
@@ -15566,70 +16007,70 @@ propertyStatisticalVariableMeasurementQualifier =
 propertyDataCatalogMeasurementTechnique ::
   Property
     DataCatalog
-    '[ Text,
-       DefinedTerm,
-       URL,
-       MeasurementMethodEnum
+    '[ DefinedTerm,
+       MeasurementMethodEnum,
+       Text,
+       URL
      ]
 propertyDataCatalogMeasurementTechnique =
-  Property "measurementTechnique"
-
-propertyObservationMeasurementTechnique ::
-  Property
-    Observation
-    '[ Text,
-       DefinedTerm,
-       URL,
-       MeasurementMethodEnum
-     ]
-propertyObservationMeasurementTechnique =
-  Property "measurementTechnique"
-
-propertyStatisticalVariableMeasurementTechnique ::
-  Property
-    StatisticalVariable
-    '[ Text,
-       DefinedTerm,
-       URL,
-       MeasurementMethodEnum
-     ]
-propertyStatisticalVariableMeasurementTechnique =
-  Property "measurementTechnique"
-
-propertyDatasetMeasurementTechnique ::
-  Property Dataset '[Text, DefinedTerm, URL, MeasurementMethodEnum]
-propertyDatasetMeasurementTechnique =
   Property "measurementTechnique"
 
 propertyDataDownloadMeasurementTechnique ::
   Property
     DataDownload
-    '[ Text,
-       DefinedTerm,
-       URL,
-       MeasurementMethodEnum
+    '[ DefinedTerm,
+       MeasurementMethodEnum,
+       Text,
+       URL
      ]
 propertyDataDownloadMeasurementTechnique =
+  Property "measurementTechnique"
+
+propertyDatasetMeasurementTechnique ::
+  Property Dataset '[DefinedTerm, MeasurementMethodEnum, Text, URL]
+propertyDatasetMeasurementTechnique =
+  Property "measurementTechnique"
+
+propertyObservationMeasurementTechnique ::
+  Property
+    Observation
+    '[ DefinedTerm,
+       MeasurementMethodEnum,
+       Text,
+       URL
+     ]
+propertyObservationMeasurementTechnique =
   Property "measurementTechnique"
 
 propertyPropertyValueMeasurementTechnique ::
   Property
     PropertyValue
-    '[ Text,
-       DefinedTerm,
-       URL,
-       MeasurementMethodEnum
+    '[ DefinedTerm,
+       MeasurementMethodEnum,
+       Text,
+       URL
      ]
 propertyPropertyValueMeasurementTechnique =
   Property "measurementTechnique"
 
-propertyDrugMechanismOfAction :: Property Drug '[Text]
-propertyDrugMechanismOfAction = Property "mechanismOfAction"
+propertyStatisticalVariableMeasurementTechnique ::
+  Property
+    StatisticalVariable
+    '[ DefinedTerm,
+       MeasurementMethodEnum,
+       Text,
+       URL
+     ]
+propertyStatisticalVariableMeasurementTechnique =
+  Property "measurementTechnique"
 
 propertyDietarySupplementMechanismOfAction ::
   Property DietarySupplement '[Text]
 propertyDietarySupplementMechanismOfAction =
   Property "mechanismOfAction"
+
+propertyDrugMechanismOfAction :: Property Drug '[Text]
+propertyDrugMechanismOfAction = Property "mechanismOfAction"
 
 propertyMediaReviewMediaAuthenticityCategory ::
   Property MediaReview '[MediaManipulationRatingEnumeration]
@@ -15646,25 +16087,25 @@ propertyQuantitativeValueDistributionMedian ::
 propertyQuantitativeValueDistributionMedian = Property "median"
 
 propertyMedicalWebPageMedicalAudience ::
-  Property MedicalWebPage '[MedicalAudienceType, MedicalAudience]
+  Property MedicalWebPage '[MedicalAudience, MedicalAudienceType]
 propertyMedicalWebPageMedicalAudience = Property "medicalAudience"
-
-propertyMedicalClinicMedicalSpecialty ::
-  Property MedicalClinic '[MedicalSpecialty]
-propertyMedicalClinicMedicalSpecialty = Property "medicalSpecialty"
-
-propertyPhysicianMedicalSpecialty ::
-  Property Physician '[MedicalSpecialty]
-propertyPhysicianMedicalSpecialty = Property "medicalSpecialty"
 
 propertyHospitalMedicalSpecialty ::
   Property Hospital '[MedicalSpecialty]
 propertyHospitalMedicalSpecialty = Property "medicalSpecialty"
 
+propertyMedicalClinicMedicalSpecialty ::
+  Property MedicalClinic '[MedicalSpecialty]
+propertyMedicalClinicMedicalSpecialty = Property "medicalSpecialty"
+
 propertyMedicalOrganizationMedicalSpecialty ::
   Property MedicalOrganization '[MedicalSpecialty]
 propertyMedicalOrganizationMedicalSpecialty =
   Property "medicalSpecialty"
+
+propertyPhysicianMedicalSpecialty ::
+  Property Physician '[MedicalSpecialty]
+propertyPhysicianMedicalSpecialty = Property "medicalSpecialty"
 
 propertyMedicalEntityMedicineSystem ::
   Property MedicalEntity '[MedicineSystem]
@@ -15686,18 +16127,18 @@ propertyProgramMembershipMember = Property "member"
 propertyOrganizationMemberOf ::
   Property
     Organization
-    '[ ProgramMembership,
-       MemberProgramTier,
-       Organization
+    '[ MemberProgramTier,
+       Organization,
+       ProgramMembership
      ]
 propertyOrganizationMemberOf = Property "memberOf"
 
 propertyPersonMemberOf ::
   Property
     Person
-    '[ ProgramMembership,
-       MemberProgramTier,
-       Organization
+    '[ MemberProgramTier,
+       Organization,
+       ProgramMembership
      ]
 propertyPersonMemberOf = Property "memberOf"
 
@@ -15714,6 +16155,11 @@ propertyProgramMembershipMembershipNumber ::
 propertyProgramMembershipMembershipNumber =
   Property "membershipNumber"
 
+propertyMemberProgramTierMembershipPointsEarned ::
+  Property MemberProgramTier '[Number, QuantitativeValue]
+propertyMemberProgramTierMembershipPointsEarned =
+  Property "membershipPointsEarned"
+
 propertyPriceSpecificationMembershipPointsEarned ::
   Property PriceSpecification '[Number, QuantitativeValue]
 propertyPriceSpecificationMembershipPointsEarned =
@@ -15724,13 +16170,8 @@ propertyProgramMembershipMembershipPointsEarned ::
 propertyProgramMembershipMembershipPointsEarned =
   Property "membershipPointsEarned"
 
-propertyMemberProgramTierMembershipPointsEarned ::
-  Property MemberProgramTier '[Number, QuantitativeValue]
-propertyMemberProgramTierMembershipPointsEarned =
-  Property "membershipPointsEarned"
-
 propertySoftwareApplicationMemoryRequirements ::
-  Property SoftwareApplication '[URL, Text]
+  Property SoftwareApplication '[Text, URL]
 propertySoftwareApplicationMemoryRequirements =
   Property "memoryRequirements"
 
@@ -15738,7 +16179,7 @@ propertyCreativeWorkMentions :: Property CreativeWork '[Thing]
 propertyCreativeWorkMentions = Property "mentions"
 
 propertyFoodEstablishmentMenu ::
-  Property FoodEstablishment '[Text, URL, Menu]
+  Property FoodEstablishment '[Menu, Text, URL]
 propertyFoodEstablishmentMenu = Property "menu"
 
 propertyMenuItemMenuAddOn ::
@@ -15749,7 +16190,7 @@ propertyOrderMerchant :: Property Order '[Organization, Person]
 propertyOrderMerchant = Property "merchant"
 
 propertyMerchantReturnPolicyMerchantReturnDays ::
-  Property MerchantReturnPolicy '[Date, Integer, DateTime]
+  Property MerchantReturnPolicy '[Date, DateTime, Integer]
 propertyMerchantReturnPolicyMerchantReturnDays =
   Property "merchantReturnDays"
 
@@ -15757,8 +16198,8 @@ propertyMerchantReturnPolicySeasonalOverrideMerchantReturnDays ::
   Property
     MerchantReturnPolicySeasonalOverride
     '[ Date,
-       Integer,
-       DateTime
+       DateTime,
+       Integer
      ]
 propertyMerchantReturnPolicySeasonalOverrideMerchantReturnDays =
   Property "merchantReturnDays"
@@ -15786,16 +16227,26 @@ propertyMonetaryAmountMinValue = Property "minValue"
 propertyPropertyValueMinValue :: Property PropertyValue '[Number]
 propertyPropertyValueMinValue = Property "minValue"
 
-propertyQuantitativeValueMinValue ::
-  Property QuantitativeValue '[Number]
-propertyQuantitativeValueMinValue = Property "minValue"
-
 propertyPropertyValueSpecificationMinValue ::
   Property PropertyValueSpecification '[Number]
 propertyPropertyValueSpecificationMinValue = Property "minValue"
 
+propertyQuantitativeValueMinValue ::
+  Property QuantitativeValue '[Number]
+propertyQuantitativeValueMinValue = Property "minValue"
+
+propertyShippingRateSettingsMinimumOrderValue ::
+  Property
+    ShippingRateSettings
+    '[ MonetaryAmount,
+       Number,
+       PriceSpecification
+     ]
+propertyShippingRateSettingsMinimumOrderValue =
+  Property "minimumOrderValue"
+
 propertyInvoiceMinimumPaymentDue ::
-  Property Invoice '[PriceSpecification, MonetaryAmount]
+  Property Invoice '[MonetaryAmount, PriceSpecification]
 propertyInvoiceMinimumPaymentDue = Property "minimumPaymentDue"
 
 propertyNewsMediaOrganizationMissionCoveragePrioritiesPolicy ::
@@ -15803,11 +16254,11 @@ propertyNewsMediaOrganizationMissionCoveragePrioritiesPolicy ::
 propertyNewsMediaOrganizationMissionCoveragePrioritiesPolicy =
   Property "missionCoveragePrioritiesPolicy"
 
-propertyProductMobileUrl :: Property Product '[Text]
-propertyProductMobileUrl = Property "mobileUrl"
-
 propertyOfferMobileUrl :: Property Offer '[Text]
 propertyOfferMobileUrl = Property "mobileUrl"
+
+propertyProductMobileUrl :: Property Product '[Text]
+propertyProductMobileUrl = Property "mobileUrl"
 
 propertyProductModel :: Property Product '[ProductModel, Text]
 propertyProductModel = Property "model"
@@ -15824,7 +16275,7 @@ propertyMolecularEntityMolecularFormula =
   Property "molecularFormula"
 
 propertyMolecularEntityMolecularWeight ::
-  Property MolecularEntity '[Text, QuantitativeValue]
+  Property MolecularEntity '[QuantitativeValue, Text]
 propertyMolecularEntityMolecularWeight = Property "molecularWeight"
 
 propertyMolecularEntityMonoisotopicMolecularWeight ::
@@ -15833,7 +16284,7 @@ propertyMolecularEntityMonoisotopicMolecularWeight =
   Property "monoisotopicMolecularWeight"
 
 propertyPaymentCardMonthlyMinimumRepaymentAmount ::
-  Property PaymentCard '[Number, MonetaryAmount]
+  Property PaymentCard '[MonetaryAmount, Number]
 propertyPaymentCardMonthlyMinimumRepaymentAmount =
   Property "monthlyMinimumRepaymentAmount"
 
@@ -15842,14 +16293,14 @@ propertyOccupationalExperienceRequirementsMonthsOfExperience ::
 propertyOccupationalExperienceRequirementsMonthsOfExperience =
   Property "monthsOfExperience"
 
-propertyProductMpn :: Property Product '[Text]
-propertyProductMpn = Property "mpn"
-
 propertyDemandMpn :: Property Demand '[Text]
 propertyDemandMpn = Property "mpn"
 
 propertyOfferMpn :: Property Offer '[Text]
 propertyOfferMpn = Property "mpn"
+
+propertyProductMpn :: Property Product '[Text]
+propertyProductMpn = Property "mpn"
 
 propertyPropertyValueSpecificationMultipleValues ::
   Property PropertyValueSpecification '[Boolean]
@@ -15864,27 +16315,22 @@ propertyMusicCompositionMusicArrangement ::
 propertyMusicCompositionMusicArrangement =
   Property "musicArrangement"
 
-propertyVideoGameSeriesMusicBy ::
-  Property VideoGameSeries '[MusicGroup, Person]
-propertyVideoGameSeriesMusicBy = Property "musicBy"
-
-propertyRadioSeriesMusicBy ::
-  Property RadioSeries '[MusicGroup, Person]
-propertyRadioSeriesMusicBy = Property "musicBy"
+propertyClipMusicBy :: Property Clip '[MusicGroup, Person]
+propertyClipMusicBy = Property "musicBy"
 
 propertyEpisodeMusicBy :: Property Episode '[MusicGroup, Person]
 propertyEpisodeMusicBy = Property "musicBy"
 
-propertyVideoObjectMusicBy ::
-  Property VideoObject '[MusicGroup, Person]
-propertyVideoObjectMusicBy = Property "musicBy"
+propertyMovieMusicBy :: Property Movie '[MusicGroup, Person]
+propertyMovieMusicBy = Property "musicBy"
 
 propertyMovieSeriesMusicBy ::
   Property MovieSeries '[MusicGroup, Person]
 propertyMovieSeriesMusicBy = Property "musicBy"
 
-propertyMovieMusicBy :: Property Movie '[MusicGroup, Person]
-propertyMovieMusicBy = Property "musicBy"
+propertyRadioSeriesMusicBy ::
+  Property RadioSeries '[MusicGroup, Person]
+propertyRadioSeriesMusicBy = Property "musicBy"
 
 propertyTVSeriesMusicBy :: Property TVSeries '[MusicGroup, Person]
 propertyTVSeriesMusicBy = Property "musicBy"
@@ -15893,8 +16339,13 @@ propertyVideoGameMusicBy ::
   Property VideoGame '[MusicGroup, Person]
 propertyVideoGameMusicBy = Property "musicBy"
 
-propertyClipMusicBy :: Property Clip '[MusicGroup, Person]
-propertyClipMusicBy = Property "musicBy"
+propertyVideoGameSeriesMusicBy ::
+  Property VideoGameSeries '[MusicGroup, Person]
+propertyVideoGameSeriesMusicBy = Property "musicBy"
+
+propertyVideoObjectMusicBy ::
+  Property VideoObject '[MusicGroup, Person]
+propertyVideoObjectMusicBy = Property "musicBy"
 
 propertyMusicCompositionMusicCompositionForm ::
   Property MusicComposition '[Text]
@@ -15922,7 +16373,7 @@ propertyPersonNaics = Property "naics"
 propertyThingName :: Property Thing '[Text]
 propertyThingName = Property "name"
 
-propertyRoleNamedPosition :: Property Role '[URL, Text]
+propertyRoleNamedPosition :: Property Role '[Text, URL]
 propertyRoleNamedPosition = Property "namedPosition"
 
 propertyPersonNationality :: Property Person '[Country]
@@ -15934,11 +16385,11 @@ propertyMedicalConditionNaturalProgression =
   Property "naturalProgression"
 
 propertyProductNegativeNotes ::
-  Property Product '[ListItem, WebContent, ItemList, Text]
+  Property Product '[ItemList, ListItem, Text, WebContent]
 propertyProductNegativeNotes = Property "negativeNotes"
 
 propertyReviewNegativeNotes ::
-  Property Review '[ListItem, WebContent, ItemList, Text]
+  Property Review '[ItemList, ListItem, Text, WebContent]
 propertyReviewNegativeNotes = Property "negativeNotes"
 
 propertyMuscleNerve :: Property Muscle '[Nerve]
@@ -15948,11 +16399,11 @@ propertyNerveNerveMotor :: Property Nerve '[Muscle]
 propertyNerveNerveMotor = Property "nerveMotor"
 
 propertyPersonNetWorth ::
-  Property Person '[PriceSpecification, MonetaryAmount]
+  Property Person '[MonetaryAmount, PriceSpecification]
 propertyPersonNetWorth = Property "netWorth"
 
 propertySpecialAnnouncementNewsUpdatesAndGuidelines ::
-  Property SpecialAnnouncement '[WebContent, URL]
+  Property SpecialAnnouncement '[URL, WebContent]
 propertySpecialAnnouncementNewsUpdatesAndGuidelines =
   Property "newsUpdatesAndGuidelines"
 
@@ -15981,18 +16432,18 @@ propertyOrganizationNonprofitStatus ::
 propertyOrganizationNonprofitStatus = Property "nonprofitStatus"
 
 propertyMedicalTestNormalRange ::
-  Property MedicalTest '[Text, MedicalEnumeration]
+  Property MedicalTest '[MedicalEnumeration, Text]
 propertyMedicalTestNormalRange = Property "normalRange"
 
 propertyProductNsn :: Property Product '[Text]
 propertyProductNsn = Property "nsn"
 
 propertyLodgingReservationNumAdults ::
-  Property LodgingReservation '[QuantitativeValue, Integer]
+  Property LodgingReservation '[Integer, QuantitativeValue]
 propertyLodgingReservationNumAdults = Property "numAdults"
 
 propertyLodgingReservationNumChildren ::
-  Property LodgingReservation '[QuantitativeValue, Integer]
+  Property LodgingReservation '[Integer, QuantitativeValue]
 propertyLodgingReservationNumChildren = Property "numChildren"
 
 propertyConstraintNodeNumConstraints ::
@@ -16016,7 +16467,7 @@ propertyFloorPlanNumberOfAccommodationUnits ::
 propertyFloorPlanNumberOfAccommodationUnits =
   Property "numberOfAccommodationUnits"
 
-propertyVehicleNumberOfAirbags :: Property Vehicle '[Text, Number]
+propertyVehicleNumberOfAirbags :: Property Vehicle '[Number, Text]
 propertyVehicleNumberOfAirbags = Property "numberOfAirbags"
 
 propertyApartmentComplexNumberOfAvailableAccommodationUnits ::
@@ -16030,7 +16481,7 @@ propertyFloorPlanNumberOfAvailableAccommodationUnits =
   Property "numberOfAvailableAccommodationUnits"
 
 propertyVehicleNumberOfAxles ::
-  Property Vehicle '[QuantitativeValue, Number]
+  Property Vehicle '[Number, QuantitativeValue]
 propertyVehicleNumberOfAxles = Property "numberOfAxles"
 
 propertyAccommodationNumberOfBathroomsTotal ::
@@ -16043,33 +16494,33 @@ propertyFloorPlanNumberOfBathroomsTotal ::
 propertyFloorPlanNumberOfBathroomsTotal =
   Property "numberOfBathroomsTotal"
 
-propertyFloorPlanNumberOfBedrooms ::
-  Property FloorPlan '[Number, QuantitativeValue]
-propertyFloorPlanNumberOfBedrooms = Property "numberOfBedrooms"
+propertyAccommodationNumberOfBedrooms ::
+  Property Accommodation '[Number, QuantitativeValue]
+propertyAccommodationNumberOfBedrooms = Property "numberOfBedrooms"
 
 propertyApartmentComplexNumberOfBedrooms ::
   Property ApartmentComplex '[Number, QuantitativeValue]
 propertyApartmentComplexNumberOfBedrooms =
   Property "numberOfBedrooms"
 
-propertyAccommodationNumberOfBedrooms ::
-  Property Accommodation '[Number, QuantitativeValue]
-propertyAccommodationNumberOfBedrooms = Property "numberOfBedrooms"
+propertyFloorPlanNumberOfBedrooms ::
+  Property FloorPlan '[Number, QuantitativeValue]
+propertyFloorPlanNumberOfBedrooms = Property "numberOfBedrooms"
 
 propertyBedDetailsNumberOfBeds :: Property BedDetails '[Number]
 propertyBedDetailsNumberOfBeds = Property "numberOfBeds"
 
 propertyCourseNumberOfCredits ::
-  Property Course '[StructuredValue, Integer]
+  Property Course '[Integer, StructuredValue]
 propertyCourseNumberOfCredits = Property "numberOfCredits"
 
 propertyEducationalOccupationalProgramNumberOfCredits ::
-  Property EducationalOccupationalProgram '[StructuredValue, Integer]
+  Property EducationalOccupationalProgram '[Integer, StructuredValue]
 propertyEducationalOccupationalProgramNumberOfCredits =
   Property "numberOfCredits"
 
 propertyVehicleNumberOfDoors ::
-  Property Vehicle '[QuantitativeValue, Number]
+  Property Vehicle '[Number, QuantitativeValue]
 propertyVehicleNumberOfDoors = Property "numberOfDoors"
 
 propertyBusinessAudienceNumberOfEmployees ::
@@ -16082,36 +16533,36 @@ propertyOrganizationNumberOfEmployees ::
 propertyOrganizationNumberOfEmployees =
   Property "numberOfEmployees"
 
-propertyVideoGameSeriesNumberOfEpisodes ::
-  Property VideoGameSeries '[Integer]
-propertyVideoGameSeriesNumberOfEpisodes =
+propertyCreativeWorkSeasonNumberOfEpisodes ::
+  Property CreativeWorkSeason '[Integer]
+propertyCreativeWorkSeasonNumberOfEpisodes =
   Property "numberOfEpisodes"
 
 propertyRadioSeriesNumberOfEpisodes ::
   Property RadioSeries '[Integer]
 propertyRadioSeriesNumberOfEpisodes = Property "numberOfEpisodes"
 
-propertyCreativeWorkSeasonNumberOfEpisodes ::
-  Property CreativeWorkSeason '[Integer]
-propertyCreativeWorkSeasonNumberOfEpisodes =
-  Property "numberOfEpisodes"
-
 propertyTVSeriesNumberOfEpisodes :: Property TVSeries '[Integer]
 propertyTVSeriesNumberOfEpisodes = Property "numberOfEpisodes"
 
+propertyVideoGameSeriesNumberOfEpisodes ::
+  Property VideoGameSeries '[Integer]
+propertyVideoGameSeriesNumberOfEpisodes =
+  Property "numberOfEpisodes"
+
 propertyVehicleNumberOfForwardGears ::
-  Property Vehicle '[QuantitativeValue, Number]
+  Property Vehicle '[Number, QuantitativeValue]
 propertyVehicleNumberOfForwardGears =
   Property "numberOfForwardGears"
-
-propertyFloorPlanNumberOfFullBathrooms ::
-  Property FloorPlan '[Number]
-propertyFloorPlanNumberOfFullBathrooms =
-  Property "numberOfFullBathrooms"
 
 propertyAccommodationNumberOfFullBathrooms ::
   Property Accommodation '[Number]
 propertyAccommodationNumberOfFullBathrooms =
+  Property "numberOfFullBathrooms"
+
+propertyFloorPlanNumberOfFullBathrooms ::
+  Property FloorPlan '[Number]
+propertyFloorPlanNumberOfFullBathrooms =
   Property "numberOfFullBathrooms"
 
 propertyItemListNumberOfItems :: Property ItemList '[Integer]
@@ -16143,42 +16594,38 @@ propertyVideoGameSeriesNumberOfPlayers ::
 propertyVideoGameSeriesNumberOfPlayers = Property "numberOfPlayers"
 
 propertyVehicleNumberOfPreviousOwners ::
-  Property Vehicle '[QuantitativeValue, Number]
+  Property Vehicle '[Number, QuantitativeValue]
 propertyVehicleNumberOfPreviousOwners =
   Property "numberOfPreviousOwners"
 
-propertyLodgingBusinessNumberOfRooms ::
-  Property LodgingBusiness '[QuantitativeValue, Number]
-propertyLodgingBusinessNumberOfRooms = Property "numberOfRooms"
-
-propertySuiteNumberOfRooms ::
-  Property Suite '[QuantitativeValue, Number]
-propertySuiteNumberOfRooms = Property "numberOfRooms"
-
-propertyHouseNumberOfRooms ::
-  Property House '[QuantitativeValue, Number]
-propertyHouseNumberOfRooms = Property "numberOfRooms"
-
 propertyAccommodationNumberOfRooms ::
-  Property Accommodation '[QuantitativeValue, Number]
+  Property Accommodation '[Number, QuantitativeValue]
 propertyAccommodationNumberOfRooms = Property "numberOfRooms"
 
+propertyApartmentNumberOfRooms ::
+  Property Apartment '[Number, QuantitativeValue]
+propertyApartmentNumberOfRooms = Property "numberOfRooms"
+
 propertyFloorPlanNumberOfRooms ::
-  Property FloorPlan '[QuantitativeValue, Number]
+  Property FloorPlan '[Number, QuantitativeValue]
 propertyFloorPlanNumberOfRooms = Property "numberOfRooms"
 
+propertyHouseNumberOfRooms ::
+  Property House '[Number, QuantitativeValue]
+propertyHouseNumberOfRooms = Property "numberOfRooms"
+
+propertyLodgingBusinessNumberOfRooms ::
+  Property LodgingBusiness '[Number, QuantitativeValue]
+propertyLodgingBusinessNumberOfRooms = Property "numberOfRooms"
+
 propertySingleFamilyResidenceNumberOfRooms ::
-  Property SingleFamilyResidence '[QuantitativeValue, Number]
+  Property SingleFamilyResidence '[Number, QuantitativeValue]
 propertySingleFamilyResidenceNumberOfRooms =
   Property "numberOfRooms"
 
-propertyApartmentNumberOfRooms ::
-  Property Apartment '[QuantitativeValue, Number]
-propertyApartmentNumberOfRooms = Property "numberOfRooms"
-
-propertyVideoGameSeriesNumberOfSeasons ::
-  Property VideoGameSeries '[Integer]
-propertyVideoGameSeriesNumberOfSeasons = Property "numberOfSeasons"
+propertySuiteNumberOfRooms ::
+  Property Suite '[Number, QuantitativeValue]
+propertySuiteNumberOfRooms = Property "numberOfRooms"
 
 propertyRadioSeriesNumberOfSeasons ::
   Property RadioSeries '[Integer]
@@ -16186,6 +16633,10 @@ propertyRadioSeriesNumberOfSeasons = Property "numberOfSeasons"
 
 propertyTVSeriesNumberOfSeasons :: Property TVSeries '[Integer]
 propertyTVSeriesNumberOfSeasons = Property "numberOfSeasons"
+
+propertyVideoGameSeriesNumberOfSeasons ::
+  Property VideoGameSeries '[Integer]
+propertyVideoGameSeriesNumberOfSeasons = Property "numberOfSeasons"
 
 propertyOrganizationRoleNumberedPosition ::
   Property OrganizationRole '[Number]
@@ -16207,40 +16658,50 @@ propertyObservationObservationAbout ::
 propertyObservationObservationAbout = Property "observationAbout"
 
 propertyObservationObservationDate ::
-  Property Observation '[DateTime]
+  Property Observation '[Date, DateTime]
 propertyObservationObservationDate = Property "observationDate"
 
 propertyObservationObservationPeriod ::
   Property Observation '[Text]
 propertyObservationObservationPeriod = Property "observationPeriod"
 
+propertyAccommodationOccupancy ::
+  Property Accommodation '[QuantitativeValue]
+propertyAccommodationOccupancy = Property "occupancy"
+
 propertyApartmentOccupancy ::
   Property Apartment '[QuantitativeValue]
 propertyApartmentOccupancy = Property "occupancy"
-
-propertySuiteOccupancy :: Property Suite '[QuantitativeValue]
-propertySuiteOccupancy = Property "occupancy"
 
 propertyHotelRoomOccupancy ::
   Property HotelRoom '[QuantitativeValue]
 propertyHotelRoomOccupancy = Property "occupancy"
 
-propertyAccommodationOccupancy ::
-  Property Accommodation '[QuantitativeValue]
-propertyAccommodationOccupancy = Property "occupancy"
-
 propertySingleFamilyResidenceOccupancy ::
   Property SingleFamilyResidence '[QuantitativeValue]
 propertySingleFamilyResidenceOccupancy = Property "occupancy"
+
+propertySuiteOccupancy :: Property Suite '[QuantitativeValue]
+propertySuiteOccupancy = Property "occupancy"
 
 propertyOccupationOccupationLocation ::
   Property Occupation '[AdministrativeArea]
 propertyOccupationOccupationLocation =
   Property "occupationLocation"
 
+propertyEducationalOccupationalProgramOccupationalCategory ::
+  Property EducationalOccupationalProgram '[CategoryCode, Text]
+propertyEducationalOccupationalProgramOccupationalCategory =
+  Property "occupationalCategory"
+
 propertyJobPostingOccupationalCategory ::
   Property JobPosting '[CategoryCode, Text]
 propertyJobPostingOccupationalCategory =
+  Property "occupationalCategory"
+
+propertyOccupationOccupationalCategory ::
+  Property Occupation '[CategoryCode, Text]
+propertyOccupationOccupationalCategory =
   Property "occupationalCategory"
 
 propertyPhysicianOccupationalCategory ::
@@ -16253,15 +16714,10 @@ propertyWorkBasedProgramOccupationalCategory ::
 propertyWorkBasedProgramOccupationalCategory =
   Property "occupationalCategory"
 
-propertyEducationalOccupationalProgramOccupationalCategory ::
-  Property EducationalOccupationalProgram '[CategoryCode, Text]
-propertyEducationalOccupationalProgramOccupationalCategory =
-  Property "occupationalCategory"
-
-propertyOccupationOccupationalCategory ::
-  Property Occupation '[CategoryCode, Text]
-propertyOccupationOccupationalCategory =
-  Property "occupationalCategory"
+propertyCourseOccupationalCredentialAwarded ::
+  Property Course '[EducationalOccupationalCredential, Text, URL]
+propertyCourseOccupationalCredentialAwarded =
+  Property "occupationalCredentialAwarded"
 
 propertyEducationalOccupationalProgramOccupationalCredentialAwarded ::
   Property
@@ -16273,11 +16729,6 @@ propertyEducationalOccupationalProgramOccupationalCredentialAwarded ::
 propertyEducationalOccupationalProgramOccupationalCredentialAwarded =
   Property "occupationalCredentialAwarded"
 
-propertyCourseOccupationalCredentialAwarded ::
-  Property Course '[EducationalOccupationalCredential, Text, URL]
-propertyCourseOccupationalCredentialAwarded =
-  Property "occupationalCredentialAwarded"
-
 propertyAggregateOfferOfferCount ::
   Property AggregateOffer '[Integer]
 propertyAggregateOfferOfferCount = Property "offerCount"
@@ -16285,29 +16736,29 @@ propertyAggregateOfferOfferCount = Property "offerCount"
 propertyOfferOfferedBy :: Property Offer '[Organization, Person]
 propertyOfferOfferedBy = Property "offeredBy"
 
-propertyServiceOffers :: Property Service '[Demand, Offer]
-propertyServiceOffers = Property "offers"
-
-propertyEventOffers :: Property Event '[Demand, Offer]
-propertyEventOffers = Property "offers"
-
 propertyAggregateOfferOffers ::
   Property AggregateOffer '[Demand, Offer]
 propertyAggregateOfferOffers = Property "offers"
-
-propertyEducationalOccupationalProgramOffers ::
-  Property EducationalOccupationalProgram '[Demand, Offer]
-propertyEducationalOccupationalProgramOffers = Property "offers"
 
 propertyCreativeWorkOffers ::
   Property CreativeWork '[Demand, Offer]
 propertyCreativeWorkOffers = Property "offers"
 
-propertyProductOffers :: Property Product '[Demand, Offer]
-propertyProductOffers = Property "offers"
+propertyEducationalOccupationalProgramOffers ::
+  Property EducationalOccupationalProgram '[Demand, Offer]
+propertyEducationalOccupationalProgramOffers = Property "offers"
+
+propertyEventOffers :: Property Event '[Demand, Offer]
+propertyEventOffers = Property "offers"
 
 propertyMenuItemOffers :: Property MenuItem '[Demand, Offer]
 propertyMenuItemOffers = Property "offers"
+
+propertyProductOffers :: Property Product '[Demand, Offer]
+propertyProductOffers = Property "offers"
+
+propertyServiceOffers :: Property Service '[Demand, Offer]
+propertyServiceOffers = Property "offers"
 
 propertyTripOffers :: Property Trip '[Demand, Offer]
 propertyTripOffers = Property "offers"
@@ -16334,7 +16785,7 @@ propertyOpeningHoursSpecificationOpens ::
 propertyOpeningHoursSpecificationOpens = Property "opens"
 
 propertySoftwareApplicationOperatingSystem ::
-  Property SoftwareApplication '[Text]
+  Property SoftwareApplication '[OperatingSystem, Text]
 propertySoftwareApplicationOperatingSystem =
   Property "operatingSystem"
 
@@ -16344,7 +16795,7 @@ propertyExerciseActionOpponent = Property "opponent"
 propertyChooseActionOption :: Property ChooseAction '[Text, Thing]
 propertyChooseActionOption = Property "option"
 
-propertyOrderOrderDate :: Property Order '[DateTime, Date]
+propertyOrderOrderDate :: Property Order '[Date, DateTime]
 propertyOrderOrderDate = Property "orderDate"
 
 propertyOrderOrderDelivery :: Property Order '[ParcelDelivery]
@@ -16380,13 +16831,13 @@ propertyShippingConditionsOrderValue ::
   Property ShippingConditions '[MonetaryAmount]
 propertyShippingConditionsOrderValue = Property "orderValue"
 
-propertyOrderItemOrderedItem ::
-  Property OrderItem '[Service, OrderItem, Product]
-propertyOrderItemOrderedItem = Property "orderedItem"
-
 propertyOrderOrderedItem ::
-  Property Order '[Service, OrderItem, Product]
+  Property Order '[OrderItem, Product, Service]
 propertyOrderOrderedItem = Property "orderedItem"
+
+propertyOrderItemOrderedItem ::
+  Property OrderItem '[OrderItem, Product, Service]
+propertyOrderItemOrderedItem = Property "orderedItem"
 
 propertyEventOrganizer :: Property Event '[Organization, Person]
 propertyEventOrganizer = Property "organizer"
@@ -16401,7 +16852,7 @@ propertyMediaReviewOriginalMediaContextDescription =
   Property "originalMediaContextDescription"
 
 propertyMediaReviewOriginalMediaLink ::
-  Property MediaReview '[MediaObject, WebPage, URL]
+  Property MediaReview '[MediaObject, URL, WebPage]
 propertyMediaReviewOriginalMediaLink = Property "originalMediaLink"
 
 propertyLymphaticVesselOriginatesFrom ::
@@ -16419,10 +16870,8 @@ propertyOwnershipInfoOwnedThrough ::
   Property OwnershipInfo '[DateTime]
 propertyOwnershipInfoOwnedThrough = Property "ownedThrough"
 
-propertyOrganizationOwnershipFundingInfo ::
-  Property Organization '[AboutPage, CreativeWork, Text, URL]
-propertyOrganizationOwnershipFundingInfo =
-  Property "ownershipFundingInfo"
+propertyThingOwner :: Property Thing '[Organization, Person]
+propertyThingOwner = Property "owner"
 
 propertyNewsMediaOrganizationOwnershipFundingInfo ::
   Property
@@ -16435,54 +16884,58 @@ propertyNewsMediaOrganizationOwnershipFundingInfo ::
 propertyNewsMediaOrganizationOwnershipFundingInfo =
   Property "ownershipFundingInfo"
 
-propertyOrganizationOwns ::
-  Property Organization '[Product, OwnershipInfo]
+propertyOrganizationOwnershipFundingInfo ::
+  Property Organization '[AboutPage, CreativeWork, Text, URL]
+propertyOrganizationOwnershipFundingInfo =
+  Property "ownershipFundingInfo"
+
+propertyOrganizationOwns :: Property Organization '[Thing]
 propertyOrganizationOwns = Property "owns"
 
-propertyPersonOwns :: Property Person '[Product, OwnershipInfo]
+propertyPersonOwns :: Property Person '[Thing]
 propertyPersonOwns = Property "owns"
 
-propertyChapterPageEnd :: Property Chapter '[Text, Integer]
-propertyChapterPageEnd = Property "pageEnd"
-
-propertyArticlePageEnd :: Property Article '[Text, Integer]
+propertyArticlePageEnd :: Property Article '[Integer, Text]
 propertyArticlePageEnd = Property "pageEnd"
 
-propertyPublicationVolumePageEnd ::
-  Property PublicationVolume '[Text, Integer]
-propertyPublicationVolumePageEnd = Property "pageEnd"
+propertyChapterPageEnd :: Property Chapter '[Integer, Text]
+propertyChapterPageEnd = Property "pageEnd"
 
 propertyPublicationIssuePageEnd ::
-  Property PublicationIssue '[Text, Integer]
+  Property PublicationIssue '[Integer, Text]
 propertyPublicationIssuePageEnd = Property "pageEnd"
 
-propertyArticlePageStart :: Property Article '[Text, Integer]
+propertyPublicationVolumePageEnd ::
+  Property PublicationVolume '[Integer, Text]
+propertyPublicationVolumePageEnd = Property "pageEnd"
+
+propertyArticlePageStart :: Property Article '[Integer, Text]
 propertyArticlePageStart = Property "pageStart"
 
-propertyPublicationVolumePageStart ::
-  Property PublicationVolume '[Text, Integer]
-propertyPublicationVolumePageStart = Property "pageStart"
+propertyChapterPageStart :: Property Chapter '[Integer, Text]
+propertyChapterPageStart = Property "pageStart"
 
 propertyPublicationIssuePageStart ::
-  Property PublicationIssue '[Text, Integer]
+  Property PublicationIssue '[Integer, Text]
 propertyPublicationIssuePageStart = Property "pageStart"
 
-propertyChapterPageStart :: Property Chapter '[Text, Integer]
-propertyChapterPageStart = Property "pageStart"
+propertyPublicationVolumePageStart ::
+  Property PublicationVolume '[Integer, Text]
+propertyPublicationVolumePageStart = Property "pageStart"
 
 propertyArticlePagination :: Property Article '[Text]
 propertyArticlePagination = Property "pagination"
 
-propertyPublicationVolumePagination ::
-  Property PublicationVolume '[Text]
-propertyPublicationVolumePagination = Property "pagination"
+propertyChapterPagination :: Property Chapter '[Text]
+propertyChapterPagination = Property "pagination"
 
 propertyPublicationIssuePagination ::
   Property PublicationIssue '[Text]
 propertyPublicationIssuePagination = Property "pagination"
 
-propertyChapterPagination :: Property Chapter '[Text]
-propertyChapterPagination = Property "pagination"
+propertyPublicationVolumePagination ::
+  Property PublicationVolume '[Text]
+propertyPublicationVolumePagination = Property "pagination"
 
 propertyPersonParent :: Property Person '[Person]
 propertyPersonParent = Property "parent"
@@ -16491,13 +16944,13 @@ propertyAnswerParentItem ::
   Property Answer '[Comment, CreativeWork]
 propertyAnswerParentItem = Property "parentItem"
 
-propertyQuestionParentItem ::
-  Property Question '[Comment, CreativeWork]
-propertyQuestionParentItem = Property "parentItem"
-
 propertyCommentParentItem ::
   Property Comment '[Comment, CreativeWork]
 propertyCommentParentItem = Property "parentItem"
+
+propertyQuestionParentItem ::
+  Property Question '[Comment, CreativeWork]
+propertyQuestionParentItem = Property "parentItem"
 
 propertyOrganizationParentOrganization ::
   Property Organization '[Organization]
@@ -16531,12 +16984,12 @@ propertyEpisodePartOfSeason ::
   Property Episode '[CreativeWorkSeason]
 propertyEpisodePartOfSeason = Property "partOfSeason"
 
+propertyClipPartOfSeries :: Property Clip '[CreativeWorkSeries]
+propertyClipPartOfSeries = Property "partOfSeries"
+
 propertyCreativeWorkSeasonPartOfSeries ::
   Property CreativeWorkSeason '[CreativeWorkSeries]
 propertyCreativeWorkSeasonPartOfSeries = Property "partOfSeries"
-
-propertyClipPartOfSeries :: Property Clip '[CreativeWorkSeries]
-propertyClipPartOfSeries = Property "partOfSeries"
 
 propertyEpisodePartOfSeries ::
   Property Episode '[CreativeWorkSeries]
@@ -16549,11 +17002,11 @@ propertyAnatomicalStructurePartOfSystem = Property "partOfSystem"
 propertyTVClipPartOfTVSeries :: Property TVClip '[TVSeries]
 propertyTVClipPartOfTVSeries = Property "partOfTVSeries"
 
-propertyTVSeasonPartOfTVSeries :: Property TVSeason '[TVSeries]
-propertyTVSeasonPartOfTVSeries = Property "partOfTVSeries"
-
 propertyTVEpisodePartOfTVSeries :: Property TVEpisode '[TVSeries]
 propertyTVEpisodePartOfTVSeries = Property "partOfTVSeries"
+
+propertyTVSeasonPartOfTVSeries :: Property TVSeason '[TVSeries]
+propertyTVSeasonPartOfTVSeries = Property "partOfTVSeries"
 
 propertyTripPartOfTrip :: Property Trip '[Trip]
 propertyTripPartOfTrip = Property "partOfTrip"
@@ -16591,12 +17044,12 @@ propertyPhysicalActivityPathophysiology ::
 propertyPhysicalActivityPathophysiology =
   Property "pathophysiology"
 
-propertyProductPattern :: Property Product '[DefinedTerm, Text]
-propertyProductPattern = Property "pattern"
-
 propertyCreativeWorkPattern ::
   Property CreativeWork '[DefinedTerm, Text]
 propertyCreativeWorkPattern = Property "pattern"
+
+propertyProductPattern :: Property Product '[DefinedTerm, Text]
+propertyProductPattern = Property "pattern"
 
 propertyVehiclePayload :: Property Vehicle '[QuantitativeValue]
 propertyVehiclePayload = Property "payload"
@@ -16618,10 +17071,10 @@ propertyOrderPaymentDueDate :: Property Order '[Date, DateTime]
 propertyOrderPaymentDueDate = Property "paymentDueDate"
 
 propertyInvoicePaymentMethod ::
-  Property Invoice '[Text, PaymentMethod]
+  Property Invoice '[PaymentMethod, Text]
 propertyInvoicePaymentMethod = Property "paymentMethod"
 
-propertyOrderPaymentMethod :: Property Order '[Text, PaymentMethod]
+propertyOrderPaymentMethod :: Property Order '[PaymentMethod, Text]
 propertyOrderPaymentMethod = Property "paymentMethod"
 
 propertyInvoicePaymentMethodId :: Property Invoice '[Text]
@@ -16642,14 +17095,14 @@ propertyInvoicePaymentStatus = Property "paymentStatus"
 propertyOrderPaymentUrl :: Property Order '[URL]
 propertyOrderPaymentUrl = Property "paymentUrl"
 
-propertyVisualArtworkPenciler :: Property VisualArtwork '[Person]
-propertyVisualArtworkPenciler = Property "penciler"
+propertyComicIssuePenciler :: Property ComicIssue '[Person]
+propertyComicIssuePenciler = Property "penciler"
 
 propertyComicStoryPenciler :: Property ComicStory '[Person]
 propertyComicStoryPenciler = Property "penciler"
 
-propertyComicIssuePenciler :: Property ComicIssue '[Person]
-propertyComicIssuePenciler = Property "penciler"
+propertyVisualArtworkPenciler :: Property VisualArtwork '[Person]
+propertyVisualArtworkPenciler = Property "penciler"
 
 propertyQuantitativeValueDistributionPercentile10 ::
   Property QuantitativeValueDistribution '[Number]
@@ -16703,20 +17156,20 @@ propertyAccommodationPermittedUsage ::
   Property Accommodation '[Text]
 propertyAccommodationPermittedUsage = Property "permittedUsage"
 
-propertyApartmentComplexPetsAllowed ::
-  Property ApartmentComplex '[Boolean, Text]
-propertyApartmentComplexPetsAllowed = Property "petsAllowed"
-
-propertyLodgingBusinessPetsAllowed ::
-  Property LodgingBusiness '[Boolean, Text]
-propertyLodgingBusinessPetsAllowed = Property "petsAllowed"
-
 propertyAccommodationPetsAllowed ::
   Property Accommodation '[Boolean, Text]
 propertyAccommodationPetsAllowed = Property "petsAllowed"
 
+propertyApartmentComplexPetsAllowed ::
+  Property ApartmentComplex '[Boolean, Text]
+propertyApartmentComplexPetsAllowed = Property "petsAllowed"
+
 propertyFloorPlanPetsAllowed :: Property FloorPlan '[Boolean, Text]
 propertyFloorPlanPetsAllowed = Property "petsAllowed"
+
+propertyLodgingBusinessPetsAllowed ::
+  Property LodgingBusiness '[Boolean, Text]
+propertyLodgingBusinessPetsAllowed = Property "petsAllowed"
 
 propertyPronounceableTextPhoneticText ::
   Property PronounceableText '[Text]
@@ -16729,7 +17182,7 @@ propertyPlacePhotos :: Property Place '[ImageObject, Photograph]
 propertyPlacePhotos = Property "photos"
 
 propertyJobPostingPhysicalRequirement ::
-  Property JobPosting '[URL, Text, DefinedTerm]
+  Property JobPosting '[DefinedTerm, Text, URL]
 propertyJobPostingPhysicalRequirement =
   Property "physicalRequirement"
 
@@ -16746,13 +17199,13 @@ propertyTaxiReservationPickupLocation ::
   Property TaxiReservation '[Place]
 propertyTaxiReservationPickupLocation = Property "pickupLocation"
 
-propertyTaxiReservationPickupTime ::
-  Property TaxiReservation '[DateTime]
-propertyTaxiReservationPickupTime = Property "pickupTime"
-
 propertyRentalCarReservationPickupTime ::
   Property RentalCarReservation '[DateTime]
 propertyRentalCarReservationPickupTime = Property "pickupTime"
+
+propertyTaxiReservationPickupTime ::
+  Property TaxiReservation '[DateTime]
+propertyTaxiReservationPickupTime = Property "pickupTime"
 
 propertyVideoGamePlayMode :: Property VideoGame '[GamePlayMode]
 propertyVideoGamePlayMode = Property "playMode"
@@ -16780,19 +17233,19 @@ propertyStatisticalVariablePopulationType ::
 propertyStatisticalVariablePopulationType =
   Property "populationType"
 
-propertyListItemPosition :: Property ListItem '[Text, Integer]
-propertyListItemPosition = Property "position"
-
 propertyCreativeWorkPosition ::
-  Property CreativeWork '[Text, Integer]
+  Property CreativeWork '[Integer, Text]
 propertyCreativeWorkPosition = Property "position"
 
+propertyListItemPosition :: Property ListItem '[Integer, Text]
+propertyListItemPosition = Property "position"
+
 propertyProductPositiveNotes ::
-  Property Product '[ListItem, ItemList, WebContent, Text]
+  Property Product '[ItemList, ListItem, Text, WebContent]
 propertyProductPositiveNotes = Property "positiveNotes"
 
 propertyReviewPositiveNotes ::
-  Property Review '[ListItem, ItemList, WebContent, Text]
+  Property Review '[ItemList, ListItem, Text, WebContent]
 propertyReviewPositiveNotes = Property "positiveNotes"
 
 propertyMedicalConditionPossibleComplication ::
@@ -16800,14 +17253,26 @@ propertyMedicalConditionPossibleComplication ::
 propertyMedicalConditionPossibleComplication =
   Property "possibleComplication"
 
-propertyMedicalSignOrSymptomPossibleTreatment ::
-  Property MedicalSignOrSymptom '[MedicalTherapy]
-propertyMedicalSignOrSymptomPossibleTreatment =
+propertyMedicalConditionPossibleTreatment ::
+  Property
+    MedicalCondition
+    '[ Drug,
+       DrugClass,
+       LifestyleModification,
+       MedicalTherapy
+     ]
+propertyMedicalConditionPossibleTreatment =
   Property "possibleTreatment"
 
-propertyMedicalConditionPossibleTreatment ::
-  Property MedicalCondition '[MedicalTherapy]
-propertyMedicalConditionPossibleTreatment =
+propertyMedicalSignOrSymptomPossibleTreatment ::
+  Property
+    MedicalSignOrSymptom
+    '[ Drug,
+       DrugClass,
+       LifestyleModification,
+       MedicalTherapy
+     ]
+propertyMedicalSignOrSymptomPossibleTreatment =
   Property "possibleTreatment"
 
 propertyPostalAddressPostOfficeBoxNumber ::
@@ -16818,17 +17283,17 @@ propertyPostalAddressPostOfficeBoxNumber =
 propertyMedicalDevicePostOp :: Property MedicalDevice '[Text]
 propertyMedicalDevicePostOp = Property "postOp"
 
-propertyGeoCoordinatesPostalCode :: Property GeoCoordinates '[Text]
-propertyGeoCoordinatesPostalCode = Property "postalCode"
-
-propertyPostalAddressPostalCode :: Property PostalAddress '[Text]
-propertyPostalAddressPostalCode = Property "postalCode"
-
 propertyDefinedRegionPostalCode :: Property DefinedRegion '[Text]
 propertyDefinedRegionPostalCode = Property "postalCode"
 
+propertyGeoCoordinatesPostalCode :: Property GeoCoordinates '[Text]
+propertyGeoCoordinatesPostalCode = Property "postalCode"
+
 propertyGeoShapePostalCode :: Property GeoShape '[Text]
 propertyGeoShapePostalCode = Property "postalCode"
+
+propertyPostalAddressPostalCode :: Property PostalAddress '[Text]
+propertyPostalAddressPostalCode = Property "postalCode"
 
 propertyPostalCodeRangeSpecificationPostalCodeBegin ::
   Property PostalCodeRangeSpecification '[Text]
@@ -16877,45 +17342,45 @@ propertyDrugPregnancyCategory = Property "pregnancyCategory"
 propertyDrugPregnancyWarning :: Property Drug '[Text]
 propertyDrugPregnancyWarning = Property "pregnancyWarning"
 
+propertyHowToPrepTime :: Property HowTo '[Duration]
+propertyHowToPrepTime = Property "prepTime"
+
 propertyHowToDirectionPrepTime ::
   Property HowToDirection '[Duration]
 propertyHowToDirectionPrepTime = Property "prepTime"
 
-propertyHowToPrepTime :: Property HowTo '[Duration]
-propertyHowToPrepTime = Property "prepTime"
-
 propertyMedicalProcedurePreparation ::
-  Property MedicalProcedure '[Text, MedicalEntity]
+  Property MedicalProcedure '[MedicalEntity, Text]
 propertyMedicalProcedurePreparation = Property "preparation"
 
 propertyDrugPrescribingInfo :: Property Drug '[URL]
 propertyDrugPrescribingInfo = Property "prescribingInfo"
 
 propertyDrugPrescriptionStatus ::
-  Property Drug '[Text, DrugPrescriptionStatus]
+  Property Drug '[DrugPrescriptionStatus, Text]
 propertyDrugPrescriptionStatus = Property "prescriptionStatus"
 
 propertyListItemPreviousItem :: Property ListItem '[ListItem]
 propertyListItemPreviousItem = Property "previousItem"
 
-propertyEventPreviousStartDate :: Property Event '[Date]
+propertyEventPreviousStartDate :: Property Event '[Date, DateTime]
 propertyEventPreviousStartDate = Property "previousStartDate"
 
-propertyOfferPrice :: Property Offer '[Text, Number]
-propertyOfferPrice = Property "price"
-
-propertyTradeActionPrice :: Property TradeAction '[Text, Number]
-propertyTradeActionPrice = Property "price"
-
-propertyPriceSpecificationPrice ::
-  Property PriceSpecification '[Text, Number]
-propertyPriceSpecificationPrice = Property "price"
-
-propertyDonateActionPrice :: Property DonateAction '[Text, Number]
+propertyDonateActionPrice :: Property DonateAction '[Number, Text]
 propertyDonateActionPrice = Property "price"
 
+propertyOfferPrice :: Property Offer '[Number, Text]
+propertyOfferPrice = Property "price"
+
+propertyPriceSpecificationPrice ::
+  Property PriceSpecification '[Number, Text]
+propertyPriceSpecificationPrice = Property "price"
+
+propertyTradeActionPrice :: Property TradeAction '[Number, Text]
+propertyTradeActionPrice = Property "price"
+
 propertyCompoundPriceSpecificationPriceComponent ::
-  Property CompoundPriceSpecification '[UnitPriceSpecification]
+  Property CompoundPriceSpecification '[PriceSpecification]
 propertyCompoundPriceSpecificationPriceComponent =
   Property "priceComponent"
 
@@ -16924,15 +17389,15 @@ propertyUnitPriceSpecificationPriceComponentType ::
 propertyUnitPriceSpecificationPriceComponentType =
   Property "priceComponentType"
 
-propertyTradeActionPriceCurrency :: Property TradeAction '[Text]
-propertyTradeActionPriceCurrency = Property "priceCurrency"
+propertyDonateActionPriceCurrency :: Property DonateAction '[Text]
+propertyDonateActionPriceCurrency = Property "priceCurrency"
+
+propertyOfferPriceCurrency :: Property Offer '[Text]
+propertyOfferPriceCurrency = Property "priceCurrency"
 
 propertyPriceSpecificationPriceCurrency ::
   Property PriceSpecification '[Text]
 propertyPriceSpecificationPriceCurrency = Property "priceCurrency"
-
-propertyDonateActionPriceCurrency :: Property DonateAction '[Text]
-propertyDonateActionPriceCurrency = Property "priceCurrency"
 
 propertyReservationPriceCurrency :: Property Reservation '[Text]
 propertyReservationPriceCurrency = Property "priceCurrency"
@@ -16940,20 +17405,20 @@ propertyReservationPriceCurrency = Property "priceCurrency"
 propertyTicketPriceCurrency :: Property Ticket '[Text]
 propertyTicketPriceCurrency = Property "priceCurrency"
 
-propertyOfferPriceCurrency :: Property Offer '[Text]
-propertyOfferPriceCurrency = Property "priceCurrency"
+propertyTradeActionPriceCurrency :: Property TradeAction '[Text]
+propertyTradeActionPriceCurrency = Property "priceCurrency"
 
 propertyLocalBusinessPriceRange :: Property LocalBusiness '[Text]
 propertyLocalBusinessPriceRange = Property "priceRange"
+
+propertyDemandPriceSpecification ::
+  Property Demand '[PriceSpecification]
+propertyDemandPriceSpecification = Property "priceSpecification"
 
 propertyDonateActionPriceSpecification ::
   Property DonateAction '[PriceSpecification]
 propertyDonateActionPriceSpecification =
   Property "priceSpecification"
-
-propertyDemandPriceSpecification ::
-  Property Demand '[PriceSpecification]
-propertyDemandPriceSpecification = Property "priceSpecification"
 
 propertyOfferPriceSpecification ::
   Property Offer '[PriceSpecification]
@@ -17025,16 +17490,43 @@ propertyProductGroupProductGroupID = Property "productGroupID"
 propertyProductProductID :: Property Product '[Text]
 propertyProductProductID = Property "productID"
 
+propertyProductReturnPolicyProductReturnDays ::
+  Property ProductReturnPolicy '[Integer]
+propertyProductReturnPolicyProductReturnDays =
+  Property "productReturnDays"
+
+propertyProductReturnPolicyProductReturnLink ::
+  Property ProductReturnPolicy '[URL]
+propertyProductReturnPolicyProductReturnLink =
+  Property "productReturnLink"
+
 propertyContactPointProductSupported ::
-  Property ContactPoint '[Text, Product]
+  Property ContactPoint '[Product, Text]
 propertyContactPointProductSupported = Property "productSupported"
+
+propertyCreativeWorkSeasonProductionCompany ::
+  Property CreativeWorkSeason '[Organization]
+propertyCreativeWorkSeasonProductionCompany =
+  Property "productionCompany"
+
+propertyEpisodeProductionCompany ::
+  Property Episode '[Organization]
+propertyEpisodeProductionCompany = Property "productionCompany"
+
+propertyMediaObjectProductionCompany ::
+  Property MediaObject '[Organization]
+propertyMediaObjectProductionCompany = Property "productionCompany"
+
+propertyMovieProductionCompany :: Property Movie '[Organization]
+propertyMovieProductionCompany = Property "productionCompany"
 
 propertyMovieSeriesProductionCompany ::
   Property MovieSeries '[Organization]
 propertyMovieSeriesProductionCompany = Property "productionCompany"
 
-propertyMovieProductionCompany :: Property Movie '[Organization]
-propertyMovieProductionCompany = Property "productionCompany"
+propertyRadioSeriesProductionCompany ::
+  Property RadioSeries '[Organization]
+propertyRadioSeriesProductionCompany = Property "productionCompany"
 
 propertyTVSeriesProductionCompany ::
   Property TVSeries '[Organization]
@@ -17045,28 +17537,11 @@ propertyVideoGameSeriesProductionCompany ::
 propertyVideoGameSeriesProductionCompany =
   Property "productionCompany"
 
-propertyRadioSeriesProductionCompany ::
-  Property RadioSeries '[Organization]
-propertyRadioSeriesProductionCompany = Property "productionCompany"
-
-propertyEpisodeProductionCompany ::
-  Property Episode '[Organization]
-propertyEpisodeProductionCompany = Property "productionCompany"
-
-propertyMediaObjectProductionCompany ::
-  Property MediaObject '[Organization]
-propertyMediaObjectProductionCompany = Property "productionCompany"
-
-propertyCreativeWorkSeasonProductionCompany ::
-  Property CreativeWorkSeason '[Organization]
-propertyCreativeWorkSeasonProductionCompany =
-  Property "productionCompany"
+propertyProductProductionDate :: Property Product '[Date]
+propertyProductProductionDate = Property "productionDate"
 
 propertyVehicleProductionDate :: Property Vehicle '[Date]
 propertyVehicleProductionDate = Property "productionDate"
-
-propertyProductProductionDate :: Property Product '[Date]
-propertyProductProductionDate = Property "productionDate"
 
 propertyTechArticleProficiencyLevel :: Property TechArticle '[Text]
 propertyTechArticleProficiencyLevel = Property "proficiencyLevel"
@@ -17087,10 +17562,10 @@ propertyProgramMembershipProgramName = Property "programName"
 propertyEducationalOccupationalProgramProgramPrerequisites ::
   Property
     EducationalOccupationalProgram
-    '[ EducationalOccupationalCredential,
-       Text,
-       AlignmentObject,
-       Course
+    '[ AlignmentObject,
+       Course,
+       EducationalOccupationalCredential,
+       Text
      ]
 propertyEducationalOccupationalProgramProgramPrerequisites =
   Property "programPrerequisites"
@@ -17101,7 +17576,7 @@ propertyEducationalOccupationalProgramProgramType =
   Property "programType"
 
 propertySoftwareSourceCodeProgrammingLanguage ::
-  Property SoftwareSourceCode '[Text, ComputerLanguage]
+  Property SoftwareSourceCode '[ComputerLanguage, Text]
 propertySoftwareSourceCodeProgrammingLanguage =
   Property "programmingLanguage"
 
@@ -17110,7 +17585,7 @@ propertyAPIReferenceProgrammingModel ::
 propertyAPIReferenceProgrammingModel = Property "programmingModel"
 
 propertyPersonPronouns ::
-  Property Person '[StructuredValue, Text, DefinedTerm]
+  Property Person '[DefinedTerm, StructuredValue, Text]
 propertyPersonPronouns = Property "pronouns"
 
 propertyPropertyValuePropertyID ::
@@ -17130,28 +17605,6 @@ propertyNutritionInformationProteinContent ::
 propertyNutritionInformationProteinContent =
   Property "proteinContent"
 
-propertyTripProvider :: Property Trip '[Organization, Person]
-propertyTripProvider = Property "provider"
-
-propertyReservationProvider ::
-  Property Reservation '[Organization, Person]
-propertyReservationProvider = Property "provider"
-
-propertyEducationalOccupationalProgramProvider ::
-  Property EducationalOccupationalProgram '[Organization, Person]
-propertyEducationalOccupationalProgramProvider =
-  Property "provider"
-
-propertyInvoiceProvider :: Property Invoice '[Organization, Person]
-propertyInvoiceProvider = Property "provider"
-
-propertyFinancialIncentiveProvider ::
-  Property FinancialIncentive '[Organization, Person]
-propertyFinancialIncentiveProvider = Property "provider"
-
-propertyServiceProvider :: Property Service '[Organization, Person]
-propertyServiceProvider = Property "provider"
-
 propertyActionProvider :: Property Action '[Organization, Person]
 propertyActionProvider = Property "provider"
 
@@ -17159,9 +17612,35 @@ propertyCreativeWorkProvider ::
   Property CreativeWork '[Organization, Person]
 propertyCreativeWorkProvider = Property "provider"
 
+propertyEducationalOccupationalProgramProvider ::
+  Property EducationalOccupationalProgram '[Organization, Person]
+propertyEducationalOccupationalProgramProvider =
+  Property "provider"
+
+propertyFinancialIncentiveProvider ::
+  Property FinancialIncentive '[Organization, Person]
+propertyFinancialIncentiveProvider = Property "provider"
+
+propertyInvoiceProvider :: Property Invoice '[Organization, Person]
+propertyInvoiceProvider = Property "provider"
+
+propertyOfferShippingDetailsProvider ::
+  Property OfferShippingDetails '[Organization, Person]
+propertyOfferShippingDetailsProvider = Property "provider"
+
 propertyParcelDeliveryProvider ::
   Property ParcelDelivery '[Organization, Person]
 propertyParcelDeliveryProvider = Property "provider"
+
+propertyReservationProvider ::
+  Property Reservation '[Organization, Person]
+propertyReservationProvider = Property "provider"
+
+propertyServiceProvider :: Property Service '[Organization, Person]
+propertyServiceProvider = Property "provider"
+
+propertyTripProvider :: Property Trip '[Organization, Person]
+propertyTripProvider = Property "provider"
 
 propertyServiceProviderMobility :: Property Service '[Text]
 propertyServiceProviderMobility = Property "providerMobility"
@@ -17179,7 +17658,7 @@ propertyPlacePublicAccess :: Property Place '[Boolean]
 propertyPlacePublicAccess = Property "publicAccess"
 
 propertySpecialAnnouncementPublicTransportClosuresInfo ::
-  Property SpecialAnnouncement '[WebContent, URL]
+  Property SpecialAnnouncement '[URL, WebContent]
 propertySpecialAnnouncementPublicTransportClosuresInfo =
   Property "publicTransportClosuresInfo"
 
@@ -17193,37 +17672,37 @@ propertyMedicalScholarlyArticlePublicationType =
   Property "publicationType"
 
 propertyPublicationEventPublishedBy ::
-  Property PublicationEvent '[Person, Organization]
+  Property PublicationEvent '[Organization, Person]
 propertyPublicationEventPublishedBy = Property "publishedBy"
 
 propertyPublicationEventPublishedOn ::
   Property PublicationEvent '[BroadcastService]
 propertyPublicationEventPublishedOn = Property "publishedOn"
 
-propertyFinancialIncentivePublisher ::
-  Property FinancialIncentive '[Organization, Person]
-propertyFinancialIncentivePublisher = Property "publisher"
-
 propertyCreativeWorkPublisher ::
   Property CreativeWork '[Organization, Person]
 propertyCreativeWorkPublisher = Property "publisher"
+
+propertyFinancialIncentivePublisher ::
+  Property FinancialIncentive '[Organization, Person]
+propertyFinancialIncentivePublisher = Property "publisher"
 
 propertyCreativeWorkPublisherImprint ::
   Property CreativeWork '[Organization]
 propertyCreativeWorkPublisherImprint = Property "publisherImprint"
 
-propertyOrganizationPublishingPrinciples ::
-  Property Organization '[URL, CreativeWork]
-propertyOrganizationPublishingPrinciples =
-  Property "publishingPrinciples"
-
 propertyCreativeWorkPublishingPrinciples ::
-  Property CreativeWork '[URL, CreativeWork]
+  Property CreativeWork '[CreativeWork, URL]
 propertyCreativeWorkPublishingPrinciples =
   Property "publishingPrinciples"
 
+propertyOrganizationPublishingPrinciples ::
+  Property Organization '[CreativeWork, URL]
+propertyOrganizationPublishingPrinciples =
+  Property "publishingPrinciples"
+
 propertyPersonPublishingPrinciples ::
-  Property Person '[URL, CreativeWork]
+  Property Person '[CreativeWork, URL]
 propertyPersonPublishingPrinciples =
   Property "publishingPrinciples"
 
@@ -17242,13 +17721,13 @@ propertyFinancialIncentivePurchaseType ::
   Property FinancialIncentive '[PurchaseType]
 propertyFinancialIncentivePurchaseType = Property "purchaseType"
 
-propertyOccupationQualifications ::
-  Property Occupation '[EducationalOccupationalCredential, Text]
-propertyOccupationQualifications = Property "qualifications"
-
 propertyJobPostingQualifications ::
-  Property JobPosting '[EducationalOccupationalCredential, Text]
+  Property JobPosting '[Credential, Text]
 propertyJobPostingQualifications = Property "qualifications"
+
+propertyOccupationQualifications ::
+  Property Occupation '[Credential, Text]
+propertyOccupationQualifications = Property "qualifications"
 
 propertyFinancialIncentiveQualifiedExpense ::
   Property FinancialIncentive '[IncentiveQualifiedExpenseType]
@@ -17256,7 +17735,7 @@ propertyFinancialIncentiveQualifiedExpense =
   Property "qualifiedExpense"
 
 propertySpecialAnnouncementQuarantineGuidelines ::
-  Property SpecialAnnouncement '[WebContent, URL]
+  Property SpecialAnnouncement '[URL, WebContent]
 propertySpecialAnnouncementQuarantineGuidelines =
   Property "quarantineGuidelines"
 
@@ -17279,7 +17758,7 @@ propertyAggregateRatingRatingCount = Property "ratingCount"
 propertyRatingRatingExplanation :: Property Rating '[Text]
 propertyRatingRatingExplanation = Property "ratingExplanation"
 
-propertyRatingRatingValue :: Property Rating '[Text, Number]
+propertyRatingRatingValue :: Property Rating '[Number, Text]
 propertyRatingRatingValue = Property "ratingValue"
 
 propertyAudiobookReadBy :: Property Audiobook '[Person]
@@ -17303,81 +17782,81 @@ propertyRecipeRecipeCategory = Property "recipeCategory"
 propertyRecipeRecipeCuisine :: Property Recipe '[Text]
 propertyRecipeRecipeCuisine = Property "recipeCuisine"
 
-propertyRecipeRecipeIngredient :: Property Recipe '[Text]
+propertyRecipeRecipeIngredient ::
+  Property Recipe '[ItemList, PropertyValue, Text]
 propertyRecipeRecipeIngredient = Property "recipeIngredient"
 
 propertyRecipeRecipeInstructions ::
-  Property Recipe '[ItemList, CreativeWork, Text]
+  Property Recipe '[CreativeWork, ItemList, Text]
 propertyRecipeRecipeInstructions = Property "recipeInstructions"
 
 propertyRecipeRecipeYield ::
   Property Recipe '[QuantitativeValue, Text]
 propertyRecipeRecipeYield = Property "recipeYield"
 
-propertyMessageRecipient ::
-  Property Message '[Organization, Audience, ContactPoint, Person]
-propertyMessageRecipient = Property "recipient"
-
 propertyAuthorizeActionRecipient ::
   Property
     AuthorizeAction
-    '[ Organization,
-       Audience,
+    '[ Audience,
        ContactPoint,
+       Organization,
        Person
      ]
 propertyAuthorizeActionRecipient = Property "recipient"
 
-propertyPayActionRecipient ::
-  Property PayAction '[Organization, Audience, ContactPoint, Person]
-propertyPayActionRecipient = Property "recipient"
+propertyCommunicateActionRecipient ::
+  Property
+    CommunicateAction
+    '[ Audience,
+       ContactPoint,
+       Organization,
+       Person
+     ]
+propertyCommunicateActionRecipient = Property "recipient"
 
-propertyTipActionRecipient ::
-  Property TipAction '[Organization, Audience, ContactPoint, Person]
-propertyTipActionRecipient = Property "recipient"
+propertyDonateActionRecipient ::
+  Property
+    DonateAction
+    '[ Audience,
+       ContactPoint,
+       Organization,
+       Person
+     ]
+propertyDonateActionRecipient = Property "recipient"
+
+propertyGiveActionRecipient ::
+  Property GiveAction '[Audience, ContactPoint, Organization, Person]
+propertyGiveActionRecipient = Property "recipient"
+
+propertyMessageRecipient ::
+  Property Message '[Audience, ContactPoint, Organization, Person]
+propertyMessageRecipient = Property "recipient"
+
+propertyPayActionRecipient ::
+  Property PayAction '[Audience, ContactPoint, Organization, Person]
+propertyPayActionRecipient = Property "recipient"
 
 propertyReturnActionRecipient ::
   Property
     ReturnAction
-    '[ Organization,
-       Audience,
+    '[ Audience,
        ContactPoint,
+       Organization,
        Person
      ]
 propertyReturnActionRecipient = Property "recipient"
 
 propertySendActionRecipient ::
-  Property SendAction '[Organization, Audience, ContactPoint, Person]
+  Property SendAction '[Audience, ContactPoint, Organization, Person]
 propertySendActionRecipient = Property "recipient"
 
-propertyDonateActionRecipient ::
-  Property
-    DonateAction
-    '[ Organization,
-       Audience,
-       ContactPoint,
-       Person
-     ]
-propertyDonateActionRecipient = Property "recipient"
+propertyTipActionRecipient ::
+  Property TipAction '[Audience, ContactPoint, Organization, Person]
+propertyTipActionRecipient = Property "recipient"
 
-propertyCommunicateActionRecipient ::
-  Property
-    CommunicateAction
-    '[ Organization,
-       Audience,
-       ContactPoint,
-       Person
-     ]
-propertyCommunicateActionRecipient = Property "recipient"
-
-propertyGiveActionRecipient ::
-  Property GiveAction '[Organization, Audience, ContactPoint, Person]
-propertyGiveActionRecipient = Property "recipient"
-
-propertyEducationalOccupationalCredentialRecognizedBy ::
-  Property EducationalOccupationalCredential '[Organization]
-propertyEducationalOccupationalCredentialRecognizedBy =
-  Property "recognizedBy"
+propertyCredentialRecognizedBy ::
+  Property Credential '[Organization]
+propertyCredentialRecognizedBy = Property "recognizedBy"
 
 propertyMedicalEntityRecognizingAuthority ::
   Property MedicalEntity '[Organization]
@@ -17416,6 +17895,11 @@ propertyLoanOrCreditRecourseLoan ::
   Property LoanOrCredit '[Boolean]
 propertyLoanOrCreditRecourseLoan = Property "recourseLoan"
 
+propertyProductRecycledContentPercentage ::
+  Property Product '[Number]
+propertyProductRecycledContentPercentage =
+  Property "recycledContentPercentage"
+
 propertySportsEventReferee :: Property SportsEvent '[Person]
 propertySportsEventReferee = Property "referee"
 
@@ -17427,14 +17911,14 @@ propertyUnitPriceSpecificationReferenceQuantity =
 propertyInvoiceReferencesOrder :: Property Invoice '[Order]
 propertyInvoiceReferencesOrder = Property "referencesOrder"
 
+propertyMerchantReturnPolicyRefundType ::
+  Property MerchantReturnPolicy '[RefundTypeEnumeration]
+propertyMerchantReturnPolicyRefundType = Property "refundType"
+
 propertyMerchantReturnPolicySeasonalOverrideRefundType ::
   Property MerchantReturnPolicySeasonalOverride '[RefundTypeEnumeration]
 propertyMerchantReturnPolicySeasonalOverrideRefundType =
   Property "refundType"
-
-propertyMerchantReturnPolicyRefundType ::
-  Property MerchantReturnPolicy '[RefundTypeEnumeration]
-propertyMerchantReturnPolicyRefundType = Property "refundType"
 
 propertyLymphaticVesselRegionDrained ::
   Property LymphaticVessel '[AnatomicalStructure, AnatomicalSystem]
@@ -17461,14 +17945,14 @@ propertyAnatomicalStructureRelatedCondition ::
 propertyAnatomicalStructureRelatedCondition =
   Property "relatedCondition"
 
-propertySuperficialAnatomyRelatedCondition ::
-  Property SuperficialAnatomy '[MedicalCondition]
-propertySuperficialAnatomyRelatedCondition =
-  Property "relatedCondition"
-
 propertyAnatomicalSystemRelatedCondition ::
   Property AnatomicalSystem '[MedicalCondition]
 propertyAnatomicalSystemRelatedCondition =
+  Property "relatedCondition"
+
+propertySuperficialAnatomyRelatedCondition ::
+  Property SuperficialAnatomy '[MedicalCondition]
+propertySuperficialAnatomyRelatedCondition =
   Property "relatedCondition"
 
 propertyDrugRelatedDrug :: Property Drug '[Drug]
@@ -17482,14 +17966,14 @@ propertyAnatomicalSystemRelatedStructure ::
 propertyAnatomicalSystemRelatedStructure =
   Property "relatedStructure"
 
-propertyAnatomicalSystemRelatedTherapy ::
-  Property AnatomicalSystem '[MedicalTherapy]
-propertyAnatomicalSystemRelatedTherapy = Property "relatedTherapy"
-
 propertyAnatomicalStructureRelatedTherapy ::
   Property AnatomicalStructure '[MedicalTherapy]
 propertyAnatomicalStructureRelatedTherapy =
   Property "relatedTherapy"
+
+propertyAnatomicalSystemRelatedTherapy ::
+  Property AnatomicalSystem '[MedicalTherapy]
+propertyAnatomicalSystemRelatedTherapy = Property "relatedTherapy"
 
 propertySuperficialAnatomyRelatedTherapy ::
   Property SuperficialAnatomy '[MedicalTherapy]
@@ -17536,11 +18020,11 @@ propertyScheduleRepeatCount :: Property Schedule '[Integer]
 propertyScheduleRepeatCount = Property "repeatCount"
 
 propertyScheduleRepeatFrequency ::
-  Property Schedule '[Text, Duration]
+  Property Schedule '[Duration, Text]
 propertyScheduleRepeatFrequency = Property "repeatFrequency"
 
 propertyExercisePlanRepetitions ::
-  Property ExercisePlan '[QuantitativeValue, Number]
+  Property ExercisePlan '[Number, QuantitativeValue]
 propertyExercisePlanRepetitions = Property "repetitions"
 
 propertyReplaceActionReplacee :: Property ReplaceAction '[Thing]
@@ -17561,7 +18045,7 @@ propertyImageObjectRepresentativeOfPage =
   Property "representativeOfPage"
 
 propertyLoanOrCreditRequiredCollateral ::
-  Property LoanOrCredit '[Thing, Text]
+  Property LoanOrCredit '[Text, Thing]
 propertyLoanOrCreditRequiredCollateral =
   Property "requiredCollateral"
 
@@ -17582,16 +18066,16 @@ propertyHowToItemRequiredQuantity ::
 propertyHowToItemRequiredQuantity = Property "requiredQuantity"
 
 propertySoftwareApplicationRequirements ::
-  Property SoftwareApplication '[URL, Text]
+  Property SoftwareApplication '[Text, URL]
 propertySoftwareApplicationRequirements = Property "requirements"
 
 propertyActionAccessSpecificationRequiresSubscription ::
-  Property ActionAccessSpecification '[MediaSubscription, Boolean]
+  Property ActionAccessSpecification '[Boolean, MediaSubscription]
 propertyActionAccessSpecificationRequiresSubscription =
   Property "requiresSubscription"
 
 propertyMediaObjectRequiresSubscription ::
-  Property MediaObject '[MediaSubscription, Boolean]
+  Property MediaObject '[Boolean, MediaSubscription]
 propertyMediaObjectRequiresSubscription =
   Property "requiresSubscription"
 
@@ -17608,28 +18092,28 @@ propertyReservationReservationStatus = Property "reservationStatus"
 propertyReservationReservedTicket :: Property Reservation '[Ticket]
 propertyReservationReservedTicket = Property "reservedTicket"
 
-propertyOccupationResponsibilities :: Property Occupation '[Text]
-propertyOccupationResponsibilities = Property "responsibilities"
-
 propertyJobPostingResponsibilities :: Property JobPosting '[Text]
 propertyJobPostingResponsibilities = Property "responsibilities"
+
+propertyOccupationResponsibilities :: Property Occupation '[Text]
+propertyOccupationResponsibilities = Property "responsibilities"
 
 propertyExercisePlanRestPeriods ::
   Property ExercisePlan '[QuantitativeValue, Text]
 propertyExercisePlanRestPeriods = Property "restPeriods"
 
+propertyMerchantReturnPolicyRestockingFee ::
+  Property MerchantReturnPolicy '[MonetaryAmount, Number]
+propertyMerchantReturnPolicyRestockingFee =
+  Property "restockingFee"
+
 propertyMerchantReturnPolicySeasonalOverrideRestockingFee ::
   Property
     MerchantReturnPolicySeasonalOverride
-    '[ Number,
-       MonetaryAmount
+    '[ MonetaryAmount,
+       Number
      ]
 propertyMerchantReturnPolicySeasonalOverrideRestockingFee =
-  Property "restockingFee"
-
-propertyMerchantReturnPolicyRestockingFee ::
-  Property MerchantReturnPolicy '[Number, MonetaryAmount]
-propertyMerchantReturnPolicyRestockingFee =
   Property "restockingFee"
 
 propertyActionResult :: Property Action '[Thing]
@@ -17659,27 +18143,27 @@ propertyMerchantReturnPolicyReturnLabelSource ::
 propertyMerchantReturnPolicyReturnLabelSource =
   Property "returnLabelSource"
 
-propertyMerchantReturnPolicySeasonalOverrideReturnMethod ::
-  Property MerchantReturnPolicySeasonalOverride '[ReturnMethodEnumeration]
-propertyMerchantReturnPolicySeasonalOverrideReturnMethod =
-  Property "returnMethod"
-
 propertyMerchantReturnPolicyReturnMethod ::
   Property MerchantReturnPolicy '[ReturnMethodEnumeration]
 propertyMerchantReturnPolicyReturnMethod = Property "returnMethod"
 
-propertyMerchantReturnPolicySeasonalOverrideReturnPolicyCategory ::
-  Property MerchantReturnPolicySeasonalOverride '[MerchantReturnEnumeration]
-propertyMerchantReturnPolicySeasonalOverrideReturnPolicyCategory =
-  Property "returnPolicyCategory"
+propertyMerchantReturnPolicySeasonalOverrideReturnMethod ::
+  Property MerchantReturnPolicySeasonalOverride '[ReturnMethodEnumeration]
+propertyMerchantReturnPolicySeasonalOverrideReturnMethod =
+  Property "returnMethod"
 
 propertyMerchantReturnPolicyReturnPolicyCategory ::
   Property MerchantReturnPolicy '[MerchantReturnEnumeration]
 propertyMerchantReturnPolicyReturnPolicyCategory =
   Property "returnPolicyCategory"
 
+propertyMerchantReturnPolicySeasonalOverrideReturnPolicyCategory ::
+  Property MerchantReturnPolicySeasonalOverride '[MerchantReturnEnumeration]
+propertyMerchantReturnPolicySeasonalOverrideReturnPolicyCategory =
+  Property "returnPolicyCategory"
+
 propertyMerchantReturnPolicyReturnPolicyCountry ::
-  Property MerchantReturnPolicy '[Text, Country]
+  Property MerchantReturnPolicy '[Country, Text]
 propertyMerchantReturnPolicyReturnPolicyCountry =
   Property "returnPolicyCountry"
 
@@ -17688,47 +18172,50 @@ propertyMerchantReturnPolicyReturnPolicySeasonalOverride ::
 propertyMerchantReturnPolicyReturnPolicySeasonalOverride =
   Property "returnPolicySeasonalOverride"
 
-propertyMerchantReturnPolicySeasonalOverrideReturnShippingFeesAmount ::
-  Property MerchantReturnPolicySeasonalOverride '[MonetaryAmount]
-propertyMerchantReturnPolicySeasonalOverrideReturnShippingFeesAmount =
-  Property "returnShippingFeesAmount"
-
 propertyMerchantReturnPolicyReturnShippingFeesAmount ::
   Property MerchantReturnPolicy '[MonetaryAmount]
 propertyMerchantReturnPolicyReturnShippingFeesAmount =
   Property "returnShippingFeesAmount"
 
+propertyMerchantReturnPolicySeasonalOverrideReturnShippingFeesAmount ::
+  Property MerchantReturnPolicySeasonalOverride '[MonetaryAmount]
+propertyMerchantReturnPolicySeasonalOverrideReturnShippingFeesAmount =
+  Property "returnShippingFeesAmount"
+
 propertyBrandReview :: Property Brand '[Review]
 propertyBrandReview = Property "review"
-
-propertyOrganizationReview :: Property Organization '[Review]
-propertyOrganizationReview = Property "review"
-
-propertyOfferReview :: Property Offer '[Review]
-propertyOfferReview = Property "review"
-
-propertyServiceReview :: Property Service '[Review]
-propertyServiceReview = Property "review"
-
-propertyEventReview :: Property Event '[Review]
-propertyEventReview = Property "review"
-
-propertyPlaceReview :: Property Place '[Review]
-propertyPlaceReview = Property "review"
 
 propertyCreativeWorkReview :: Property CreativeWork '[Review]
 propertyCreativeWorkReview = Property "review"
 
+propertyEventReview :: Property Event '[Review]
+propertyEventReview = Property "review"
+
+propertyOfferReview :: Property Offer '[Review]
+propertyOfferReview = Property "review"
+
+propertyOrganizationReview :: Property Organization '[Review]
+propertyOrganizationReview = Property "review"
+
+propertyPlaceReview :: Property Place '[Review]
+propertyPlaceReview = Property "review"
+
 propertyProductReview :: Property Product '[Review]
 propertyProductReview = Property "review"
 
-propertyRatingReviewAspect :: Property Rating '[Text]
-propertyRatingReviewAspect = Property "reviewAspect"
+propertyServiceReview :: Property Service '[Review]
+propertyServiceReview = Property "review"
 
-propertyGuideReviewAspect :: Property Guide '[Text]
+propertyGuideReviewAspect ::
+  Property Guide '[StructuredValue, Text]
 propertyGuideReviewAspect = Property "reviewAspect"
 
-propertyReviewReviewAspect :: Property Review '[Text]
+propertyRatingReviewAspect ::
+  Property Rating '[StructuredValue, Text]
+propertyRatingReviewAspect = Property "reviewAspect"
+
+propertyReviewReviewAspect ::
+  Property Review '[StructuredValue, Text]
 propertyReviewReviewAspect = Property "reviewAspect"
 
 propertyReviewReviewBody :: Property Review '[Text]
@@ -17745,20 +18232,20 @@ propertyWebPageReviewedBy ::
   Property WebPage '[Organization, Person]
 propertyWebPageReviewedBy = Property "reviewedBy"
 
-propertyOrganizationReviews :: Property Organization '[Review]
-propertyOrganizationReviews = Property "reviews"
-
 propertyCreativeWorkReviews :: Property CreativeWork '[Review]
 propertyCreativeWorkReviews = Property "reviews"
+
+propertyOfferReviews :: Property Offer '[Review]
+propertyOfferReviews = Property "reviews"
+
+propertyOrganizationReviews :: Property Organization '[Review]
+propertyOrganizationReviews = Property "reviews"
 
 propertyPlaceReviews :: Property Place '[Review]
 propertyPlaceReviews = Property "reviews"
 
 propertyProductReviews :: Property Product '[Review]
 propertyProductReviews = Property "reviews"
-
-propertyOfferReviews :: Property Offer '[Review]
-propertyOfferReviews = Property "reviews"
 
 propertyMedicalConditionRiskFactor ::
   Property MedicalCondition '[MedicalRiskFactor]
@@ -17788,8 +18275,13 @@ propertySoftwareSourceCodeRuntime ::
   Property SoftwareSourceCode '[Text]
 propertySoftwareSourceCodeRuntime = Property "runtime"
 
+propertySoftwareApplicationRuntimePlatform ::
+  Property SoftwareApplication '[RuntimePlatform, Text]
+propertySoftwareApplicationRuntimePlatform =
+  Property "runtimePlatform"
+
 propertySoftwareSourceCodeRuntimePlatform ::
-  Property SoftwareSourceCode '[Text]
+  Property SoftwareSourceCode '[RuntimePlatform, Text]
 propertySoftwareSourceCodeRuntimePlatform =
   Property "runtimePlatform"
 
@@ -17836,7 +18328,7 @@ propertyPlanActionScheduledTime ::
 propertyPlanActionScheduledTime = Property "scheduledTime"
 
 propertyCreativeWorkSchemaVersion ::
-  Property CreativeWork '[URL, Text]
+  Property CreativeWork '[Text, URL]
 propertyCreativeWorkSchemaVersion = Property "schemaVersion"
 
 propertySpecialAnnouncementSchoolClosuresInfo ::
@@ -17848,7 +18340,7 @@ propertyMovieTheaterScreenCount :: Property MovieTheater '[Number]
 propertyMovieTheaterScreenCount = Property "screenCount"
 
 propertySoftwareApplicationScreenshot ::
-  Property SoftwareApplication '[URL, ImageObject]
+  Property SoftwareApplication '[ImageObject, URL]
 propertySoftwareApplicationScreenshot = Property "screenshot"
 
 propertyCreativeWorkSdDatePublished ::
@@ -17863,10 +18355,6 @@ propertyCreativeWorkSdPublisher ::
   Property CreativeWork '[Organization, Person]
 propertyCreativeWorkSdPublisher = Property "sdPublisher"
 
-propertyVideoGameSeriesSeason ::
-  Property VideoGameSeries '[CreativeWorkSeason, URL]
-propertyVideoGameSeriesSeason = Property "season"
-
 propertyRadioSeriesSeason ::
   Property RadioSeries '[CreativeWorkSeason, URL]
 propertyRadioSeriesSeason = Property "season"
@@ -17875,8 +18363,12 @@ propertyTVSeriesSeason ::
   Property TVSeries '[CreativeWorkSeason, URL]
 propertyTVSeriesSeason = Property "season"
 
+propertyVideoGameSeriesSeason ::
+  Property VideoGameSeries '[CreativeWorkSeason, URL]
+propertyVideoGameSeriesSeason = Property "season"
+
 propertyCreativeWorkSeasonSeasonNumber ::
-  Property CreativeWorkSeason '[Text, Integer]
+  Property CreativeWorkSeason '[Integer, Text]
 propertyCreativeWorkSeasonSeasonNumber = Property "seasonNumber"
 
 propertyShippingConditionsSeasonalOverride ::
@@ -17884,16 +18376,16 @@ propertyShippingConditionsSeasonalOverride ::
 propertyShippingConditionsSeasonalOverride =
   Property "seasonalOverride"
 
-propertyVideoGameSeriesSeasons ::
-  Property VideoGameSeries '[CreativeWorkSeason]
-propertyVideoGameSeriesSeasons = Property "seasons"
-
 propertyRadioSeriesSeasons ::
   Property RadioSeries '[CreativeWorkSeason]
 propertyRadioSeriesSeasons = Property "seasons"
 
 propertyTVSeriesSeasons :: Property TVSeries '[CreativeWorkSeason]
 propertyTVSeriesSeasons = Property "seasons"
+
+propertyVideoGameSeriesSeasons ::
+  Property VideoGameSeries '[CreativeWorkSeason]
+propertyVideoGameSeriesSeasons = Property "seasons"
 
 propertySeatSeatNumber :: Property Seat '[Text]
 propertySeatSeatNumber = Property "seatNumber"
@@ -17905,19 +18397,25 @@ propertySeatSeatSection :: Property Seat '[Text]
 propertySeatSeatSection = Property "seatSection"
 
 propertyVehicleSeatingCapacity ::
-  Property Vehicle '[QuantitativeValue, Number]
+  Property Vehicle '[Number, QuantitativeValue]
 propertyVehicleSeatingCapacity = Property "seatingCapacity"
 
 propertySeatSeatingType :: Property Seat '[QualitativeValue, Text]
 propertySeatSeatingType = Property "seatingType"
 
 propertyMedicalConditionSecondaryPrevention ::
-  Property MedicalCondition '[MedicalTherapy]
+  Property
+    MedicalCondition
+    '[ Drug,
+       DrugClass,
+       LifestyleModification,
+       MedicalTherapy
+     ]
 propertyMedicalConditionSecondaryPrevention =
   Property "secondaryPrevention"
 
 propertyJobPostingSecurityClearanceRequirement ::
-  Property JobPosting '[URL, Text]
+  Property JobPosting '[Text, URL]
 propertyJobPostingSecurityClearanceRequirement =
   Property "securityClearanceRequirement"
 
@@ -17926,14 +18424,11 @@ propertyFlightReservationSecurityScreening ::
 propertyFlightReservationSecurityScreening =
   Property "securityScreening"
 
-propertyPersonSeeks :: Property Person '[Demand]
-propertyPersonSeeks = Property "seeks"
-
 propertyOrganizationSeeks :: Property Organization '[Demand]
 propertyOrganizationSeeks = Property "seeks"
 
-propertyFlightSeller :: Property Flight '[Organization, Person]
-propertyFlightSeller = Property "seller"
+propertyPersonSeeks :: Property Person '[Demand]
+propertyPersonSeeks = Property "seeks"
 
 propertyBuyActionSeller ::
   Property BuyAction '[Organization, Person]
@@ -17942,22 +18437,25 @@ propertyBuyActionSeller = Property "seller"
 propertyDemandSeller :: Property Demand '[Organization, Person]
 propertyDemandSeller = Property "seller"
 
+propertyFlightSeller :: Property Flight '[Organization, Person]
+propertyFlightSeller = Property "seller"
+
 propertyOfferSeller :: Property Offer '[Organization, Person]
 propertyOfferSeller = Property "seller"
 
 propertyOrderSeller :: Property Order '[Organization, Person]
 propertyOrderSeller = Property "seller"
 
-propertyReceiveActionSender ::
-  Property ReceiveAction '[Person, Audience, Organization]
-propertyReceiveActionSender = Property "sender"
-
 propertyMessageSender ::
-  Property Message '[Person, Audience, Organization]
+  Property Message '[Audience, Organization, Person]
 propertyMessageSender = Property "sender"
 
+propertyReceiveActionSender ::
+  Property ReceiveAction '[Audience, Organization, Person]
+propertyReceiveActionSender = Property "sender"
+
 propertyJobPostingSensoryRequirement ::
-  Property JobPosting '[Text, URL, DefinedTerm]
+  Property JobPosting '[DefinedTerm, Text, URL]
 propertyJobPostingSensoryRequirement =
   Property "sensoryRequirement"
 
@@ -17975,14 +18473,14 @@ propertyIndividualProductSerialNumber = Property "serialNumber"
 propertyOfferSerialNumber :: Property Offer '[Text]
 propertyOfferSerialNumber = Property "serialNumber"
 
-propertyMedicalTherapySeriousAdverseOutcome ::
-  Property MedicalTherapy '[MedicalEntity]
-propertyMedicalTherapySeriousAdverseOutcome =
-  Property "seriousAdverseOutcome"
-
 propertyMedicalDeviceSeriousAdverseOutcome ::
   Property MedicalDevice '[MedicalEntity]
 propertyMedicalDeviceSeriousAdverseOutcome =
+  Property "seriousAdverseOutcome"
+
+propertyMedicalTherapySeriousAdverseOutcome ::
+  Property MedicalTherapy '[MedicalEntity]
+propertyMedicalTherapySeriousAdverseOutcome =
   Property "seriousAdverseOutcome"
 
 propertyGameServerServerStatus ::
@@ -17993,17 +18491,17 @@ propertyFoodEstablishmentServesCuisine ::
   Property FoodEstablishment '[Text]
 propertyFoodEstablishmentServesCuisine = Property "servesCuisine"
 
+propertyContactPointServiceArea ::
+  Property ContactPoint '[AdministrativeArea, GeoShape, Place]
+propertyContactPointServiceArea = Property "serviceArea"
+
 propertyOrganizationServiceArea ::
-  Property Organization '[Place, AdministrativeArea, GeoShape]
+  Property Organization '[AdministrativeArea, GeoShape, Place]
 propertyOrganizationServiceArea = Property "serviceArea"
 
 propertyServiceServiceArea ::
-  Property Service '[Place, AdministrativeArea, GeoShape]
+  Property Service '[AdministrativeArea, GeoShape, Place]
 propertyServiceServiceArea = Property "serviceArea"
-
-propertyContactPointServiceArea ::
-  Property ContactPoint '[Place, AdministrativeArea, GeoShape]
-propertyContactPointServiceArea = Property "serviceArea"
 
 propertyServiceServiceAudience :: Property Service '[Audience]
 propertyServiceServiceAudience = Property "serviceAudience"
@@ -18048,26 +18546,26 @@ propertyNutritionInformationServingSize = Property "servingSize"
 propertyMediaObjectSha256 :: Property MediaObject '[Text]
 propertyMediaObjectSha256 = Property "sha256"
 
+propertyCommentSharedContent :: Property Comment '[CreativeWork]
+propertyCommentSharedContent = Property "sharedContent"
+
 propertySocialMediaPostingSharedContent ::
   Property SocialMediaPosting '[CreativeWork]
 propertySocialMediaPostingSharedContent = Property "sharedContent"
-
-propertyCommentSharedContent :: Property Comment '[CreativeWork]
-propertyCommentSharedContent = Property "sharedContent"
 
 propertyShippingServiceShippingConditions ::
   Property ShippingService '[ShippingConditions]
 propertyShippingServiceShippingConditions =
   Property "shippingConditions"
 
+propertyDeliveryTimeSettingsShippingDestination ::
+  Property DeliveryTimeSettings '[DefinedRegion]
+propertyDeliveryTimeSettingsShippingDestination =
+  Property "shippingDestination"
+
 propertyOfferShippingDetailsShippingDestination ::
   Property OfferShippingDetails '[DefinedRegion]
 propertyOfferShippingDetailsShippingDestination =
-  Property "shippingDestination"
-
-propertyShippingRateSettingsShippingDestination ::
-  Property ShippingRateSettings '[DefinedRegion]
-propertyShippingRateSettingsShippingDestination =
   Property "shippingDestination"
 
 propertyShippingConditionsShippingDestination ::
@@ -18075,9 +18573,24 @@ propertyShippingConditionsShippingDestination ::
 propertyShippingConditionsShippingDestination =
   Property "shippingDestination"
 
+propertyShippingRateSettingsShippingDestination ::
+  Property ShippingRateSettings '[DefinedRegion]
+propertyShippingRateSettingsShippingDestination =
+  Property "shippingDestination"
+
 propertyOfferShippingDetails ::
   Property Offer '[OfferShippingDetails]
 propertyOfferShippingDetails = Property "shippingDetails"
+
+propertyOfferShippingDetailsShippingLabel ::
+  Property OfferShippingDetails '[Text]
+propertyOfferShippingDetailsShippingLabel =
+  Property "shippingLabel"
+
+propertyShippingRateSettingsShippingLabel ::
+  Property ShippingRateSettings '[Text]
+propertyShippingRateSettingsShippingLabel =
+  Property "shippingLabel"
 
 propertyOfferShippingDetailsShippingOrigin ::
   Property OfferShippingDetails '[DefinedRegion]
@@ -18092,22 +18605,27 @@ propertyShippingConditionsShippingOrigin =
 propertyOfferShippingDetailsShippingRate ::
   Property
     OfferShippingDetails
-    '[ ShippingRateSettings,
-       MonetaryAmount
+    '[ MonetaryAmount,
+       ShippingRateSettings
      ]
 propertyOfferShippingDetailsShippingRate = Property "shippingRate"
 
 propertyShippingConditionsShippingRate ::
-  Property ShippingConditions '[ShippingRateSettings, MonetaryAmount]
+  Property ShippingConditions '[MonetaryAmount, ShippingRateSettings]
 propertyShippingConditionsShippingRate = Property "shippingRate"
 
 propertyShippingRateSettingsShippingRate ::
   Property
     ShippingRateSettings
-    '[ ShippingRateSettings,
-       MonetaryAmount
+    '[ MonetaryAmount,
+       ShippingRateSettings
      ]
 propertyShippingRateSettingsShippingRate = Property "shippingRate"
+
+propertyOfferShippingDetailsShippingSettingsLink ::
+  Property OfferShippingDetails '[URL]
+propertyOfferShippingDetailsShippingSettingsLink =
+  Property "shippingSettingsLink"
 
 propertyPersonSibling :: Property Person '[Person]
 propertyPersonSibling = Property "sibling"
@@ -18136,48 +18654,45 @@ propertyWebPageSignificantLinks = Property "significantLinks"
 propertyCreativeWorkSize ::
   Property
     CreativeWork
-    '[ Text,
-       DefinedTerm,
+    '[ DefinedTerm,
+       QuantitativeValue,
        SizeSpecification,
-       QuantitativeValue
+       Text
      ]
 propertyCreativeWorkSize = Property "size"
 
 propertyProductSize ::
   Property
     Product
-    '[ Text,
-       DefinedTerm,
+    '[ DefinedTerm,
+       QuantitativeValue,
        SizeSpecification,
-       QuantitativeValue
+       Text
      ]
 propertyProductSize = Property "size"
 
 propertySizeSpecificationSizeGroup ::
-  Property SizeSpecification '[Text, SizeGroupEnumeration]
+  Property SizeSpecification '[SizeGroupEnumeration, Text]
 propertySizeSpecificationSizeGroup = Property "sizeGroup"
 
 propertySizeSpecificationSizeSystem ::
-  Property SizeSpecification '[Text, SizeSystemEnumeration]
+  Property SizeSpecification '[SizeSystemEnumeration, Text]
 propertySizeSpecificationSizeSystem = Property "sizeSystem"
-
-propertyPersonSkills :: Property Person '[DefinedTerm, Text]
-propertyPersonSkills = Property "skills"
-
-propertyOccupationSkills ::
-  Property Occupation '[DefinedTerm, Text]
-propertyOccupationSkills = Property "skills"
 
 propertyJobPostingSkills ::
   Property JobPosting '[DefinedTerm, Text]
 propertyJobPostingSkills = Property "skills"
 
+propertyOccupationSkills ::
+  Property Occupation '[DefinedTerm, Text]
+propertyOccupationSkills = Property "skills"
+
 propertyOrganizationSkills ::
   Property Organization '[DefinedTerm, Text]
 propertyOrganizationSkills = Property "skills"
 
-propertyProductSku :: Property Product '[Text]
-propertyProductSku = Property "sku"
+propertyPersonSkills :: Property Person '[DefinedTerm, Text]
+propertyPersonSkills = Property "skills"
 
 propertyDemandSku :: Property Demand '[Text]
 propertyDemandSku = Property "sku"
@@ -18185,11 +18700,14 @@ propertyDemandSku = Property "sku"
 propertyOfferSku :: Property Offer '[Text]
 propertyOfferSku = Property "sku"
 
+propertyProductSku :: Property Product '[Text]
+propertyProductSku = Property "sku"
+
+propertyBrandSlogan :: Property Brand '[Text]
+propertyBrandSlogan = Property "slogan"
+
 propertyOrganizationSlogan :: Property Organization '[Text]
 propertyOrganizationSlogan = Property "slogan"
-
-propertyServiceSlogan :: Property Service '[Text]
-propertyServiceSlogan = Property "slogan"
 
 propertyPlaceSlogan :: Property Place '[Text]
 propertyPlaceSlogan = Property "slogan"
@@ -18197,8 +18715,8 @@ propertyPlaceSlogan = Property "slogan"
 propertyProductSlogan :: Property Product '[Text]
 propertyProductSlogan = Property "slogan"
 
-propertyBrandSlogan :: Property Brand '[Text]
-propertyBrandSlogan = Property "slogan"
+propertyServiceSlogan :: Property Service '[Text]
+propertyServiceSlogan = Property "slogan"
 
 propertyMolecularEntitySmiles :: Property MolecularEntity '[Text]
 propertyMolecularEntitySmiles = Property "smiles"
@@ -18220,7 +18738,7 @@ propertySoftwareApplicationSoftwareHelp ::
 propertySoftwareApplicationSoftwareHelp = Property "softwareHelp"
 
 propertySoftwareApplicationSoftwareRequirements ::
-  Property SoftwareApplication '[Text, URL]
+  Property SoftwareApplication '[SoftwareApplication, Text, URL]
 propertySoftwareApplicationSoftwareRequirements =
   Property "softwareRequirements"
 
@@ -18228,6 +18746,10 @@ propertySoftwareApplicationSoftwareVersion ::
   Property SoftwareApplication '[Text]
 propertySoftwareApplicationSoftwareVersion =
   Property "softwareVersion"
+
+propertyInstantaneousEventSource ::
+  Property InstantaneousEvent '[Thing]
+propertyInstantaneousEventSource = Property "source"
 
 propertyCreativeWorkSourceOrganization ::
   Property CreativeWork '[Organization]
@@ -18244,13 +18766,13 @@ propertyCreativeWorkSpatialCoverage ::
   Property CreativeWork '[Place]
 propertyCreativeWorkSpatialCoverage = Property "spatialCoverage"
 
-propertyWebPageSpeakable ::
-  Property WebPage '[SpeakableSpecification, URL]
-propertyWebPageSpeakable = Property "speakable"
-
 propertyArticleSpeakable ::
   Property Article '[SpeakableSpecification, URL]
 propertyArticleSpeakable = Property "speakable"
+
+propertyWebPageSpeakable ::
+  Property WebPage '[SpeakableSpecification, URL]
+propertyWebPageSpeakable = Property "speakable"
 
 propertyJobPostingSpecialCommitments :: Property JobPosting '[Text]
 propertyJobPostingSpecialCommitments =
@@ -18264,6 +18786,9 @@ propertyPlaceSpecialOpeningHoursSpecification =
 propertyWebPageSpecialty :: Property WebPage '[Specialty]
 propertyWebPageSpecialty = Property "specialty"
 
+propertyProductSpecification :: Property Product '[PropertyValue]
+propertyProductSpecification = Property "specification"
+
 propertyPronounceableTextSpeechToTextMarkup ::
   Property PronounceableText '[Text]
 propertyPronounceableTextSpeechToTextMarkup =
@@ -18276,32 +18801,32 @@ propertyQuotationSpokenByCharacter ::
   Property Quotation '[Organization, Person]
 propertyQuotationSpokenByCharacter = Property "spokenByCharacter"
 
-propertyOrganizationSponsor ::
-  Property Organization '[Person, Organization]
-propertyOrganizationSponsor = Property "sponsor"
-
-propertyEventSponsor :: Property Event '[Person, Organization]
-propertyEventSponsor = Property "sponsor"
-
-propertyPersonSponsor :: Property Person '[Person, Organization]
-propertyPersonSponsor = Property "sponsor"
-
-propertyGrantSponsor :: Property Grant '[Person, Organization]
-propertyGrantSponsor = Property "sponsor"
-
 propertyCreativeWorkSponsor ::
-  Property CreativeWork '[Person, Organization]
+  Property CreativeWork '[Organization, Person]
 propertyCreativeWorkSponsor = Property "sponsor"
 
+propertyEventSponsor :: Property Event '[Organization, Person]
+propertyEventSponsor = Property "sponsor"
+
+propertyGrantSponsor :: Property Grant '[Organization, Person]
+propertyGrantSponsor = Property "sponsor"
+
 propertyMedicalStudySponsor ::
-  Property MedicalStudy '[Person, Organization]
+  Property MedicalStudy '[Organization, Person]
 propertyMedicalStudySponsor = Property "sponsor"
 
-propertySportsEventSport :: Property SportsEvent '[URL, Text]
+propertyOrganizationSponsor ::
+  Property Organization '[Organization, Person]
+propertyOrganizationSponsor = Property "sponsor"
+
+propertyPersonSponsor :: Property Person '[Organization, Person]
+propertyPersonSponsor = Property "sponsor"
+
+propertySportsEventSport :: Property SportsEvent '[Text, URL]
 propertySportsEventSport = Property "sport"
 
 propertySportsOrganizationSport ::
-  Property SportsOrganization '[URL, Text]
+  Property SportsOrganization '[Text, URL]
 propertySportsOrganizationSport = Property "sport"
 
 propertyExerciseActionSportsActivityLocation ::
@@ -18337,21 +18862,9 @@ propertyLodgingBusinessStarRating ::
   Property LodgingBusiness '[Rating]
 propertyLodgingBusinessStarRating = Property "starRating"
 
-propertyEducationalOccupationalProgramStartDate ::
-  Property EducationalOccupationalProgram '[Date, DateTime]
-propertyEducationalOccupationalProgramStartDate =
-  Property "startDate"
-
-propertyMerchantReturnPolicySeasonalOverrideStartDate ::
-  Property MerchantReturnPolicySeasonalOverride '[Date, DateTime]
-propertyMerchantReturnPolicySeasonalOverrideStartDate =
-  Property "startDate"
-
-propertyEventStartDate :: Property Event '[Date, DateTime]
-propertyEventStartDate = Property "startDate"
-
-propertyScheduleStartDate :: Property Schedule '[Date, DateTime]
-propertyScheduleStartDate = Property "startDate"
+propertyCreativeWorkSeasonStartDate ::
+  Property CreativeWorkSeason '[Date, DateTime]
+propertyCreativeWorkSeasonStartDate = Property "startDate"
 
 propertyCreativeWorkSeriesStartDate ::
   Property CreativeWorkSeries '[Date, DateTime]
@@ -18361,84 +18874,96 @@ propertyDatedMoneySpecificationStartDate ::
   Property DatedMoneySpecification '[Date, DateTime]
 propertyDatedMoneySpecificationStartDate = Property "startDate"
 
-propertyCreativeWorkSeasonStartDate ::
-  Property CreativeWorkSeason '[Date, DateTime]
-propertyCreativeWorkSeasonStartDate = Property "startDate"
+propertyEducationalOccupationalProgramStartDate ::
+  Property EducationalOccupationalProgram '[Date, DateTime]
+propertyEducationalOccupationalProgramStartDate =
+  Property "startDate"
+
+propertyEventStartDate :: Property Event '[Date, DateTime]
+propertyEventStartDate = Property "startDate"
+
+propertyMerchantReturnPolicySeasonalOverrideStartDate ::
+  Property MerchantReturnPolicySeasonalOverride '[Date, DateTime]
+propertyMerchantReturnPolicySeasonalOverrideStartDate =
+  Property "startDate"
 
 propertyRoleStartDate :: Property Role '[Date, DateTime]
 propertyRoleStartDate = Property "startDate"
 
-propertySeekToActionStartOffset ::
-  Property SeekToAction '[Number, HyperTocEntry]
-propertySeekToActionStartOffset = Property "startOffset"
+propertyScheduleStartDate :: Property Schedule '[Date, DateTime]
+propertyScheduleStartDate = Property "startDate"
 
-propertyClipStartOffset :: Property Clip '[Number, HyperTocEntry]
+propertyClipStartOffset :: Property Clip '[HyperTocEntry, Number]
 propertyClipStartOffset = Property "startOffset"
 
-propertyInteractionCounterStartTime ::
-  Property InteractionCounter '[DateTime, Time]
-propertyInteractionCounterStartTime = Property "startTime"
-
-propertyScheduleStartTime :: Property Schedule '[DateTime, Time]
-propertyScheduleStartTime = Property "startTime"
+propertySeekToActionStartOffset ::
+  Property SeekToAction '[HyperTocEntry, Number]
+propertySeekToActionStartOffset = Property "startOffset"
 
 propertyActionStartTime :: Property Action '[DateTime, Time]
 propertyActionStartTime = Property "startTime"
-
-propertyMediaObjectStartTime ::
-  Property MediaObject '[DateTime, Time]
-propertyMediaObjectStartTime = Property "startTime"
 
 propertyFoodEstablishmentReservationStartTime ::
   Property FoodEstablishmentReservation '[DateTime, Time]
 propertyFoodEstablishmentReservationStartTime =
   Property "startTime"
 
+propertyInteractionCounterStartTime ::
+  Property InteractionCounter '[DateTime, Time]
+propertyInteractionCounterStartTime = Property "startTime"
+
+propertyMediaObjectStartTime ::
+  Property MediaObject '[DateTime, Time]
+propertyMediaObjectStartTime = Property "startTime"
+
+propertyScheduleStartTime :: Property Schedule '[DateTime, Time]
+propertyScheduleStartTime = Property "startTime"
+
 propertyStatisticalVariableStatType ::
-  Property StatisticalVariable '[Text, Property_, URL]
+  Property StatisticalVariable '[Property_, Text, URL]
 propertyStatisticalVariableStatType = Property "statType"
 
 propertyMedicalConditionStatus ::
   Property
     MedicalCondition
-    '[ MedicalStudyStatus,
-       Text,
-       EventStatusType
+    '[ EventStatusType,
+       MedicalStudyStatus,
+       Text
      ]
 propertyMedicalConditionStatus = Property "status"
-
-propertyMedicalStudyStatus ::
-  Property MedicalStudy '[MedicalStudyStatus, Text, EventStatusType]
-propertyMedicalStudyStatus = Property "status"
 
 propertyMedicalProcedureStatus ::
   Property
     MedicalProcedure
-    '[ MedicalStudyStatus,
-       Text,
-       EventStatusType
+    '[ EventStatusType,
+       MedicalStudyStatus,
+       Text
      ]
 propertyMedicalProcedureStatus = Property "status"
+
+propertyMedicalStudyStatus ::
+  Property MedicalStudy '[EventStatusType, MedicalStudyStatus, Text]
+propertyMedicalStudyStatus = Property "status"
 
 propertyVehicleSteeringPosition ::
   Property Vehicle '[SteeringPositionValue]
 propertyVehicleSteeringPosition = Property "steeringPosition"
 
 propertyHowToStep ::
-  Property HowTo '[CreativeWork, Text, HowToSection, HowToStep]
+  Property HowTo '[CreativeWork, HowToSection, HowToStep, Text]
 propertyHowToStep = Property "step"
 
 propertyPropertyValueSpecificationStepValue ::
   Property PropertyValueSpecification '[Number]
 propertyPropertyValueSpecificationStepValue = Property "stepValue"
 
-propertyHowToSectionSteps ::
-  Property HowToSection '[Text, ItemList, CreativeWork]
-propertyHowToSectionSteps = Property "steps"
-
 propertyHowToSteps ::
-  Property HowTo '[Text, ItemList, CreativeWork]
+  Property HowTo '[CreativeWork, ItemList, Text]
 propertyHowToSteps = Property "steps"
+
+propertyHowToSectionSteps ::
+  Property HowToSection '[CreativeWork, ItemList, Text]
+propertyHowToSectionSteps = Property "steps"
 
 propertySoftwareApplicationStorageRequirements ::
   Property SoftwareApplication '[Text, URL]
@@ -18510,22 +19035,26 @@ propertyTripSubTrip = Property "subTrip"
 propertyThingSubjectOf :: Property Thing '[CreativeWork, Event]
 propertyThingSubjectOf = Property "subjectOf"
 
-propertyMovieSubtitleLanguage :: Property Movie '[Language, Text]
-propertyMovieSubtitleLanguage = Property "subtitleLanguage"
+propertyProductSubstanceOfConcern ::
+  Property Product '[ChemicalSubstance, DefinedTerm, Text, URL]
+propertyProductSubstanceOfConcern = Property "substanceOfConcern"
 
 propertyBroadcastEventSubtitleLanguage ::
   Property BroadcastEvent '[Language, Text]
 propertyBroadcastEventSubtitleLanguage =
   Property "subtitleLanguage"
 
-propertyTVEpisodeSubtitleLanguage ::
-  Property TVEpisode '[Language, Text]
-propertyTVEpisodeSubtitleLanguage = Property "subtitleLanguage"
+propertyMovieSubtitleLanguage :: Property Movie '[Language, Text]
+propertyMovieSubtitleLanguage = Property "subtitleLanguage"
 
 propertyScreeningEventSubtitleLanguage ::
   Property ScreeningEvent '[Language, Text]
 propertyScreeningEventSubtitleLanguage =
   Property "subtitleLanguage"
+
+propertyTVEpisodeSubtitleLanguage ::
+  Property TVEpisode '[Language, Text]
+propertyTVEpisodeSubtitleLanguage = Property "subtitleLanguage"
 
 propertyProductModelSuccessorOf ::
   Property ProductModel '[ProductModel]
@@ -18535,39 +19064,39 @@ propertyNutritionInformationSugarContent ::
   Property NutritionInformation '[Mass]
 propertyNutritionInformationSugarContent = Property "sugarContent"
 
-propertySizeSpecificationSuggestedAge ::
-  Property SizeSpecification '[QuantitativeValue]
-propertySizeSpecificationSuggestedAge = Property "suggestedAge"
-
 propertyPeopleAudienceSuggestedAge ::
   Property PeopleAudience '[QuantitativeValue]
 propertyPeopleAudienceSuggestedAge = Property "suggestedAge"
 
+propertySizeSpecificationSuggestedAge ::
+  Property SizeSpecification '[QuantitativeValue]
+propertySizeSpecificationSuggestedAge = Property "suggestedAge"
+
 propertyQuestionSuggestedAnswer ::
-  Property Question '[ItemList, Answer]
+  Property Question '[Answer, ItemList]
 propertyQuestionSuggestedAnswer = Property "suggestedAnswer"
+
+propertyPeopleAudienceSuggestedGender ::
+  Property PeopleAudience '[GenderType, Text]
+propertyPeopleAudienceSuggestedGender = Property "suggestedGender"
 
 propertySizeSpecificationSuggestedGender ::
   Property SizeSpecification '[GenderType, Text]
 propertySizeSpecificationSuggestedGender =
   Property "suggestedGender"
 
-propertyPeopleAudienceSuggestedGender ::
-  Property PeopleAudience '[GenderType, Text]
-propertyPeopleAudienceSuggestedGender = Property "suggestedGender"
-
 propertyPeopleAudienceSuggestedMaxAge ::
   Property PeopleAudience '[Number]
 propertyPeopleAudienceSuggestedMaxAge = Property "suggestedMaxAge"
 
-propertySizeSpecificationSuggestedMeasurement ::
-  Property SizeSpecification '[QuantitativeValue]
-propertySizeSpecificationSuggestedMeasurement =
-  Property "suggestedMeasurement"
-
 propertyPeopleAudienceSuggestedMeasurement ::
   Property PeopleAudience '[QuantitativeValue]
 propertyPeopleAudienceSuggestedMeasurement =
+  Property "suggestedMeasurement"
+
+propertySizeSpecificationSuggestedMeasurement ::
+  Property SizeSpecification '[QuantitativeValue]
+propertySizeSpecificationSuggestedMeasurement =
   Property "suggestedMeasurement"
 
 propertyPeopleAudienceSuggestedMinAge ::
@@ -18575,10 +19104,11 @@ propertyPeopleAudienceSuggestedMinAge ::
 propertyPeopleAudienceSuggestedMinAge = Property "suggestedMinAge"
 
 propertyMenuItemSuitableForDiet ::
-  Property MenuItem '[RestrictedDiet]
+  Property MenuItem '[Diet, RestrictedDiet]
 propertyMenuItemSuitableForDiet = Property "suitableForDiet"
 
-propertyRecipeSuitableForDiet :: Property Recipe '[RestrictedDiet]
+propertyRecipeSuitableForDiet ::
+  Property Recipe '[Diet, RestrictedDiet]
 propertyRecipeSuitableForDiet = Property "suitableForDiet"
 
 propertyEventSuperEvent :: Property Event '[Event]
@@ -18599,13 +19129,13 @@ propertySoftwareApplicationSupportingData ::
 propertySoftwareApplicationSupportingData =
   Property "supportingData"
 
-propertyVisualArtworkSurface :: Property VisualArtwork '[URL, Text]
+propertyVisualArtworkSurface :: Property VisualArtwork '[Text, URL]
 propertyVisualArtworkSurface = Property "surface"
 
 propertyCourseSyllabusSections :: Property Course '[Syllabus]
 propertyCourseSyllabusSections = Property "syllabusSections"
 
-propertyActionTarget :: Property Action '[URL, EntryPoint]
+propertyActionTarget :: Property Action '[EntryPoint, URL]
 propertyActionTarget = Property "target"
 
 propertyUpdateActionTargetCollection ::
@@ -18624,14 +19154,14 @@ propertyAlignmentObjectTargetName = Property "targetName"
 propertyAPIReferenceTargetPlatform :: Property APIReference '[Text]
 propertyAPIReferenceTargetPlatform = Property "targetPlatform"
 
-propertyDoseScheduleTargetPopulation ::
-  Property DoseSchedule '[Text]
-propertyDoseScheduleTargetPopulation = Property "targetPopulation"
-
 propertyDietarySupplementTargetPopulation ::
   Property DietarySupplement '[Text]
 propertyDietarySupplementTargetPopulation =
   Property "targetPopulation"
+
+propertyDoseScheduleTargetPopulation ::
+  Property DoseSchedule '[Text]
+propertyDoseScheduleTargetPopulation = Property "targetPopulation"
 
 propertySoftwareSourceCodeTargetProduct ::
   Property SoftwareSourceCode '[SoftwareApplication]
@@ -18647,43 +19177,43 @@ propertyPersonTaxID :: Property Person '[Text]
 propertyPersonTaxID = Property "taxID"
 
 propertyTaxonTaxonRank ::
-  Property Taxon '[PropertyValue, URL, Text]
+  Property Taxon '[PropertyValue, Text, URL]
 propertyTaxonTaxonRank = Property "taxonRank"
 
 propertyBioChemEntityTaxonomicRange ::
-  Property BioChemEntity '[Taxon, Text, URL, DefinedTerm]
+  Property BioChemEntity '[DefinedTerm, Taxon, Text, URL]
 propertyBioChemEntityTaxonomicRange = Property "taxonomicRange"
 
 propertyCreativeWorkTeaches ::
-  Property CreativeWork '[Text, DefinedTerm]
+  Property CreativeWork '[DefinedTerm, Text]
 propertyCreativeWorkTeaches = Property "teaches"
 
 propertyEducationEventTeaches ::
-  Property EducationEvent '[Text, DefinedTerm]
+  Property EducationEvent '[DefinedTerm, Text]
 propertyEducationEventTeaches = Property "teaches"
 
 propertyLearningResourceTeaches ::
-  Property LearningResource '[Text, DefinedTerm]
+  Property LearningResource '[DefinedTerm, Text]
 propertyLearningResourceTeaches = Property "teaches"
 
 propertyContactPointTelephone :: Property ContactPoint '[Text]
 propertyContactPointTelephone = Property "telephone"
 
-propertyPlaceTelephone :: Property Place '[Text]
-propertyPlaceTelephone = Property "telephone"
+propertyOrganizationTelephone :: Property Organization '[Text]
+propertyOrganizationTelephone = Property "telephone"
 
 propertyPersonTelephone :: Property Person '[Text]
 propertyPersonTelephone = Property "telephone"
 
-propertyOrganizationTelephone :: Property Organization '[Text]
-propertyOrganizationTelephone = Property "telephone"
+propertyPlaceTelephone :: Property Place '[Text]
+propertyPlaceTelephone = Property "telephone"
 
 propertyCreativeWorkTemporal ::
-  Property CreativeWork '[Text, DateTime]
+  Property CreativeWork '[DateTime, Text]
 propertyCreativeWorkTemporal = Property "temporal"
 
 propertyCreativeWorkTemporalCoverage ::
-  Property CreativeWork '[URL, Text, DateTime]
+  Property CreativeWork '[DateTime, Text, URL]
 propertyCreativeWorkTemporalCoverage = Property "temporalCoverage"
 
 propertyDefinedTermTermCode :: Property DefinedTerm '[Text]
@@ -18742,6 +19272,10 @@ propertyEducationalOccupationalProgramTimeToComplete ::
 propertyEducationalOccupationalProgramTimeToComplete =
   Property "timeToComplete"
 
+propertyInstantaneousEventTimestamp ::
+  Property InstantaneousEvent '[DateTime]
+propertyInstantaneousEventTimestamp = Property "timestamp"
+
 propertyPathologyTestTissueSample :: Property PathologyTest '[Text]
 propertyPathologyTestTissueSample = Property "tissueSample"
 
@@ -18751,31 +19285,31 @@ propertyJobPostingTitle = Property "title"
 propertyMovieTitleEIDR :: Property Movie '[Text, URL]
 propertyMovieTitleEIDR = Property "titleEIDR"
 
-propertyTVSeriesTitleEIDR :: Property TVSeries '[Text, URL]
-propertyTVSeriesTitleEIDR = Property "titleEIDR"
+propertyTVEpisodeTitleEIDR :: Property TVEpisode '[Text, URL]
+propertyTVEpisodeTitleEIDR = Property "titleEIDR"
 
 propertyTVSeasonTitleEIDR :: Property TVSeason '[Text, URL]
 propertyTVSeasonTitleEIDR = Property "titleEIDR"
 
-propertyTVEpisodeTitleEIDR :: Property TVEpisode '[Text, URL]
-propertyTVEpisodeTitleEIDR = Property "titleEIDR"
-
-propertyInsertActionToLocation :: Property InsertAction '[Place]
-propertyInsertActionToLocation = Property "toLocation"
-
-propertyTransferActionToLocation ::
-  Property TransferAction '[Place]
-propertyTransferActionToLocation = Property "toLocation"
+propertyTVSeriesTitleEIDR :: Property TVSeries '[Text, URL]
+propertyTVSeriesTitleEIDR = Property "titleEIDR"
 
 propertyExerciseActionToLocation ::
   Property ExerciseAction '[Place]
 propertyExerciseActionToLocation = Property "toLocation"
 
+propertyInsertActionToLocation :: Property InsertAction '[Place]
+propertyInsertActionToLocation = Property "toLocation"
+
 propertyMoveActionToLocation :: Property MoveAction '[Place]
 propertyMoveActionToLocation = Property "toLocation"
 
+propertyTransferActionToLocation ::
+  Property TransferAction '[Place]
+propertyTransferActionToLocation = Property "toLocation"
+
 propertyMessageToRecipient ::
-  Property Message '[Audience, Organization, ContactPoint, Person]
+  Property Message '[Audience, ContactPoint, Organization, Person]
 propertyMessageToRecipient = Property "toRecipient"
 
 propertyHyperTocEntryTocContinuation ::
@@ -18810,35 +19344,35 @@ propertyJobPostingTotalJobOpenings ::
 propertyJobPostingTotalJobOpenings = Property "totalJobOpenings"
 
 propertyInvoiceTotalPaymentDue ::
-  Property Invoice '[PriceSpecification, MonetaryAmount]
+  Property Invoice '[MonetaryAmount, PriceSpecification]
 propertyInvoiceTotalPaymentDue = Property "totalPaymentDue"
 
+propertyReservationTotalPrice ::
+  Property Reservation '[Number, PriceSpecification, Text]
+propertyReservationTotalPrice = Property "totalPrice"
+
 propertyTicketTotalPrice ::
-  Property Ticket '[Text, Number, PriceSpecification]
+  Property Ticket '[Number, PriceSpecification, Text]
 propertyTicketTotalPrice = Property "totalPrice"
 
-propertyReservationTotalPrice ::
-  Property Reservation '[Text, Number, PriceSpecification]
-propertyReservationTotalPrice = Property "totalPrice"
+propertyHowToTotalTime :: Property HowTo '[Duration]
+propertyHowToTotalTime = Property "totalTime"
 
 propertyHowToDirectionTotalTime ::
   Property HowToDirection '[Duration]
 propertyHowToDirectionTotalTime = Property "totalTime"
 
-propertyHowToTotalTime :: Property HowTo '[Duration]
-propertyHowToTotalTime = Property "totalTime"
-
 propertyAccommodationTourBookingPage ::
   Property Accommodation '[URL]
 propertyAccommodationTourBookingPage = Property "tourBookingPage"
-
-propertyPlaceTourBookingPage :: Property Place '[URL]
-propertyPlaceTourBookingPage = Property "tourBookingPage"
 
 propertyApartmentComplexTourBookingPage ::
   Property ApartmentComplex '[URL]
 propertyApartmentComplexTourBookingPage =
   Property "tourBookingPage"
+
+propertyPlaceTourBookingPage :: Property Place '[URL]
+propertyPlaceTourBookingPage = Property "tourBookingPage"
 
 propertyTouristAttractionTouristType ::
   Property TouristAttraction '[Audience, Text]
@@ -18852,13 +19386,13 @@ propertyTouristTripTouristType ::
   Property TouristTrip '[Audience, Text]
 propertyTouristTripTouristType = Property "touristType"
 
-propertyMusicPlaylistTrack ::
-  Property MusicPlaylist '[MusicRecording, ItemList]
-propertyMusicPlaylistTrack = Property "track"
-
 propertyMusicGroupTrack ::
-  Property MusicGroup '[MusicRecording, ItemList]
+  Property MusicGroup '[ItemList, MusicRecording]
 propertyMusicGroupTrack = Property "track"
+
+propertyMusicPlaylistTrack ::
+  Property MusicPlaylist '[ItemList, MusicRecording]
+propertyMusicPlaylistTrack = Property "track"
 
 propertyParcelDeliveryTrackingNumber ::
   Property ParcelDelivery '[Text]
@@ -18874,13 +19408,6 @@ propertyMusicPlaylistTracks ::
   Property MusicPlaylist '[MusicRecording]
 propertyMusicPlaylistTracks = Property "tracks"
 
-propertyVideoGameSeriesTrailer ::
-  Property VideoGameSeries '[VideoObject]
-propertyVideoGameSeriesTrailer = Property "trailer"
-
-propertyRadioSeriesTrailer :: Property RadioSeries '[VideoObject]
-propertyRadioSeriesTrailer = Property "trailer"
-
 propertyCreativeWorkSeasonTrailer ::
   Property CreativeWorkSeason '[VideoObject]
 propertyCreativeWorkSeasonTrailer = Property "trailer"
@@ -18888,8 +19415,14 @@ propertyCreativeWorkSeasonTrailer = Property "trailer"
 propertyEpisodeTrailer :: Property Episode '[VideoObject]
 propertyEpisodeTrailer = Property "trailer"
 
+propertyMovieTrailer :: Property Movie '[VideoObject]
+propertyMovieTrailer = Property "trailer"
+
 propertyMovieSeriesTrailer :: Property MovieSeries '[VideoObject]
 propertyMovieSeriesTrailer = Property "trailer"
+
+propertyRadioSeriesTrailer :: Property RadioSeries '[VideoObject]
+propertyRadioSeriesTrailer = Property "trailer"
 
 propertyTVSeriesTrailer :: Property TVSeries '[VideoObject]
 propertyTVSeriesTrailer = Property "trailer"
@@ -18897,8 +19430,9 @@ propertyTVSeriesTrailer = Property "trailer"
 propertyVideoGameTrailer :: Property VideoGame '[VideoObject]
 propertyVideoGameTrailer = Property "trailer"
 
-propertyMovieTrailer :: Property Movie '[VideoObject]
-propertyMovieTrailer = Property "trailer"
+propertyVideoGameSeriesTrailer ::
+  Property VideoGameSeries '[VideoObject]
+propertyVideoGameSeriesTrailer = Property "trailer"
 
 propertyVehicleTrailerWeight ::
   Property Vehicle '[QuantitativeValue]
@@ -18910,14 +19444,14 @@ propertyTrainTripTrainName = Property "trainName"
 propertyTrainTripTrainNumber :: Property TrainTrip '[Text]
 propertyTrainTripTrainNumber = Property "trainNumber"
 
-propertyWorkBasedProgramTrainingSalary ::
-  Property WorkBasedProgram '[MonetaryAmountDistribution]
-propertyWorkBasedProgramTrainingSalary = Property "trainingSalary"
-
 propertyEducationalOccupationalProgramTrainingSalary ::
   Property EducationalOccupationalProgram '[MonetaryAmountDistribution]
 propertyEducationalOccupationalProgramTrainingSalary =
   Property "trainingSalary"
+
+propertyWorkBasedProgramTrainingSalary ::
+  Property WorkBasedProgram '[MonetaryAmountDistribution]
+propertyWorkBasedProgramTrainingSalary = Property "trainingSalary"
 
 propertyNutritionInformationTransFatContent ::
   Property NutritionInformation '[Mass]
@@ -18938,17 +19472,27 @@ propertyShippingDeliveryTimeTransitTime ::
   Property ShippingDeliveryTime '[QuantitativeValue, ServicePeriod]
 propertyShippingDeliveryTimeTransitTime = Property "transitTime"
 
+propertyDeliveryTimeSettingsTransitTimeLabel ::
+  Property DeliveryTimeSettings '[Text]
+propertyDeliveryTimeSettingsTransitTimeLabel =
+  Property "transitTimeLabel"
+
+propertyOfferShippingDetailsTransitTimeLabel ::
+  Property OfferShippingDetails '[Text]
+propertyOfferShippingDetailsTransitTimeLabel =
+  Property "transitTimeLabel"
+
 propertyCreativeWorkTranslationOfWork ::
   Property CreativeWork '[CreativeWork]
 propertyCreativeWorkTranslationOfWork =
   Property "translationOfWork"
 
-propertyEventTranslator :: Property Event '[Organization, Person]
-propertyEventTranslator = Property "translator"
-
 propertyCreativeWorkTranslator ::
   Property CreativeWork '[Organization, Person]
 propertyCreativeWorkTranslator = Property "translator"
+
+propertyEventTranslator :: Property Event '[Organization, Person]
+propertyEventTranslator = Property "translator"
 
 propertyInfectiousDiseaseTransmissionMethod ::
   Property InfectiousDisease '[Text]
@@ -18956,7 +19500,7 @@ propertyInfectiousDiseaseTransmissionMethod =
   Property "transmissionMethod"
 
 propertySpecialAnnouncementTravelBans ::
-  Property SpecialAnnouncement '[WebContent, URL]
+  Property SpecialAnnouncement '[URL, WebContent]
 propertySpecialAnnouncementTravelBans = Property "travelBans"
 
 propertyMedicalTrialTrialDesign ::
@@ -19011,37 +19555,37 @@ propertyQuantitativeValueUnitCode ::
   Property QuantitativeValue '[Text, URL]
 propertyQuantitativeValueUnitCode = Property "unitCode"
 
+propertyTypeAndQuantityNodeUnitCode ::
+  Property TypeAndQuantityNode '[Text, URL]
+propertyTypeAndQuantityNodeUnitCode = Property "unitCode"
+
 propertyUnitPriceSpecificationUnitCode ::
   Property UnitPriceSpecification '[Text, URL]
 propertyUnitPriceSpecificationUnitCode = Property "unitCode"
 
-propertyTypeAndQuantityNodeUnitCode ::
-  Property TypeAndQuantityNode '[Text, URL]
-propertyTypeAndQuantityNodeUnitCode = Property "unitCode"
+propertyPropertyValueUnitText :: Property PropertyValue '[Text]
+propertyPropertyValueUnitText = Property "unitText"
 
 propertyQuantitativeValueUnitText ::
   Property QuantitativeValue '[Text]
 propertyQuantitativeValueUnitText = Property "unitText"
 
-propertyUnitPriceSpecificationUnitText ::
-  Property UnitPriceSpecification '[Text]
-propertyUnitPriceSpecificationUnitText = Property "unitText"
-
-propertyPropertyValueUnitText :: Property PropertyValue '[Text]
-propertyPropertyValueUnitText = Property "unitText"
-
 propertyTypeAndQuantityNodeUnitText ::
   Property TypeAndQuantityNode '[Text]
 propertyTypeAndQuantityNodeUnitText = Property "unitText"
 
-propertyOrganizationUnnamedSourcesPolicy ::
-  Property Organization '[CreativeWork, URL]
-propertyOrganizationUnnamedSourcesPolicy =
-  Property "unnamedSourcesPolicy"
+propertyUnitPriceSpecificationUnitText ::
+  Property UnitPriceSpecification '[Text]
+propertyUnitPriceSpecificationUnitText = Property "unitText"
 
 propertyNewsMediaOrganizationUnnamedSourcesPolicy ::
   Property NewsMediaOrganization '[CreativeWork, URL]
 propertyNewsMediaOrganizationUnnamedSourcesPolicy =
+  Property "unnamedSourcesPolicy"
+
+propertyOrganizationUnnamedSourcesPolicy ::
+  Property Organization '[CreativeWork, URL]
+propertyOrganizationUnnamedSourcesPolicy =
   Property "unnamedSourcesPolicy"
 
 propertyNutritionInformationUnsaturatedFatContent ::
@@ -19066,7 +19610,7 @@ propertyPhysicianUsNPI :: Property Physician '[Text]
 propertyPhysicianUsNPI = Property "usNPI"
 
 propertyCreativeWorkUsageInfo ::
-  Property CreativeWork '[URL, CreativeWork]
+  Property CreativeWork '[CreativeWork, URL]
 propertyCreativeWorkUsageInfo = Property "usageInfo"
 
 propertyMedicalTestUsedToDiagnose ::
@@ -19083,28 +19627,31 @@ propertyMedicalTestUsesDevice ::
 propertyMedicalTestUsesDevice = Property "usesDevice"
 
 propertyHealthInsurancePlanUsesHealthPlanIdStandard ::
-  Property HealthInsurancePlan '[URL, Text]
+  Property HealthInsurancePlan '[Text, URL]
 propertyHealthInsurancePlanUsesHealthPlanIdStandard =
   Property "usesHealthPlanIdStandard"
 
 propertyHyperTocEntryUtterances :: Property HyperTocEntry '[Text]
 propertyHyperTocEntryUtterances = Property "utterances"
 
+propertyCredentialValidFor :: Property Credential '[Duration]
+propertyCredentialValidFor = Property "validFor"
+
 propertyPermitValidFor :: Property Permit '[Duration]
 propertyPermitValidFor = Property "validFor"
 
-propertyEducationalOccupationalCredentialValidFor ::
-  Property EducationalOccupationalCredential '[Duration]
-propertyEducationalOccupationalCredentialValidFor =
-  Property "validFor"
+propertyMerchantReturnPolicyValidForMemberTier ::
+  Property MerchantReturnPolicy '[MemberProgramTier]
+propertyMerchantReturnPolicyValidForMemberTier =
+  Property "validForMemberTier"
 
 propertyOfferValidForMemberTier ::
   Property Offer '[MemberProgramTier]
 propertyOfferValidForMemberTier = Property "validForMemberTier"
 
-propertyMerchantReturnPolicyValidForMemberTier ::
-  Property MerchantReturnPolicy '[MemberProgramTier]
-propertyMerchantReturnPolicyValidForMemberTier =
+propertyOfferShippingDetailsValidForMemberTier ::
+  Property OfferShippingDetails '[MemberProgramTier]
+propertyOfferShippingDetailsValidForMemberTier =
   Property "validForMemberTier"
 
 propertyPriceSpecificationValidForMemberTier ::
@@ -19112,112 +19659,121 @@ propertyPriceSpecificationValidForMemberTier ::
 propertyPriceSpecificationValidForMemberTier =
   Property "validForMemberTier"
 
-propertyOfferShippingDetailsValidForMemberTier ::
-  Property OfferShippingDetails '[MemberProgramTier]
-propertyOfferShippingDetailsValidForMemberTier =
-  Property "validForMemberTier"
-
 propertyShippingServiceValidForMemberTier ::
   Property ShippingService '[MemberProgramTier]
 propertyShippingServiceValidForMemberTier =
   Property "validForMemberTier"
 
-propertyPermitValidFrom :: Property Permit '[Date, DateTime]
-propertyPermitValidFrom = Property "validFrom"
-
-propertyOfferValidFrom :: Property Offer '[Date, DateTime]
-propertyOfferValidFrom = Property "validFrom"
-
 propertyCertificationValidFrom ::
   Property Certification '[Date, DateTime]
 propertyCertificationValidFrom = Property "validFrom"
 
-propertyOpeningHoursSpecificationValidFrom ::
-  Property OpeningHoursSpecification '[Date, DateTime]
-propertyOpeningHoursSpecificationValidFrom = Property "validFrom"
+propertyDemandValidFrom :: Property Demand '[Date, DateTime]
+propertyDemandValidFrom = Property "validFrom"
+
+propertyFinancialIncentiveValidFrom ::
+  Property FinancialIncentive '[Date, DateTime]
+propertyFinancialIncentiveValidFrom = Property "validFrom"
 
 propertyLocationFeatureSpecificationValidFrom ::
   Property LocationFeatureSpecification '[Date, DateTime]
 propertyLocationFeatureSpecificationValidFrom =
   Property "validFrom"
 
-propertyFinancialIncentiveValidFrom ::
-  Property FinancialIncentive '[Date, DateTime]
-propertyFinancialIncentiveValidFrom = Property "validFrom"
+propertyMonetaryAmountValidFrom ::
+  Property MonetaryAmount '[Date, DateTime]
+propertyMonetaryAmountValidFrom = Property "validFrom"
+
+propertyOfferValidFrom :: Property Offer '[Date, DateTime]
+propertyOfferValidFrom = Property "validFrom"
+
+propertyOpeningHoursSpecificationValidFrom ::
+  Property OpeningHoursSpecification '[Date, DateTime]
+propertyOpeningHoursSpecificationValidFrom = Property "validFrom"
+
+propertyPermitValidFrom :: Property Permit '[Date, DateTime]
+propertyPermitValidFrom = Property "validFrom"
 
 propertyPriceSpecificationValidFrom ::
   Property PriceSpecification '[Date, DateTime]
 propertyPriceSpecificationValidFrom = Property "validFrom"
 
-propertyMonetaryAmountValidFrom ::
-  Property MonetaryAmount '[Date, DateTime]
-propertyMonetaryAmountValidFrom = Property "validFrom"
+propertyCertificationValidIn ::
+  Property Certification '[AdministrativeArea]
+propertyCertificationValidIn = Property "validIn"
 
-propertyDemandValidFrom :: Property Demand '[Date, DateTime]
-propertyDemandValidFrom = Property "validFrom"
-
-propertyEducationalOccupationalCredentialValidIn ::
-  Property EducationalOccupationalCredential '[AdministrativeArea]
-propertyEducationalOccupationalCredentialValidIn =
-  Property "validIn"
+propertyCredentialValidIn ::
+  Property Credential '[AdministrativeArea]
+propertyCredentialValidIn = Property "validIn"
 
 propertyPermitValidIn :: Property Permit '[AdministrativeArea]
 propertyPermitValidIn = Property "validIn"
 
-propertyCertificationValidIn ::
-  Property Certification '[AdministrativeArea]
-propertyCertificationValidIn = Property "validIn"
+propertyDemandValidThrough :: Property Demand '[Date, DateTime]
+propertyDemandValidThrough = Property "validThrough"
+
+propertyFinancialIncentiveValidThrough ::
+  Property FinancialIncentive '[Date, DateTime]
+propertyFinancialIncentiveValidThrough = Property "validThrough"
+
+propertyJobPostingValidThrough ::
+  Property JobPosting '[Date, DateTime]
+propertyJobPostingValidThrough = Property "validThrough"
 
 propertyLocationFeatureSpecificationValidThrough ::
   Property LocationFeatureSpecification '[Date, DateTime]
 propertyLocationFeatureSpecificationValidThrough =
   Property "validThrough"
 
-propertyOfferValidThrough :: Property Offer '[Date, DateTime]
-propertyOfferValidThrough = Property "validThrough"
-
-propertyFinancialIncentiveValidThrough ::
-  Property FinancialIncentive '[Date, DateTime]
-propertyFinancialIncentiveValidThrough = Property "validThrough"
-
-propertyPriceSpecificationValidThrough ::
-  Property PriceSpecification '[Date, DateTime]
-propertyPriceSpecificationValidThrough = Property "validThrough"
-
 propertyMonetaryAmountValidThrough ::
   Property MonetaryAmount '[Date, DateTime]
 propertyMonetaryAmountValidThrough = Property "validThrough"
 
-propertyDemandValidThrough :: Property Demand '[Date, DateTime]
-propertyDemandValidThrough = Property "validThrough"
+propertyOfferValidThrough :: Property Offer '[Date, DateTime]
+propertyOfferValidThrough = Property "validThrough"
 
 propertyOpeningHoursSpecificationValidThrough ::
   Property OpeningHoursSpecification '[Date, DateTime]
 propertyOpeningHoursSpecificationValidThrough =
   Property "validThrough"
 
-propertyJobPostingValidThrough ::
-  Property JobPosting '[Date, DateTime]
-propertyJobPostingValidThrough = Property "validThrough"
+propertyPriceSpecificationValidThrough ::
+  Property PriceSpecification '[Date, DateTime]
+propertyPriceSpecificationValidThrough = Property "validThrough"
 
 propertyPermitValidUntil :: Property Permit '[Date]
 propertyPermitValidUntil = Property "validUntil"
 
 propertyMonetaryAmountValue ::
-  Property MonetaryAmount '[Text, Number, Boolean, StructuredValue]
+  Property
+    MonetaryAmount
+    '[ Boolean,
+       Number,
+       QualitativeValue,
+       StructuredValue,
+       Text
+     ]
 propertyMonetaryAmountValue = Property "value"
 
 propertyPropertyValueValue ::
-  Property PropertyValue '[Text, Number, Boolean, StructuredValue]
+  Property
+    PropertyValue
+    '[ Boolean,
+       Number,
+       QualitativeValue,
+       StructuredValue,
+       Text
+     ]
 propertyPropertyValueValue = Property "value"
 
 propertyQuantitativeValueValue ::
   Property
     QuantitativeValue
-    '[ Text,
+    '[ Boolean,
        Number,
-       Boolean,
-       StructuredValue
+       QualitativeValue,
+       StructuredValue,
+       Text
      ]
 propertyQuantitativeValueValue = Property "value"
 
@@ -19225,6 +19781,9 @@ propertyPriceSpecificationValueAddedTaxIncluded ::
   Property PriceSpecification '[Boolean]
 propertyPriceSpecificationValueAddedTaxIncluded =
   Property "valueAddedTaxIncluded"
+
+propertyPropertyValueValueGroup :: Property PropertyValue '[Text]
+propertyPropertyValueValueGroup = Property "valueGroup"
 
 propertyPropertyValueSpecificationValueMaxLength ::
   Property PropertyValueSpecification '[Number]
@@ -19248,75 +19807,75 @@ propertyPropertyValueSpecificationValuePattern =
 propertyPropertyValueValueReference ::
   Property
     PropertyValue
-    '[ QualitativeValue,
-       Text,
-       DefinedTerm,
-       MeasurementTypeEnumeration,
+    '[ DefinedTerm,
        Enumeration,
+       MeasurementTypeEnumeration,
        PropertyValue,
+       QualitativeValue,
+       QuantitativeValue,
        StructuredValue,
-       QuantitativeValue
+       Text
      ]
 propertyPropertyValueValueReference = Property "valueReference"
-
-propertyQuantitativeValueValueReference ::
-  Property
-    QuantitativeValue
-    '[ QualitativeValue,
-       Text,
-       DefinedTerm,
-       MeasurementTypeEnumeration,
-       Enumeration,
-       PropertyValue,
-       StructuredValue,
-       QuantitativeValue
-     ]
-propertyQuantitativeValueValueReference = Property "valueReference"
 
 propertyQualitativeValueValueReference ::
   Property
     QualitativeValue
-    '[ QualitativeValue,
-       Text,
-       DefinedTerm,
-       MeasurementTypeEnumeration,
+    '[ DefinedTerm,
        Enumeration,
+       MeasurementTypeEnumeration,
        PropertyValue,
+       QualitativeValue,
+       QuantitativeValue,
        StructuredValue,
-       QuantitativeValue
+       Text
      ]
 propertyQualitativeValueValueReference = Property "valueReference"
+
+propertyQuantitativeValueValueReference ::
+  Property
+    QuantitativeValue
+    '[ DefinedTerm,
+       Enumeration,
+       MeasurementTypeEnumeration,
+       PropertyValue,
+       QualitativeValue,
+       QuantitativeValue,
+       StructuredValue,
+       Text
+     ]
+propertyQuantitativeValueValueReference = Property "valueReference"
 
 propertyPropertyValueSpecificationValueRequired ::
   Property PropertyValueSpecification '[Boolean]
 propertyPropertyValueSpecificationValueRequired =
   Property "valueRequired"
 
-propertyObservationVariableMeasured ::
-  Property
-    Observation
-    '[ Property_,
-       StatisticalVariable,
-       PropertyValue,
-       Text
-     ]
-propertyObservationVariableMeasured = Property "variableMeasured"
-
 propertyDatasetVariableMeasured ::
   Property
     Dataset
     '[ Property_,
-       StatisticalVariable,
        PropertyValue,
+       StatisticalVariable,
        Text
      ]
 propertyDatasetVariableMeasured = Property "variableMeasured"
+
+propertyObservationVariableMeasured ::
+  Property
+    Observation
+    '[ Property_,
+       PropertyValue,
+       StatisticalVariable,
+       Text
+     ]
+propertyObservationVariableMeasured = Property "variableMeasured"
 
 propertyComicIssueVariantCover :: Property ComicIssue '[Text]
 propertyComicIssueVariantCover = Property "variantCover"
 
 propertyProductGroupVariesBy ::
-  Property ProductGroup '[Text, DefinedTerm]
+  Property ProductGroup '[DefinedTerm, PropertyValue, Text]
 propertyProductGroupVariesBy = Property "variesBy"
 
 propertyOrganizationVatID :: Property Organization '[Text]
@@ -19354,7 +19913,7 @@ propertyVehicleVehicleSeatingCapacity =
   Property "vehicleSeatingCapacity"
 
 propertyVehicleVehicleSpecialUsage ::
-  Property Vehicle '[Text, CarUsageType]
+  Property Vehicle '[CarUsageType, Text]
 propertyVehicleVehicleSpecialUsage = Property "vehicleSpecialUsage"
 
 propertyVehicleVehicleTransmission ::
@@ -19362,7 +19921,7 @@ propertyVehicleVehicleTransmission ::
 propertyVehicleVehicleTransmission = Property "vehicleTransmission"
 
 propertyBuyActionVendor ::
-  Property BuyAction '[Person, Organization]
+  Property BuyAction '[Organization, Person]
 propertyBuyActionVendor = Property "vendor"
 
 propertyNewsMediaOrganizationVerificationFactCheckingPolicy ::
@@ -19378,13 +19937,13 @@ propertyCreativeWorkVideo ::
   Property CreativeWork '[Clip, VideoObject]
 propertyCreativeWorkVideo = Property "video"
 
-propertyBroadcastServiceVideoFormat ::
-  Property BroadcastService '[Text]
-propertyBroadcastServiceVideoFormat = Property "videoFormat"
-
 propertyBroadcastEventVideoFormat ::
   Property BroadcastEvent '[Text]
 propertyBroadcastEventVideoFormat = Property "videoFormat"
+
+propertyBroadcastServiceVideoFormat ::
+  Property BroadcastService '[Text]
+propertyBroadcastServiceVideoFormat = Property "videoFormat"
 
 propertyScreeningEventVideoFormat ::
   Property ScreeningEvent '[Text]
@@ -19424,13 +19983,24 @@ propertyWarrantyPromiseWarrantyScope = Property "warrantyScope"
 propertyFlightWebCheckinTime :: Property Flight '[DateTime]
 propertyFlightWebCheckinTime = Property "webCheckinTime"
 
+propertyPodcastSeriesWebFeed ::
+  Property PodcastSeries '[DataFeed, URL]
+propertyPodcastSeriesWebFeed = Property "webFeed"
+
 propertySpecialAnnouncementWebFeed ::
-  Property SpecialAnnouncement '[URL, DataFeed]
+  Property SpecialAnnouncement '[DataFeed, URL]
 propertySpecialAnnouncementWebFeed = Property "webFeed"
 
-propertyPodcastSeriesWebFeed ::
-  Property PodcastSeries '[URL, DataFeed]
-propertyPodcastSeriesWebFeed = Property "webFeed"
+propertyOfferShippingDetailsWeight ::
+  Property OfferShippingDetails '[Mass, QuantitativeValue]
+propertyOfferShippingDetailsWeight = Property "weight"
+
+propertyPersonWeight :: Property Person '[Mass, QuantitativeValue]
+propertyPersonWeight = Property "weight"
+
+propertyProductWeight ::
+  Property Product '[Mass, QuantitativeValue]
+propertyProductWeight = Property "weight"
 
 propertyShippingConditionsWeight ::
   Property ShippingConditions '[Mass, QuantitativeValue]
@@ -19439,17 +20009,6 @@ propertyShippingConditionsWeight = Property "weight"
 propertyVisualArtworkWeight ::
   Property VisualArtwork '[Mass, QuantitativeValue]
 propertyVisualArtworkWeight = Property "weight"
-
-propertyPersonWeight :: Property Person '[Mass, QuantitativeValue]
-propertyPersonWeight = Property "weight"
-
-propertyOfferShippingDetailsWeight ::
-  Property OfferShippingDetails '[Mass, QuantitativeValue]
-propertyOfferShippingDetailsWeight = Property "weight"
-
-propertyProductWeight ::
-  Property Product '[Mass, QuantitativeValue]
-propertyProductWeight = Property "weight"
 
 propertyShippingRateSettingsWeightPercentage ::
   Property ShippingRateSettings '[Number]
@@ -19462,25 +20021,25 @@ propertyVehicleWeightTotal = Property "weightTotal"
 propertyVehicleWheelbase :: Property Vehicle '[QuantitativeValue]
 propertyVehicleWheelbase = Property "wheelbase"
 
-propertyVisualArtworkWidth ::
-  Property VisualArtwork '[Distance, QuantitativeValue]
-propertyVisualArtworkWidth = Property "width"
-
-propertyProductWidth ::
-  Property Product '[Distance, QuantitativeValue]
-propertyProductWidth = Property "width"
+propertyMediaObjectWidth ::
+  Property MediaObject '[Distance, QuantitativeValue]
+propertyMediaObjectWidth = Property "width"
 
 propertyOfferShippingDetailsWidth ::
   Property OfferShippingDetails '[Distance, QuantitativeValue]
 propertyOfferShippingDetailsWidth = Property "width"
 
-propertyMediaObjectWidth ::
-  Property MediaObject '[Distance, QuantitativeValue]
-propertyMediaObjectWidth = Property "width"
+propertyProductWidth ::
+  Property Product '[Distance, QuantitativeValue]
+propertyProductWidth = Property "width"
 
 propertyShippingConditionsWidth ::
   Property ShippingConditions '[Distance, QuantitativeValue]
 propertyShippingConditionsWidth = Property "width"
+
+propertyVisualArtworkWidth ::
+  Property VisualArtwork '[Distance, QuantitativeValue]
+propertyVisualArtworkWidth = Property "width"
 
 propertyLoseActionWinner :: Property LoseAction '[Person]
 propertyLoseActionWinner = Property "winner"
@@ -19523,7 +20082,7 @@ propertyExercisePlanWorkload = Property "workload"
 propertyPersonWorksFor :: Property Person '[Organization]
 propertyPersonWorksFor = Property "worksFor"
 
-propertyRatingWorstRating :: Property Rating '[Text, Number]
+propertyRatingWorstRating :: Property Rating '[Number, Text]
 propertyRatingWorstRating = Property "worstRating"
 
 propertySpeakableSpecificationXpath ::

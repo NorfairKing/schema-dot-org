@@ -59,3 +59,21 @@ executable schema-dot-org-generator
       base >=4.7 && <5
     , schema-dot-org-generator
   default-language: Haskell2010
+
+test-suite schema-dot-org-generator-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      SchemaDotOrg.Generator.SchemaSpec
+      Paths_schema_dot_org_generator
+  hs-source-dirs:
+      test/
+  ghc-options: -Wall -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wunused-packages -threaded -rtsopts -with-rtsopts=-N -Wall
+  build-tool-depends:
+      sydtest-discover:sydtest-discover
+  build-depends:
+      aeson
+    , base >=4.7 && <5
+    , schema-dot-org-generator
+    , sydtest
+  default-language: Haskell2010

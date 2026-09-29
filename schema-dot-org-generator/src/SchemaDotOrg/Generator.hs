@@ -24,7 +24,7 @@ schemaDotOrgGenerator = do
   schemaMap <- case JSON.eitherDecode' (LB.fromStrict schemaFileContents) of
     Left err -> die err
     Right allSchemas -> do
-      let schemaMap = M.fromList (map (\s -> (schemaId s, s)) (allSchemasGraph allSchemas))
+      let schemaMap = M.fromList (map (\s -> (schemaId s, s)) (graphEntrySchemas (allSchemasGraph allSchemas)))
 
       pure schemaMap
 

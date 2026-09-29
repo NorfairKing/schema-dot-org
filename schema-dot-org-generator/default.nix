@@ -1,7 +1,7 @@
 { mkDerivation, aeson, autodocodec, autodocodec-yaml, base
 , bytestring, containers, envparse, ghc, ghc-paths, ghc-source-gen
-, graphviz, lib, optparse-applicative, path, path-io, text
-, typed-process, yaml
+, graphviz, lib, optparse-applicative, path, path-io, sydtest
+, sydtest-discover, text, typed-process, yaml
 }:
 mkDerivation {
   pname = "schema-dot-org-generator";
@@ -15,6 +15,8 @@ mkDerivation {
     path path-io text typed-process yaml
   ];
   executableHaskellDepends = [ base ];
+  testHaskellDepends = [ aeson base sydtest ];
+  testToolDepends = [ sydtest-discover ];
   homepage = "https://github.com/NorfairKing/schema-dot-org#readme";
   license = "unknown";
   mainProgram = "schema-dot-org-generator";

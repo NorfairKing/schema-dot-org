@@ -14,11 +14,12 @@ import Data.Set (Set)
 import qualified Data.Set as S
 import Data.String
 import Data.Text (Text)
+import qualified Data.Text as T
 import GHC.Generics (Generic)
 
 data AllSchemas = AllSchemas
   { allSchemasContext :: JSON.Value,
-    allSchemasGraph :: [Schema]
+    allSchemasGraph :: [GraphEntry]
   }
   deriving stock (Show, Eq, Generic)
   deriving (FromJSON, ToJSON) via (Autodocodec AllSchemas)
@@ -29,6 +30,52 @@ instance HasCodec AllSchemas where
       AllSchemas
         <$> requiredField' "@context" .= allSchemasContext
         <*> requiredField' "@graph" .= allSchemasGraph
+
+-- | An entry of the vocabulary graph.
+data GraphEntry
+  = -- | A term that schema.org defines itself.
+    GraphEntrySchema !Schema
+  | -- | A term of another vocabulary that schema.org's own terms refer to.
+    --
+    -- schema.org lists these so that the references to them resolve, but gives
+    -- them nothing beyond an identifier, so there is nothing to generate from
+    -- them.
+    GraphEntryForeignTerm !Text
+  deriving stock (Show, Eq, Generic)
+
+instance HasCodec GraphEntry where
+  codec =
+    dimapCodec f g $
+      eitherCodec codec foreignTermCodec
+    where
+      f = \case
+        Left s -> GraphEntrySchema s
+        Right t -> GraphEntryForeignTerm t
+      g = \case
+        GraphEntrySchema s -> Left s
+        GraphEntryForeignTerm t -> Right t
+
+-- | Reject schema.org's own namespace, so that a term of it that fails to
+-- parse as a 'Schema' is reported rather than quietly taken for a foreign one.
+foreignTermCodec :: JSONCodec Text
+foreignTermCodec =
+  bimapCodec notSchemaDotOrg id $
+    object "ForeignTerm" $
+      requiredField' "@id"
+  where
+    notSchemaDotOrg :: Text -> Either String Text
+    notSchemaDotOrg i =
+      if schemaDotOrgNamespace `T.isPrefixOf` i
+        then Left (unwords ["Not a foreign term:", show i])
+        else Right i
+
+schemaDotOrgNamespace :: Text
+schemaDotOrgNamespace = "schema:"
+
+graphEntrySchemas :: [GraphEntry] -> [Schema]
+graphEntrySchemas = mapMaybe $ \case
+  GraphEntrySchema s -> Just s
+  GraphEntryForeignTerm _ -> Nothing
 
 filterDoubleEdgesMapByRelevantSchemaEdgeTypes :: DoubleEdgesMap -> Set SchemaEdgeType -> DoubleEdgesMap
 filterDoubleEdgesMapByRelevantSchemaEdgeTypes dem relevantSchemaEdgeTypes =
