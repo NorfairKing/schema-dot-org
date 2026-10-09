@@ -43,6 +43,7 @@ tests:
     dependencies:
     - aeson
     - bytestring
+    - path
     - schema-dot-org-jsonld
     - sydtest
     - sydtest-aeson
